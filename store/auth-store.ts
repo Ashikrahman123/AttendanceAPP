@@ -62,8 +62,7 @@ export const useAuthStore = create<AuthState>()(
           // Reset the state
           set({ user: null, isAuthenticated: false, isLoading: false, error: null });
           
-          // Clear all session data
-          // We need to preserve the theme settings, so we don't use AsyncStorage.clear()
+          // Clear all session data except theme
           const keys = await AsyncStorage.getAllKeys();
           const keysToRemove = keys.filter(key => 
             key !== 'theme-storage' && 

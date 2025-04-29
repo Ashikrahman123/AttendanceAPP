@@ -8,6 +8,7 @@ interface ThemeState {
   systemTheme: ColorSchemeName;
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
   setSystemTheme: (theme: ColorSchemeName) => void;
+  toggleTheme: () => void;
   isDarkMode: boolean;
 }
 
@@ -23,6 +24,12 @@ export const useThemeStore = create<ThemeState>()(
       
       setSystemTheme: (systemTheme) => {
         set({ systemTheme });
+      },
+      
+      toggleTheme: () => {
+        const currentTheme = get().theme;
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        set({ theme: newTheme });
       },
       
       get isDarkMode() {

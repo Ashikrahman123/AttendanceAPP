@@ -38,9 +38,11 @@ import {
   FileCheck,
   Download,
   Share2,
+  RefreshCw,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import UserAvatar from '@/components/UserAvatar';
 import Button from '@/components/Button';
 import Input from '@/components/Input';
@@ -52,21 +54,34 @@ import { formatHours } from '@/utils/date-formatter';
 import { AppSettings, WorkingHoursSettings, LeaveRequest } from '@/types/user';
 import { useThemeStore } from '@/store/theme-store';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { registerFace, getRegisteredFace } from '@/utils/face-recognition';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 
 export default function ProfileScreen() {
   const colors = useColors();
   const { user, logout, updateUser } = useAuthStore();
   const { records, summaries } = useAttendanceStore();
   const { fetchLeaveBalance, fetchLeaveRequests, submitLeaveRequest } = useLeaveStore();
-  const { theme, setTheme, isDarkMode } = useThemeStore();
+  const { theme, setTheme, isDarkMode, toggleTheme } = useThemeStore();
   
   const [showWorkingHoursModal, setShowWorkingHoursModal] = useState(false);
   const [showLeaveManagementModal, setShowLeaveManagementModal] = useState(false);
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showFaceRegistrationModal, setShowFaceRegistrationModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState({ annual: 0, sick: 0, personal: 0 });
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [registeredFace, setRegisteredFace] = useState<string | null>(null);
+  
+  // Camera state
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState<CameraType>('front');
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  
+  // Camera ref
+  const cameraRef = React.useRef<any>(null);
   
   // Working hours settings
   const [workingHours, setWorkingHours] = useState<WorkingHoursSettings>({
@@ -95,8 +110,17 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (user) {
       loadLeaveData();
+      checkRegisteredFace();
     }
   }, [user]);
+  
+  useEffect(() => {
+    // Update app settings when theme changes
+    setAppSettings(prev => ({
+      ...prev,
+      theme: theme
+    }));
+  }, [theme]);
   
   const loadLeaveData = async () => {
     if (!user) return;
@@ -118,6 +142,17 @@ export default function ProfileScreen() {
       console.error('Error loading leave data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  const checkRegisteredFace = async () => {
+    if (!user) return;
+    
+    try {
+      const faceData = await getRegisteredFace(user.id);
+      setRegisteredFace(faceData);
+    } catch (error) {
+      console.error('Error checking registered face:', error);
     }
   };
   
@@ -151,10 +186,10 @@ export default function ProfileScreen() {
             }
             try {
               await logout();
+              // Router will handle navigation in the auth store
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('Error', 'Failed to log out. Please try again.');
-            } finally {
               setIsLoading(false);
             }
           },
@@ -243,6 +278,72 @@ export default function ProfileScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  const handleCaptureFace = async () => {
+    if (!cameraRef.current || !cameraReady) {
+      Alert.alert('Error', 'Camera is not ready. Please try again.');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: true,
+      });
+      
+      setCapturedImage(photo.uri);
+      
+      // Register the face
+      const success = await registerFace(photo.uri, user.id);
+      
+      if (success) {
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+        
+        Alert.alert(
+          'Face Registered',
+          'Your face has been successfully registered for verification.',
+          [{ 
+            text: 'OK',
+            onPress: () => {
+              setShowFaceRegistrationModal(false);
+              checkRegisteredFace();
+            }
+          }]
+        );
+      } else {
+        throw new Error('Failed to register face');
+      }
+    } catch (error) {
+      console.error('Error capturing face:', error);
+      
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+      
+      Alert.alert(
+        'Registration Failed',
+        'Failed to register your face. Please try again.',
+        [{ 
+          text: 'OK',
+          onPress: () => setCapturedImage(null)
+        }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleRetakeFace = () => {
+    setCapturedImage(null);
   };
   
   const formatDate = (date: Date) => {
@@ -410,6 +511,29 @@ export default function ProfileScreen() {
                 <Text style={[styles.settingsText, { color: colors.text }]}>Attendance Reports</Text>
               </View>
               <ChevronRight size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+            
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            
+            <TouchableOpacity 
+              style={styles.settingsItem}
+              onPress={() => setShowFaceRegistrationModal(true)}
+            >
+              <View style={styles.settingsLeft}>
+                <View style={[styles.settingsIcon, { backgroundColor: colors.warning + '30' }]}>
+                  <Camera size={20} color={colors.warning} />
+                </View>
+                <Text style={[styles.settingsText, { color: colors.text }]}>
+                  {registeredFace ? 'Update Face ID' : 'Register Face ID'}
+                </Text>
+              </View>
+              {registeredFace ? (
+                <View style={[styles.registeredBadge, { backgroundColor: colors.success + '20' }]}>
+                  <Text style={[styles.registeredBadgeText, { color: colors.success }]}>Registered</Text>
+                </View>
+              ) : (
+                <ChevronRight size={20} color={colors.textSecondary} />
+              )}
             </TouchableOpacity>
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -965,15 +1089,16 @@ export default function ProfileScreen() {
                     <Text style={[styles.settingLabel, { color: colors.text }]}>Dark Mode</Text>
                   </View>
                   <Switch
-                    value={appSettings.theme === 'dark'}
-                    onValueChange={(value) => 
+                    value={isDarkMode}
+                    onValueChange={(value) => {
+                      toggleTheme();
                       setAppSettings({
                         ...appSettings, 
                         theme: value ? 'dark' : 'light'
-                      })
-                    }
+                      });
+                    }}
                     trackColor={{ false: '#D1D5DB', true: colors.primaryLight }}
-                    thumbColor={appSettings.theme === 'dark' ? colors.primary : '#FFFFFF'}
+                    thumbColor={isDarkMode ? colors.primary : '#FFFFFF'}
                   />
                 </View>
                 
@@ -1042,6 +1167,122 @@ export default function ProfileScreen() {
                 onPress={handleSaveAppSettings}
                 icon={<Save size={20} color="#FFFFFF" />}
               />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Face Registration Modal */}
+      <Modal
+        visible={showFaceRegistrationModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFaceRegistrationModal(false)}
+      >
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+          <View style={[styles.modalContent, { 
+            backgroundColor: colors.background,
+            height: capturedImage ? '70%' : '80%',
+            width: '90%',
+          }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {registeredFace ? 'Update Face ID' : 'Register Face ID'}
+              </Text>
+              <TouchableOpacity 
+                style={[styles.closeButton, { backgroundColor: colors.cardAlt }]}
+                onPress={() => {
+                  setCapturedImage(null);
+                  setShowFaceRegistrationModal(false);
+                }}
+              >
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.faceRegistrationContainer}>
+              {!capturedImage ? (
+                <>
+                  {cameraPermission?.granted ? (
+                    <View style={styles.cameraContainer}>
+                      <CameraView
+                        style={styles.faceCamera}
+                        facing={cameraFacing}
+                        ref={cameraRef}
+                        onCameraReady={() => setCameraReady(true)}
+                      >
+                        <View style={styles.faceCameraOverlay}>
+                          <View style={styles.faceGuide}>
+                            <View style={styles.faceGuideInner} />
+                          </View>
+                        </View>
+                      </CameraView>
+                      
+                      <View style={styles.cameraControls}>
+                        <TouchableOpacity
+                          style={[styles.flipCameraButton, { backgroundColor: colors.cardAlt }]}
+                          onPress={() => setCameraFacing(current => current === 'front' ? 'back' : 'front')}
+                        >
+                          <RefreshCw size={20} color={colors.text} />
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity
+                          style={[styles.captureFaceButton, { 
+                            backgroundColor: colors.primary,
+                            opacity: cameraReady ? 1 : 0.5,
+                          }]}
+                          onPress={handleCaptureFace}
+                          disabled={!cameraReady}
+                        >
+                          <Camera size={24} color="#FFFFFF" />
+                        </TouchableOpacity>
+                      </View>
+                      
+                      <Text style={[styles.cameraInstructions, { color: colors.text }]}>
+                        Position your face within the frame and ensure good lighting
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.cameraPermissionContainer}>
+                      <Camera size={64} color={colors.textSecondary} />
+                      <Text style={[styles.cameraPermissionTitle, { color: colors.text }]}>
+                        Camera Access Required
+                      </Text>
+                      <Text style={[styles.cameraPermissionText, { color: colors.textSecondary }]}>
+                        We need camera permission to register your face for verification.
+                      </Text>
+                      <Button
+                        title="Grant Permission"
+                        onPress={requestCameraPermission}
+                        style={styles.cameraPermissionButton}
+                      />
+                    </View>
+                  )}
+                </>
+              ) : (
+                <View style={styles.capturedFaceContainer}>
+                  <Image
+                    source={{ uri: capturedImage }}
+                    style={styles.capturedFaceImage}
+                    resizeMode="cover"
+                  />
+                  
+                  <View style={styles.capturedFaceControls}>
+                    <Button
+                      title="Use This Photo"
+                      onPress={handleCaptureFace}
+                      style={styles.useFaceButton}
+                    />
+                    
+                    <Button
+                      title="Retake"
+                      variant="outline"
+                      onPress={handleRetakeFace}
+                      style={styles.retakeFaceButton}
+                    />
+                  </View>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -1179,6 +1420,15 @@ const styles = StyleSheet.create({
   },
   settingsText: {
     fontSize: 16,
+  },
+  registeredBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  registeredBadgeText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   logoutContainer: {
     padding: 20,
@@ -1487,5 +1737,116 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Face registration styles
+  faceRegistrationContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faceCamera: {
+    width: '100%',
+    aspectRatio: 3/4,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  faceCameraOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  faceGuide: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  faceGuideInner: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderStyle: 'dashed',
+  },
+  cameraControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    width: '100%',
+  },
+  flipCameraButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 20,
+  },
+  captureFaceButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraInstructions: {
+    marginTop: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  cameraPermissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  cameraPermissionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  cameraPermissionText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  cameraPermissionButton: {
+    width: '80%',
+  },
+  capturedFaceContainer: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  capturedFaceImage: {
+    width: '100%',
+    aspectRatio: 3/4,
+    borderRadius: 12,
+  },
+  capturedFaceControls: {
+    flexDirection: 'column',
+    width: '100%',
+    marginTop: 20,
+    gap: 12,
+  },
+  useFaceButton: {
+    width: '100%',
+  },
+  retakeFaceButton: {
+    width: '100%',
   },
 });

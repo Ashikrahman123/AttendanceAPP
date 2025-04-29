@@ -23,10 +23,11 @@ import FaceDetectionOverlay from '@/components/FaceDetectionOverlay';
 import { useColors } from '@/hooks/useColors';
 import { useAuthStore } from '@/store/auth-store';
 import { useAttendanceStore } from '@/store/attendance-store';
-import { verifyFace } from '@/utils/face-recognition';
+import { verifyFace, getRegisteredFace } from '@/utils/face-recognition';
 import { AttendanceType } from '@/types/user';
 import * as FileSystem from 'expo-file-system';
 import { useThemeStore } from '@/store/theme-store';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,6 +47,7 @@ export default function FaceVerificationScreen() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [registeredFace, setRegisteredFace] = useState<string | null>(null);
   
   // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
@@ -76,7 +78,23 @@ export default function FaceVerificationScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+    
+    // Load registered face if user exists
+    if (user) {
+      loadRegisteredFace();
+    }
   }, []);
+  
+  const loadRegisteredFace = async () => {
+    if (!user) return;
+    
+    try {
+      const faceData = await getRegisteredFace(user.id);
+      setRegisteredFace(faceData);
+    } catch (error) {
+      console.error('Error loading registered face:', error);
+    }
+  };
   
   useEffect(() => {
     // If permission is denied, show alert and go back
@@ -134,8 +152,26 @@ export default function FaceVerificationScreen() {
       setIsCapturing(false);
       setIsProcessing(true);
       
-      // Simulate face verification
-      const isVerificationSuccessful = await verifyFace(imageUri, user.faceData);
+      // Get base64 data
+      let base64Image = photo.base64;
+      
+      // If base64 wasn't included in the photo, read it from the file
+      if (!base64Image && Platform.OS !== 'web') {
+        try {
+          base64Image = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+        } catch (error) {
+          console.error('Error reading image as base64:', error);
+        }
+      }
+      
+      // Prepare the image data for storage
+      const imageData = base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined;
+      
+      // Verify face against registered face or user's face data
+      const faceToCompare = registeredFace || user.faceData;
+      const isVerificationSuccessful = await verifyFace(imageUri, faceToCompare);
       
       // Update state based on verification result
       setIsVerified(isVerificationSuccessful);
@@ -145,27 +181,13 @@ export default function FaceVerificationScreen() {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
         
-        // Get base64 data
-        let base64Image = photo.base64;
-        
-        // If base64 wasn't included in the photo, read it from the file
-        if (!base64Image && Platform.OS !== 'web') {
-          try {
-            base64Image = await FileSystem.readAsStringAsync(imageUri, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-          } catch (error) {
-            console.error('Error reading image as base64:', error);
-          }
-        }
-        
         // Record attendance with the image data
         await addAttendanceRecord({
           userId: user.id,
           userName: user.name,
           type: type,
           verified: true,
-          imageData: base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined,
+          imageData: imageData,
         });
         
         // Animate success
@@ -201,6 +223,7 @@ export default function FaceVerificationScreen() {
                   userName: user.name,
                   type: type,
                   verified: false,
+                  imageData: imageData,
                 });
                 router.replace('/(tabs)');
               } 
@@ -282,10 +305,7 @@ export default function FaceVerificationScreen() {
   if (!permission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading camera...</Text>
-        </View>
+        <LoadingOverlay visible={true} message="Loading camera..." />
       </SafeAreaView>
     );
   }
@@ -495,6 +515,8 @@ export default function FaceVerificationScreen() {
           </View>
         </View>
       )}
+      
+      <LoadingOverlay visible={isProcessing && !capturedImage} message="Processing..." transparent={true} />
     </View>
   );
 }

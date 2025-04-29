@@ -224,7 +224,7 @@ export default function LoginScreen() {
               <View style={styles.demoButtons}>
                 <TouchableOpacity 
                   style={styles.demoButton}
-                  onPress={() => handleDemoLogin('admin@example.com')}
+                  onPress={() => handleDemoLogin('ashik@example.com')}
                 >
                   <LinearGradient
                     colors={[Colors.primaryLight, Colors.primary]}
@@ -238,7 +238,7 @@ export default function LoginScreen() {
                 
                 <TouchableOpacity 
                   style={styles.demoButton}
-                  onPress={() => handleDemoLogin('john@example.com')}
+                  onPress={() => handleDemoLogin('shankar@example.com')}
                 >
                   <LinearGradient
                     colors={[Colors.secondaryLight, Colors.secondary]}
