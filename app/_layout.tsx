@@ -8,6 +8,7 @@ import { View } from "react-native";
 import { useBaseUrl } from '@/context/BaseUrlContext';
 import { BaseUrlProvider } from '@/context/BaseUrlContext';
 import ThemeProvider from "@/components/ThemeProvider";
+import { useAuthStore } from '@/store/auth-store';
 import CustomSplashScreen from "@/components/SplashScreen";
 import { useThemeStore } from "@/store/theme-store";
 
