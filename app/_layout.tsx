@@ -1,24 +1,30 @@
+
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useBaseUrl } from '@/context/BaseUrlContext';
 import { BaseUrlProvider } from '@/context/BaseUrlContext';
 import ThemeProvider from "@/components/ThemeProvider";
-import LoadingOverlay from "@/components/LoadingOverlay";
-import { StatusBar } from "expo-status-bar";
+import CustomSplashScreen from "@/components/SplashScreen";
 import { useThemeStore } from "@/store/theme-store";
-
-SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
   const { baseUrl, isLoading } = useBaseUrl();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
+  const [showSplash, setShowSplash] = useState(true);
+
+  console.log('Navigation state:', { baseUrl, isLoading, showSplash });
+
+  if (showSplash) {
+    return <CustomSplashScreen onFinish={() => setShowSplash(false)} />;
+  }
 
   if (isLoading) {
-    return <LoadingOverlay visible={true} message="Loading configuration..." />;
+    console.log('Loading base URL configuration...');
+    return null;
   }
 
   return (
@@ -51,13 +57,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (error) throw error;
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
+  }, [error]);
 
   if (!loaded) {
-    return <View />;
+    return null;
   }
 
   return (

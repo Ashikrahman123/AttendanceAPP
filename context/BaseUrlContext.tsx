@@ -8,6 +8,7 @@ interface BaseUrlContextType {
   isLoading: boolean;
 }
 
+const BASE_URL_KEY = 'baseUrl';
 const BaseUrlContext = createContext<BaseUrlContextType>({
   baseUrl: null,
   setBaseUrl: async () => {},
@@ -24,7 +25,9 @@ export function BaseUrlProvider({ children }: { children: React.ReactNode }) {
 
   const loadBaseUrl = async () => {
     try {
-      const storedUrl = await AsyncStorage.getItem('baseUrl');
+      console.log('Loading base URL from storage');
+      const storedUrl = await AsyncStorage.getItem(BASE_URL_KEY);
+      console.log('Stored base URL:', storedUrl);
       setBaseUrlState(storedUrl);
     } catch (error) {
       console.error('Failed to load base URL:', error);
@@ -33,10 +36,27 @@ export function BaseUrlProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setBaseUrl = async (url: string) => {
+  const validateUrl = (url: string) => {
     try {
-      await AsyncStorage.setItem('baseUrl', url);
-      setBaseUrlState(url);
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  const setBaseUrl = async (url: string) => {
+    console.log('Setting base URL:', url);
+    if (!validateUrl(url)) {
+      console.error('Invalid URL format');
+      throw new Error('Invalid URL format. URL must start with https://');
+    }
+
+    try {
+      const formattedUrl = url.endsWith('/') ? url : `${url}/`;
+      await AsyncStorage.setItem(BASE_URL_KEY, formattedUrl);
+      console.log('Base URL saved successfully');
+      setBaseUrlState(formattedUrl);
     } catch (error) {
       console.error('Failed to save base URL:', error);
       throw error;
