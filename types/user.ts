@@ -1,13 +1,11 @@
 export type UserRole = 'admin' | 'employee';
 
 export interface User {
-  id: string;
-  name: string;
+  id: number;
   email: string;
-  role: UserRole;
-  faceData?: string; // Base64 encoded face data
-  profileImage?: string; // Base64 encoded profile image
-  regularHours?: number; // Regular working hours per day (default: 8)
+  orgId: number;
+  orgName: string;
+  contactRecordId: number;
 }
 
 export type AttendanceType = 'check-in' | 'break-start' | 'break-end' | 'check-out';
