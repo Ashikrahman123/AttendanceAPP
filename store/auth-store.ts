@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>()(
           // Clear bearer token
           await AsyncStorage.removeItem('bearerToken');
           
-          // Clear all session data except theme
+          // Clear all session data except theme and baseUrl
           const keys = await AsyncStorage.getAllKeys();
           const keysToRemove = keys.filter(key => 
             key !== 'theme-storage' && 
@@ -97,6 +97,7 @@ export const useAuthStore = create<AuthState>()(
             await AsyncStorage.multiRemove(keysToRemove);
           }
           
+          // Reset the store state
           set({ 
             user: null,
             bearerToken: null,
@@ -104,6 +105,11 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null
           });
+
+          // Force app reload to show splash screen
+          if (Platform.OS === 'web') {
+            window.location.reload();
+          }
         } catch (error) {
           console.error('Logout error:', error);
           set({ isLoading: false });

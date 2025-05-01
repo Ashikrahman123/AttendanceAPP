@@ -18,13 +18,19 @@ function RootLayoutNav() {
 
   console.log('Navigation state:', { baseUrl, isLoading, showSplash });
 
-  if (showSplash) {
-    return <CustomSplashScreen onFinish={() => setShowSplash(false)} />;
-  }
+  useEffect(() => {
+    // Ensure splash screen shows for at least 2 seconds
+    if (!showSplash) return;
+    
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
 
-  if (isLoading) {
-    console.log('Loading base URL configuration...');
-    return null;
+    return () => clearTimeout(timer);
+  }, [showSplash]);
+
+  if (showSplash || isLoading) {
+    return <CustomSplashScreen onFinish={() => {}} />;
   }
 
   return (
