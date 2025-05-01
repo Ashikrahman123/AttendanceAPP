@@ -18,16 +18,22 @@ function RootLayoutNav() {
 
   console.log('Navigation state:', { baseUrl, isLoading, showSplash });
 
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   useEffect(() => {
     // Ensure splash screen shows for at least 2 seconds
     if (!showSplash) return;
     
     const timer = setTimeout(() => {
       setShowSplash(false);
+      // Navigate based on authentication state after splash screen
+      if (!isAuthenticated && baseUrl) {
+        router.replace('/(auth)/login');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [showSplash]);
+  }, [showSplash, isAuthenticated, baseUrl]);
 
   if (showSplash || isLoading) {
     return <CustomSplashScreen onFinish={() => {}} />;

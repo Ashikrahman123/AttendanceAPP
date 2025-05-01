@@ -106,10 +106,13 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null
           });
-
+          
           // Force app reload to show splash screen
           if (Platform.OS === 'web') {
             window.location.reload();
+          } else {
+            // For native platforms, trigger a splash screen show
+            router.replace('/');
           }
         } catch (error) {
           console.error('Logout error:', error);
