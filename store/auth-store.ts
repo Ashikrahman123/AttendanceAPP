@@ -29,7 +29,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         
         try {
-          const { baseUrl } = useBaseUrl.getState();
+          // Get base URL from AsyncStorage directly
+          const baseUrl = await AsyncStorage.getItem('baseUrl');
           if (!baseUrl) throw new Error('Base URL not configured');
 
           const response = await fetch(`${baseUrl}MiddleWare/MobileAppLogin`, {
