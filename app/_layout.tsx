@@ -3,19 +3,20 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { Platform, useColorScheme } from "react-native";
 import { ErrorBoundary } from "./error-boundary";
 import { useAuthStore } from "@/store/auth-store";
 import CustomSplashScreen from "@/components/SplashScreen";
 import ThemeProvider from "@/components/ThemeProvider";
 import { StatusBar } from "expo-status-bar";
 import { useThemeStore } from "@/store/theme-store";
+import { useBaseUrl } from '@/context/BaseUrlContext';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 export const unstable_settings = {
-  initialRouteName: "(auth)",
+  initialRouteName: "index", // Start with index page
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -23,43 +24,44 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
   const [showSplash, setShowSplash] = useState(true);
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
   useEffect(() => {
-    if (error) {
-      console.error(error);
-      throw error;
-    }
+    if (error) throw error;
   }, [error]);
 
   useEffect(() => {
     if (loaded) {
+      // Hide native splash screen
       SplashScreen.hideAsync();
+      // Hide custom splash after a delay
+      setTimeout(() => setShowSplash(false), 500);
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
+  if (!loaded || showSplash) {
+    return <CustomSplashScreen onFinish={() => setShowSplash(false)} />;
   }
 
   return (
     <ErrorBoundary>
       <ThemeProvider>
         <StatusBar style={isDarkMode ? "light" : "dark"} />
-        {showSplash ? (
-          <CustomSplashScreen onFinish={() => setShowSplash(false)} />
-        ) : (
-          <RootLayoutNav />
-        )}
+        <RootLayoutNav />
       </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
 function RootLayoutNav() {
+  const { baseUrl, isLoading } = useBaseUrl();
+  const [loadingMessage, setLoadingMessage] = useState('Loading configuration...');
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
+
+  if (isLoading) {
+    return <LoadingOverlay visible={true} message="Loading configuration..." />;
+  }
 
   return (
     <Stack 
@@ -70,26 +72,22 @@ function RootLayoutNav() {
         }
       }}
     >
-      {isAuthenticated ? (
+      {!baseUrl ? (
+        <Stack.Screen name="baseurl" />
+      ) : (
         <>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen 
             name="face-verification" 
-            options={{ 
-              presentation: 'fullScreenModal',
-              animation: 'fade',
-            }} 
+            options={{ presentation: 'fullScreenModal' }} 
           />
           <Stack.Screen 
             name="attendance-details" 
-            options={{ 
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }} 
+            options={{ presentation: 'modal' }} 
           />
         </>
-      ) : (
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       )}
     </Stack>
   );
