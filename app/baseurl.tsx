@@ -1,46 +1,51 @@
-import { useState, useEffect } from 'react';
-import { View, TextInput, Button, Alert } from 'react-native';
-import { useBaseUrl } from '../context/BaseUrlContext';
-import { Link, router } from 'expo-router';
+
+import { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useBaseUrl } from '@/context/BaseUrlContext';
+import { router } from 'expo-router';
+import Input from '@/components/Input';
+import Button from '@/components/Button';
 
 export default function BaseUrlScreen() {
   const [url, setUrl] = useState('');
-  const { baseUrl, setBaseUrl, isLoading } = useBaseUrl();
-
-  useEffect(() => {
-    if (baseUrl) {
-      router.replace('/login');
-    }
-  }, [baseUrl]);
+  const { setBaseUrl } = useBaseUrl();
 
   const handleSubmit = async () => {
-    if (!url.trim()) {
-      Alert.alert('Error', 'Please enter a valid base URL');
-      return;
-    }
+    if (!url.trim()) return;
     try {
       await setBaseUrl(url.trim());
-      router.replace('/login');
+      router.replace('/(auth)');
     } catch (error) {
-      Alert.alert('Error', 'Failed to save base URL');
+      console.error('Failed to save base URL:', error);
     }
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-      <TextInput
-        placeholder="Enter Base URL (e.g., https://api.example.com)"
+    <View style={styles.container}>
+      <Input
+        label="Base URL"
+        placeholder="Enter server URL"
         value={url}
         onChangeText={setUrl}
-        style={{ borderWidth: 1, padding: 10, marginBottom: 20 }}
         autoCapitalize="none"
         keyboardType="url"
       />
-      <Button title="Save Base URL" onPress={handleSubmit} />
-      
-      <Link href="/login" style={{ marginTop: 20, textAlign: 'center' }}>
-        Proceed to Login
-      </Link>
+      <Button 
+        title="Save Base URL" 
+        onPress={handleSubmit}
+        style={styles.button}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  button: {
+    marginTop: 20,
+  }
+});
