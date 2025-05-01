@@ -258,7 +258,7 @@ export default function HomeScreen() {
               showBorder
             />
             <View style={styles.userDetails}>
-              <Text style={styles.greeting}>Hello, {user.name.split(' ')[0]}</Text>
+              <Text style={styles.greeting}>Hello, {user?.name ? user.name.split(' ')[0] : 'User'}</Text>
               <Text style={styles.role}>{user.role === 'admin' ? 'Administrator' : 'Employee'}</Text>
             </View>
           </View>
