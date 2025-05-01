@@ -20,18 +20,8 @@ export const BaseUrlProvider = ({ children }: { children: React.ReactNode }) => 
   useEffect(() => {
     const loadBaseUrl = async () => {
       try {
-        // Race AsyncStorage against a timeout
-        const storedUrl = await Promise.race([
-          AsyncStorage.getItem('baseUrl').catch(() => null),
-          new Promise<string | null>((resolve) =>
-            setTimeout(() => resolve(null), 500)
-          )
-        ]);
-        if (storedUrl === null) {
-          setBaseUrl(null); // Explicitly set null if timeout
-        } else {
-          setBaseUrl(storedUrl);
-        }
+        const storedUrl = await AsyncStorage.getItem('baseUrl');
+        setBaseUrl(storedUrl); // This can be null, which is fine
       } catch (error) {
         console.error('Failed to load base URL', error);
         setBaseUrl(null);
