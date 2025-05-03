@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { useBaseUrl } from "@/context/BaseUrlContext";
@@ -25,11 +26,10 @@ export default function BaseUrlScreen() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userName: "admin", // dummy or test user
+          userName: "admin",
           password: "12345",
         }),
       });
-
       const data = await response.json();
       return data?.isSuccess === true;
     } catch (error) {
@@ -58,7 +58,6 @@ export default function BaseUrlScreen() {
         );
         return;
       }
-
       await setBaseUrl(url.trim());
       router.replace("/(auth)");
     } catch (error) {
@@ -69,8 +68,7 @@ export default function BaseUrlScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Input
+    <View style={styles.container}><View style={styles.formContainer}><Input
         label="Base URL"
         placeholder="Enter server URL"
         value={url}
@@ -78,14 +76,12 @@ export default function BaseUrlScreen() {
         autoCapitalize="none"
         keyboardType="url"
         error={url && !validateUrl(url) ? "Please enter a valid URL" : ""}
-      />
-      <Button
+      /><Button
         title="Save Base URL"
         onPress={handleSubmit}
         style={styles.button}
         isLoading={isLoading}
-      />
-    </View>
+      /></View></View>
   );
 }
 
@@ -94,6 +90,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
+    backgroundColor: "#ffffff",
+  },
+  formContainer: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
   },
   button: {
     marginTop: 20,
