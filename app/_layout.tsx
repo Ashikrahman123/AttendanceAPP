@@ -48,8 +48,6 @@ function RootLayoutNav() {
       <Stack.Screen name="baseurl" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="register-face" options={{ presentation: 'modal' }} /> {/* Added RegisterFace route */}
-
     </Stack>
   );
 }

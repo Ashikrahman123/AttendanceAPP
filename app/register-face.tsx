@@ -15,22 +15,21 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
-import { Camera, X, CheckCircle, RefreshCw, Users } from 'lucide-react-native';
+import { Camera, X, CheckCircle, RefreshCw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/Button';
 import FaceDetectionOverlay from '@/components/FaceDetectionOverlay';
 import { useColors } from '@/hooks/useColors';
 import { useAuthStore } from '@/store/auth-store';
-import { useBaseUrl } from '@/context/BaseUrlContext';
+import { registerFace } from '@/utils/face-recognition';
+import { useThemeStore } from '@/store/theme-store';
 import LoadingOverlay from '@/components/LoadingOverlay';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegisterFaceScreen() {
-  const { baseUrl } = useBaseUrl();
   const { user } = useAuthStore();
   const colors = useColors();
-  const { employeeId, employeeName, contactRecordId } = useLocalSearchParams();
-
+  const isDarkMode = useThemeStore(state => state.isDarkMode);
+  
   const [facing, setFacing] = useState<CameraType>('front');
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,17 +37,17 @@ export default function RegisterFaceScreen() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
-
+  
   // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
-
+  
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const successAnim = useRef(new Animated.Value(0)).current;
-
+  
   const cameraRef = useRef<any>(null);
-
+  
   useEffect(() => {
     // Request camera permission if needed
     if (!permission?.granted) {
@@ -70,7 +69,6 @@ export default function RegisterFaceScreen() {
     ]).start();
   }, []);
   
-
   useEffect(() => {
     // If permission is denied, show alert and go back
     if (permission && !permission.granted && !permission.canAskAgain) {
@@ -93,89 +91,103 @@ export default function RegisterFaceScreen() {
     }
   }, [registrationComplete]);
   
-
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'front' ? 'back' : 'front'));
   };
   
-
   const handleCapture = async () => {
-    if (!cameraRef.current) return;
-
+    if (!user || !cameraReady || !cameraRef.current) return;
+    
+    setIsCapturing(true);
+    
     try {
-      setIsCapturing(true);
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.5,
-        base64: true,
-      });
-
-      const token = await AsyncStorage.getItem('bearerToken');
-      const orgId = await AsyncStorage.getItem('orgId');
-      const userId = await AsyncStorage.getItem('userId');
-
-      if (!token || !orgId || !userId) {
-        Alert.alert('Error', 'Authentication data missing');
-        return;
+      // Provide haptic feedback
+      if (Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
-
-      const response = await fetch(`${baseUrl}MiddleWare/Employee_Attendance_Face_Register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          orgId: parseInt(orgId),
-          ContactRecordId: parseInt(contactRecordId as string),
-          FaceData: photo.base64,
-          ModifyUser: parseInt(userId),
-          BearerTokenValue: token
-        })
+      
+      // Capture the image
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: true,
+        exif: false,
       });
-
-      const data = await response.json();
-
-      if (data.isSuccess) {
-        Alert.alert(
-          'Success',
-          'Face registered successfully',
-          [{ text: 'OK', onPress: () => router.back() }]
-        );
-        setIsRegistered(true);
+      
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      
+      // Set the captured image
+      const imageUri = photo.uri;
+      setCapturedImage(imageUri);
+      
+      // Move to processing state
+      setIsCapturing(false);
+      setIsProcessing(true);
+      
+      // Register the face
+      const success = await registerFace(imageUri, user.id);
+      
+      // Update state based on registration result
+      setIsRegistered(success);
+      
+      if (success) {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
+        
+        // Animate success
         Animated.timing(successAnim, {
           toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }).start();
+        
+        // Set registration complete to trigger redirect
         setRegistrationComplete(true);
-
       } else {
-        Alert.alert('Error', data.message || 'Failed to register face');
-        setIsRegistered(false);
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
+        
+        Alert.alert(
+          'Registration Failed',
+          'Failed to register your face. Please try again.',
+          [{ 
+            text: 'OK', 
+            onPress: () => {
+              setCapturedImage(null);
+              setIsProcessing(false);
+            } 
+          }]
+        );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to register face');
-      console.error(error);
-      setIsRegistered(false);
+      console.error('Error capturing image:', error);
+      
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-    } finally {
-      setIsCapturing(false);
-      setIsProcessing(false);
+      
+      Alert.alert(
+        'Error',
+        'Failed to capture image. Please try again.',
+        [{ 
+          text: 'OK', 
+          onPress: () => {
+            setCapturedImage(null);
+            setIsCapturing(false);
+            setIsProcessing(false);
+          } 
+        }]
+      );
     }
   };
-
+  
   const handleCancel = () => {
     router.back();
   };
-
+  
   if (!permission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -183,7 +195,7 @@ export default function RegisterFaceScreen() {
       </SafeAreaView>
     );
   }
-
+  
   if (!permission.granted) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -205,11 +217,11 @@ export default function RegisterFaceScreen() {
       </SafeAreaView>
     );
   }
-
+  
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-
+      
       {!capturedImage ? (
         <>
           <CameraView 
@@ -219,7 +231,7 @@ export default function RegisterFaceScreen() {
             onCameraReady={() => setCameraReady(true)}
           >
             <FaceDetectionOverlay isDetecting={isCapturing} />
-
+            
             <SafeAreaView style={styles.overlay}>
               <Animated.View 
                 style={[
@@ -236,12 +248,12 @@ export default function RegisterFaceScreen() {
                 >
                   <X size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-
+                
                 <View style={styles.headerContent}>
                   <Text style={styles.title}>Register Face ID</Text>
                   <Text style={styles.subtitle}>Position your face in the frame</Text>
                 </View>
-
+                
                 <TouchableOpacity 
                   style={styles.flipButton}
                   onPress={toggleCameraFacing}
@@ -249,7 +261,7 @@ export default function RegisterFaceScreen() {
                   <RefreshCw size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </Animated.View>
-
+              
               <Animated.View 
                 style={[
                   styles.footer,
@@ -277,7 +289,7 @@ export default function RegisterFaceScreen() {
                     )}
                   </TouchableOpacity>
                 </LinearGradient>
-
+                
                 <Text style={styles.captureText}>
                   {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
                 </Text>
@@ -292,7 +304,7 @@ export default function RegisterFaceScreen() {
             style={styles.capturedImage} 
             resizeMode="cover"
           />
-
+          
           <View style={styles.resultOverlay}>
             <SafeAreaView style={styles.resultContent}>
               <Animated.View 
@@ -309,7 +321,7 @@ export default function RegisterFaceScreen() {
                    isRegistered ? 'Registration Successful!' : 'Registration Failed'}
                 </Text>
               </Animated.View>
-
+              
               {isProcessing ? (
                 <View style={styles.processingContainer}>
                   <ActivityIndicator size="large" color="#FFFFFF" />
@@ -375,7 +387,7 @@ export default function RegisterFaceScreen() {
           </View>
         </View>
       )}
-
+      
       <LoadingOverlay visible={isProcessing && !capturedImage} message="Processing..." transparent={true} />
     </View>
   );
@@ -577,18 +589,5 @@ const styles = StyleSheet.create({
   },
   cancelRegisterButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  buttonContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  captureButton: {
-    width: 200,
-  },
-  headerText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });

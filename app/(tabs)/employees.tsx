@@ -9,10 +9,9 @@ import {
   Alert,
   ScrollView,
   Modal,
-  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Users, Search, ChevronRight, X, Clock, Calendar } from 'lucide-react-native';
+import { Users, Search, ChevronRight, X, Clock, Calendar, Camera } from 'lucide-react-native'; // Added Camera import
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserAvatar from '@/components/UserAvatar';
 import Input from '@/components/Input';
@@ -22,7 +21,6 @@ import Colors from '@/constants/colors';
 import { useAuthStore } from '@/store/auth-store';
 import { User } from '@/types/user';
 import { useBaseUrl } from '@/context/BaseUrlContext';
-import { useNavigation } from '@react-navigation/native'; // Assuming React Navigation
 
 export default function EmployeesScreen() {
   console.log('[EmployeesScreen] Rendering');
@@ -32,9 +30,8 @@ export default function EmployeesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const navigation = useNavigation();
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false); // Added modal state
+  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null); // Added selected employee state
 
 
   useEffect(() => {
@@ -109,32 +106,60 @@ export default function EmployeesScreen() {
     employee.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleRegisterFace = async (employee: User) => {
+    // Implement face registration logic here.  This is a placeholder.
+    try {
+      const token = await AsyncStorage.getItem('bearerToken');
+      const orgId = await AsyncStorage.getItem('orgId');
+
+      if (!token || !orgId) {
+        throw new Error('Authentication required.');
+      }
+
+      const faceData = await getFaceData(); // Placeholder for face data capture
+
+      const response = await fetch(`${baseUrl}FaceRegisterApi`, { // Replace with your API endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orgId: parseInt(orgId),
+          ContactRecordId: employee.contactRecordId,
+          FaceData: faceData, // Base64 encoded face data
+          ModifyUser: user?.userName, // Assuming user object has userName
+          BearerTokenValue: token
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Face registration failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Face registration successful:', data);
+      // Update UI or show success message
+
+    } catch (error) {
+      console.error('Face registration error:', error);
+      Alert.alert('Error', 'Face registration failed. Please try again.');
+    } finally {
+      setShowEmployeeModal(false); // Close modal
+    }
+  };
+
+
+  const getFaceData = async () => {
+    // Placeholder for actual face data capture using a library like expo-camera.  Replace with your implementation.
+    // This should capture the image, convert it to base64, and return it.
+    return "base64EncodedImageData";
+  };
+
   if (!user || user.role !== 'admin') {
     console.log('[EmployeesScreen] User not authorized');
     return null;
   }
-
-  const handleEmployeePress = (employee: User) => {
-    setSelectedEmployee(employee);
-    setIsModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedEmployee(null);
-    setIsModalVisible(false);
-  };
-
-  const handleRegisterFace = async () => {
-    if (!selectedEmployee) return;
-    //Navigate to face registration screen.  Replace with actual navigation
-    navigation.navigate('RegisterFace', {
-      employeeId: selectedEmployee.id,
-      employeeName: selectedEmployee.name,
-      contactRecordId: selectedEmployee.contactRecordId,
-    });
-    handleCloseModal();
-  };
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -174,19 +199,24 @@ export default function EmployeesScreen() {
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleEmployeePress(item)} style={styles.employeeCard}>
-              <UserAvatar 
-                name={item.name} 
-                imageUrl={item.profileImage}
-                size={50}
-              />
+            <TouchableOpacity onPress={() => {
+              setSelectedEmployee(item);
+              setShowEmployeeModal(true);
+            }}>
+              <View style={styles.employeeCard}>
+                <UserAvatar 
+                  name={item.name} 
+                  imageUrl={item.profileImage}
+                  size={50}
+                />
 
-              <View style={styles.employeeInfo}>
-                <Text style={styles.employeeName}>{item.name}</Text>
-                <Text style={styles.employeeEmail}>{item.email}</Text>
+                <View style={styles.employeeInfo}>
+                  <Text style={styles.employeeName}>{item.name}</Text>
+                  <Text style={styles.employeeEmail}>{item.email}</Text>
+                </View>
+
+                <ChevronRight size={20} color={Colors.textSecondary} />
               </View>
-
-              <ChevronRight size={20} color={Colors.textSecondary} />
             </TouchableOpacity>
           )}
         />
@@ -200,41 +230,42 @@ export default function EmployeesScreen() {
         />
       )}
 
-      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity onPress={handleCloseModal} style={styles.closeModalButton}>
-              <X size={24} color={Colors.textSecondary} />
-            </TouchableOpacity>
+      {/* Employee Modal */}
+      <Modal
+        visible={showEmployeeModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowEmployeeModal(false)}
+      >
+        <View style={[styles.modalOverlay, { backgroundColor: "rgba(0, 0, 0, 0.5)" }]}>
+          <View style={[styles.modalContent, { backgroundColor: Colors.card }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: Colors.border }]}>
+              <Text style={[styles.modalTitle, { color: Colors.text }]}>Employee Details</Text>
+              <TouchableOpacity
+                style={[styles.closeButton, { backgroundColor: Colors.cardAlt }]}
+                onPress={() => setShowEmployeeModal(false)}
+              >
+                <X size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+
             {selectedEmployee && (
-              <>
-                <Text style={styles.modalTitle}>{selectedEmployee.name}</Text>
-                <View style={styles.modalContent}>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Employee ID:</Text>
-                    <Text style={styles.detailValue}>{selectedEmployee.id}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Organization:</Text>
-                    <Text style={styles.detailValue}>{selectedEmployee.orgName}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Contact ID:</Text>
-                    <Text style={styles.detailValue}>{selectedEmployee.contactRecordId}</Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Email:</Text>
-                    <Text style={styles.detailValue}>{selectedEmployee.email || 'Not provided'}</Text>
-                  </View>
-                </View>
-                <Button
-                  title="Register Face"
-                  onPress={handleRegisterFace}
-                  variant="primary"
-                  icon={<Users size={20} color="#FFFFFF" />}
-                  style={styles.registerFaceButton}
+              <View style={styles.modalBody}>
+                <UserAvatar 
+                  name={selectedEmployee.name} 
+                  imageUrl={selectedEmployee.profileImage}
+                  size={80}
                 />
-              </>
+                <Text style={[styles.employeeName, { color: Colors.text }]}>{selectedEmployee.name}</Text>
+
+                <TouchableOpacity
+                  style={[styles.registerFaceButton, { backgroundColor: Colors.primary }]}
+                  onPress={() => handleRegisterFace(selectedEmployee)}
+                >
+                  <Camera size={24} color="#FFFFFF" />
+                  <Text style={styles.registerFaceButtonText}>Register Face ID</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         </View>
@@ -312,47 +343,46 @@ const styles = StyleSheet.create({
     minWidth: 150,
     marginTop: 12,
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: Colors.card,
     padding: 20,
-    borderRadius: 8,
-    width: '80%',
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
-  closeModalButton: {
-    marginTop: 15,
-    alignSelf: 'flex-end',
+  closeButton: {
+    padding: 8,
+    borderRadius: 4,
+  },
+  modalBody: {
+    alignItems: 'center',
   },
   registerFaceButton: {
-    marginBottom: 20,
-  },
-  modalContent: {
-    marginVertical: 20,
-  },
-  detailRow: {
+    padding: 12,
+    borderRadius: 8,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    alignItems: 'center',
+    marginTop: 20,
   },
-  detailLabel: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  detailValue: {
-    color: Colors.text,
-    fontSize: 14,
-  },
+  registerFaceButtonText: {
+    color: '#FFFFFF',
+    marginLeft: 10,
+    fontSize: 16,
+  }
 });
