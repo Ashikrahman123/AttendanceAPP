@@ -1,12 +1,12 @@
+
 import { Tabs } from "expo-router";
-import { useColorScheme } from "react-native";
 import { Home, History, Users, User } from "lucide-react-native";
 import { useColors } from "@/hooks/useColors";
-import { useThemeStore } from "@/store/theme-store";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function TabLayout() {
   const colors = useColors();
-  const isDarkMode = useThemeStore(state => state.isDarkMode);
+  const isAdmin = useAuthStore(state => state.isAdmin());
 
   return (
     <Tabs
@@ -38,13 +38,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <History size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="employees"
-        options={{
-          title: "Team",
-          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
-        }}
-      />
+      {isAdmin && (
+        <Tabs.Screen
+          name="employees"
+          options={{
+            title: "Team",
+            tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          }}
+        />
+      )}
       <Tabs.Screen
         name="profile"
         options={{
