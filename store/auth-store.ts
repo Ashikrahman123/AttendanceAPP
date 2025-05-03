@@ -28,14 +28,8 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
-      isAdmin: () => {
-        const user = get().user;
-        return user ? user.role === 'admin' : false;
-      },
-      isEmployee: () => {
-        const user = get().user;
-        return user ? user.role === 'employee' : false;
-      },
+      isAdmin: () => get().user?.role === 'admin',
+      isEmployee: () => get().user?.role === 'employee',
 
       login: async (userName: string, password: string) => {
         set({ isLoading: true, error: null });
