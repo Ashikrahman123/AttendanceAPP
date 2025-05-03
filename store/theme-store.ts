@@ -28,8 +28,14 @@ export const useThemeStore = create<ThemeState>()(
 
       toggleTheme: () => {
         const currentTheme = get().theme;
-        const newTheme = currentTheme === "dark" ? "light" : "dark";
-        set({ theme: newTheme });
+        console.log('Current theme:', currentTheme);
+        if (currentTheme === 'system') {
+          set({ theme: 'dark' });
+        } else if (currentTheme === 'dark') {
+          set({ theme: 'light' });
+        } else {
+          set({ theme: 'dark' });
+        }
       },
 
       get isDarkMode() {
