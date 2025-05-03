@@ -209,7 +209,24 @@ export default function EmployeesScreen() {
             {selectedEmployee && (
               <>
                 <Text style={styles.modalTitle}>{selectedEmployee.name}</Text>
-                {/* Add other employee details here */}
+                <View style={styles.modalContent}>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Employee ID:</Text>
+                    <Text style={styles.detailValue}>{selectedEmployee.id}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Organization:</Text>
+                    <Text style={styles.detailValue}>{selectedEmployee.orgName}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Contact ID:</Text>
+                    <Text style={styles.detailValue}>{selectedEmployee.contactRecordId}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Email:</Text>
+                    <Text style={styles.detailValue}>{selectedEmployee.email || 'Not provided'}</Text>
+                  </View>
+                </View>
                 <Button
                   title="Register Face"
                   onPress={handleRegisterFace}
@@ -318,5 +335,24 @@ const styles = StyleSheet.create({
   },
   registerFaceButton: {
     marginBottom: 20,
+  },
+  modalContent: {
+    marginVertical: 20,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  detailLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  detailValue: {
+    color: Colors.text,
+    fontSize: 14,
   },
 });
