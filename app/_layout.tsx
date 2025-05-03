@@ -66,9 +66,17 @@ export default function RootLayout() {
   }
 
   // Initialize React DevTools
-  if (__DEV__) {
-    const DevTools = require('react-devtools');
-    DevTools.connect();
+  if (__DEV__ && typeof window !== 'undefined') {
+    try {
+      import('react-devtools-core').then(({ connectToDevTools }) => {
+        connectToDevTools({
+          host: 'localhost',
+          port: 8097,
+        });
+      });
+    } catch (err) {
+      console.warn('React DevTools connection failed:', err);
+    }
   }
 
   return (
