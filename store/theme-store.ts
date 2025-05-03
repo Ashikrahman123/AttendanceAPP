@@ -1,14 +1,48 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
-import { useColorScheme } from "react-native";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { ColorSchemeName } from "react-native";
 
 interface ThemeState {
-  isDark: boolean;
+  theme: "light" | "dark" | "system";
+  systemTheme: ColorSchemeName;
+  setTheme: (theme: "light" | "dark" | "system") => void;
+  setSystemTheme: (theme: ColorSchemeName) => void;
   toggleTheme: () => void;
-  setTheme: (isDark: boolean) => void;
+  isDarkMode: boolean;
 }
 
-export const useThemeStore = create<ThemeState>((set) => ({
-  isDark: false,
-  toggleTheme: () => set((state) => ({ isDark: !state.isDark })),
-  setTheme: (isDark) => set({ isDark }),
-}));
+export const useThemeStore = create<ThemeState>()(
+  persist(
+    (set, get) => ({
+      theme: "light",
+      systemTheme: "light",
+
+      setTheme: (theme) => {
+        set({ theme });
+      },
+
+      setSystemTheme: (systemTheme) => {
+        set({ systemTheme });
+      },
+
+      toggleTheme: () => {
+        const currentTheme = get().theme;
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        set({ theme: newTheme });
+      },
+
+      get isDarkMode() {
+        const state = get();
+        if (state.theme === "system") {
+          return state.systemTheme === "dark";
+        }
+        return state.theme === "dark";
+      },
+    }),
+    {
+      name: "theme-storage",
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
+);

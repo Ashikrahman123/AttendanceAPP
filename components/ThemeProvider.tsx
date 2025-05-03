@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { useThemeStore } from '@/store/theme-store';
@@ -9,11 +8,11 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const systemColorScheme = useColorScheme();
-  const setTheme = useThemeStore(state => state.setTheme);
+  const setSystemTheme = useThemeStore(state => state.setSystemTheme);
   
   useEffect(() => {
-    setTheme(systemColorScheme === 'dark');
-  }, [systemColorScheme]);
+    setSystemTheme(systemColorScheme);
+  }, [systemColorScheme, setSystemTheme]);
   
   return <>{children}</>;
 }
