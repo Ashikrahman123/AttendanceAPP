@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -7,7 +8,6 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  Modal,
   ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -23,6 +23,7 @@ import { User } from '@/types/user';
 import { useBaseUrl } from '@/context/BaseUrlContext';
 
 export default function EmployeesScreen() {
+  console.log('[EmployeesScreen] Rendering');
   const { baseUrl } = useBaseUrl();
   const user = useAuthStore((state) => state.user);
   const [employees, setEmployees] = useState<User[]>([]);
@@ -31,16 +32,22 @@ export default function EmployeesScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[EmployeesScreen] Initial mount, fetching employees');
     fetchEmployees();
   }, []);
 
   const fetchEmployees = async () => {
+    console.log('[EmployeesScreen] Starting fetchEmployees');
     try {
       const token = await AsyncStorage.getItem('bearerToken');
       const orgId = await AsyncStorage.getItem('orgId');
+      
+      console.log('[EmployeesScreen] Token:', token ? 'Present' : 'Missing');
+      console.log('[EmployeesScreen] OrgId:', orgId);
 
       if (!token || !orgId) {
-        throw new Error('Authentication data missing');
+        console.error('[EmployeesScreen] Auth data missing:', { token: !!token, orgId: !!orgId });
+        throw new Error('Please log in again to continue');
       }
 
       const requestData = {
@@ -51,6 +58,8 @@ export default function EmployeesScreen() {
         BearerTokenValue: token
       };
 
+      console.log('[EmployeesScreen] Making API request with data:', JSON.stringify(requestData));
+      
       const response = await fetch(`${baseUrl}MiddleWare/All_EmployeeList_NewMobileApp?requestData=${JSON.stringify(requestData)}`, {
         method: 'GET',
         headers: {
@@ -60,6 +69,7 @@ export default function EmployeesScreen() {
       });
 
       const data = await response.json();
+      console.log('[EmployeesScreen] API Response:', JSON.stringify(data));
 
       if (data && Array.isArray(data)) {
         const formattedEmployees = data.map((emp: any) => ({
@@ -73,13 +83,16 @@ export default function EmployeesScreen() {
           contactRecordId: emp.contactRecordId || 0,
           profileImage: emp.profileImage || undefined
         }));
+        console.log('[EmployeesScreen] Formatted employees:', formattedEmployees.length);
         setEmployees(formattedEmployees);
       } else {
-        throw new Error('Invalid data format received');
+        throw new Error('Invalid response format');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch employees');
-      Alert.alert('Error', 'Failed to fetch employees list');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch employees';
+      console.error('[EmployeesScreen] Error:', errorMessage);
+      setError(errorMessage);
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -90,7 +103,10 @@ export default function EmployeesScreen() {
     employee.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!user || user.role !== 'admin') return null;
+  if (!user || user.role !== 'admin') {
+    console.log('[EmployeesScreen] User not authorized');
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -112,15 +128,16 @@ export default function EmployeesScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <Text>Loading employees...</Text>
+          <Text style={styles.loadingText}>Loading employees...</Text>
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <Button 
-            title="Retry" 
+            title="Try Again" 
             onPress={fetchEmployees}
             style={styles.retryButton}
+            variant="secondary"
           />
         </View>
       ) : filteredEmployees.length > 0 ? (
@@ -211,13 +228,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   errorText: {
     color: Colors.error,
     marginBottom: 16,
     textAlign: 'center',
+    fontSize: 16,
+  },
+  loadingText: {
+    color: Colors.textSecondary,
+    fontSize: 16,
   },
   retryButton: {
-    minWidth: 120,
+    minWidth: 150,
+    marginTop: 12,
   },
 });
