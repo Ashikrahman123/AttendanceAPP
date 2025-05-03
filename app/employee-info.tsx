@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Camera } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,12 +7,14 @@ import { StatusBar } from 'expo-status-bar';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import { useColors } from '@/hooks/useColors';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
+  const { user } = useAuthStore();
+
   useEffect(() => {
     loadFaceImage();
   }, []);
@@ -26,8 +27,7 @@ export default function EmployeeInfoScreen() {
       console.error('Error loading face image:', error);
     }
   };
-  
-  // Hardcoded employee data for demo
+
   const employeeData = {
     name: params.name as string,
     id: params.id as string,
@@ -48,6 +48,12 @@ export default function EmployeeInfoScreen() {
       }
     });
   };
+
+  // Only allow admins to access this screen
+  if (!user || user.role !== 'admin') {
+    router.replace('/(tabs)');
+    return null;
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
