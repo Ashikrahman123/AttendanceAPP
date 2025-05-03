@@ -65,6 +65,12 @@ export default function RootLayout() {
     return null;
   }
 
+  // Initialize React DevTools
+  if (__DEV__) {
+    const DevTools = require('react-devtools');
+    DevTools.connect();
+  }
+
   return (
     <BaseUrlProvider>
       <ThemeProvider>
