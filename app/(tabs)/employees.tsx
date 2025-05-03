@@ -71,17 +71,17 @@ export default function EmployeesScreen() {
       const data = await response.json();
       console.log('[EmployeesScreen] API Response:', JSON.stringify(data));
 
-      if (data && Array.isArray(data)) {
-        const formattedEmployees = data.map((emp: any) => ({
-          id: emp.id || emp.employeeId,
-          name: emp.name || emp.employeeName,
-          email: emp.email || emp.emailId || '',
+      if (data?.data && Array.isArray(data.data)) {
+        const formattedEmployees = data.data.map((emp: any) => ({
+          id: emp.recordId,
+          name: emp.recordName,
+          email: '', // API doesn't provide email
           role: 'employee',
-          orgId: parseInt(orgId),
-          orgName: emp.organizationName || 'Organization',
-          userName: emp.userName || emp.email,
-          contactRecordId: emp.contactRecordId || 0,
-          profileImage: emp.profileImage || undefined
+          orgId: emp.orgId,
+          orgName: 'Organization',
+          userName: emp.recordName,
+          contactRecordId: emp.recordId,
+          profileImage: undefined
         }));
         console.log('[EmployeesScreen] Formatted employees:', formattedEmployees.length);
         setEmployees(formattedEmployees);
