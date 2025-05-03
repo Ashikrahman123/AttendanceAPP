@@ -1,9 +1,9 @@
+
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Platform } from "react-native";
 import { User } from "@/types/user";
-import { useBaseUrl } from "@/context/BaseUrlContext";
 import { router } from "expo-router";
 
 interface AuthState {
@@ -15,6 +15,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
+  isAdmin: () => boolean;
+  isEmployee: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,6 +28,15 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       error: null,
 
+      isAdmin: () => {
+        const user = get().user;
+        return user ? user.role === 'admin' : false;
+      },
+      isEmployee: () => {
+        const user = get().user;
+        return user ? user.role === 'employee' : false;
+      },
+
       login: async (userName: string, password: string) => {
         set({ isLoading: true, error: null });
 
@@ -33,16 +44,11 @@ export const useAuthStore = create<AuthState>()(
           const baseUrl = await AsyncStorage.getItem("baseUrl");
           if (!baseUrl) throw new Error("Base URL not configured");
 
-          const response = await fetch(
-            `${baseUrl}MiddleWare/NewMobileAppLogin`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ userName, password }),
-            },
-          );
+          const response = await fetch(`${baseUrl}MiddleWare/NewMobileAppLogin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userName, password }),
+          });
 
           const data = await response.json();
 
@@ -50,26 +56,26 @@ export const useAuthStore = create<AuthState>()(
             throw new Error(data.message || "Login failed");
           }
 
+          // Determine role based on userType from API
+          const role = data.userType === 1 ? "admin" : "employee";
+
           const user: User = {
             id: data.userID,
             orgId: data.orgID,
-            orgName: "Digillium Demo 1", // From the token payload
+            orgName: data.organisationName || "Organization",
             userName: userName,
-            contactRecordId: 0,
-            email: "",
-            role: data.role,
-            name: userName,
+            contactRecordId: data.contactRecordId || 0,
+            email: data.email || "",
+            role: role,
+            name: data.name || userName,
           };
 
-          // Store auth data in AsyncStorage
           await AsyncStorage.multiSet([
             ['orgId', data.orgID.toString()],
             ['userId', data.userID.toString()],
             ['bearerToken', data.bearerTokenValue],
-            ['userRole', data.role]
+            ['userRole', role]
           ]);
-
-          await AsyncStorage.setItem("bearerToken", data.bearerTokenValue);
 
           set({
             user,
@@ -78,6 +84,14 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
+
+          // Navigate based on role
+          if (Platform.OS === "web") {
+            router.replace("/(tabs)");
+          } else {
+            router.replace("/(tabs)");
+          }
+
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : "Login failed",
@@ -94,20 +108,13 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
 
         try {
-          // Clear bearer token
-          await AsyncStorage.removeItem("bearerToken");
+          await AsyncStorage.multiRemove([
+            "bearerToken",
+            "userId",
+            "orgId",
+            "userRole"
+          ]);
 
-          // Preserve theme and baseUrl settings
-          const keys = await AsyncStorage.getAllKeys();
-          const keysToPreserve = ["theme-storage", "baseUrl"];
-          const keysToRemove = keys.filter(
-            (key) => !keysToPreserve.includes(key),
-          );
-          if (keysToRemove.length > 0) {
-            await AsyncStorage.multiRemove(keysToRemove);
-          }
-
-          // Reset store state
           set({
             user: null,
             bearerToken: null,
@@ -116,11 +123,10 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
 
-          // Redirect based on platform
           if (Platform.OS === "web") {
-            router.replace("/baseurl"); // ✅ Go to base URL screen
+            router.replace("/baseurl");
           } else {
-            router.replace("/(auth)/login"); // ✅ Go to login screen on mobile
+            router.replace("/(auth)/login");
           }
         } catch (error) {
           console.error("Logout error:", error);
@@ -131,20 +137,15 @@ export const useAuthStore = create<AuthState>()(
 
       updateUser: async (userData: Partial<User>) => {
         const { user } = get();
-
-        if (!user) {
-          throw new Error("No user is logged in");
-        }
+        if (!user) throw new Error("No user is logged in");
 
         set({ isLoading: true });
-
         try {
           const updatedUser = { ...user, ...userData };
           set({ user: updatedUser, isLoading: false });
         } catch (error) {
           set({
-            error:
-              error instanceof Error ? error.message : "Failed to update user",
+            error: error instanceof Error ? error.message : "Failed to update user",
             isLoading: false,
           });
           throw error;
