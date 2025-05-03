@@ -146,7 +146,17 @@ export default function EmployeesScreen() {
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={styles.employeeCard}>
+            <TouchableOpacity 
+              style={styles.employeeCard}
+              onPress={() => router.push({
+                pathname: '/employee-info',
+                params: {
+                  id: item.id,
+                  name: item.name,
+                  contactRecordId: item.contactRecordId
+                }
+              })}
+            >
               <UserAvatar 
                 name={item.name} 
                 imageUrl={item.profileImage}
@@ -159,7 +169,7 @@ export default function EmployeesScreen() {
               </View>
 
               <ChevronRight size={20} color={Colors.textSecondary} />
-            </View>
+            </TouchableOpacity>
           )}
         />
       ) : (
