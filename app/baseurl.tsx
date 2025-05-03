@@ -54,7 +54,7 @@ export default function BaseUrlScreen() {
       if (!isValid) {
         Alert.alert(
           "Error",
-          "Could not connect to server. Please check the URL and try again.",
+          "Could not connect to server. Please check the URL and try again."
         );
         return;
       }
@@ -68,20 +68,25 @@ export default function BaseUrlScreen() {
   };
 
   return (
-    <View style={styles.container}><View style={styles.formContainer}><Input
-        label="Base URL"
-        placeholder="Enter server URL"
-        value={url}
-        onChangeText={setUrl}
-        autoCapitalize="none"
-        keyboardType="url"
-        error={url && !validateUrl(url) ? "Please enter a valid URL" : ""}
-      /><Button
-        title="Save Base URL"
-        onPress={handleSubmit}
-        style={styles.button}
-        isLoading={isLoading}
-      /></View></View>
+    <View style={styles.container}>
+      <View style={styles.formContainer}>
+        <Input
+          label="Base URL"
+          placeholder="Enter server URL"
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          keyboardType="url"
+          error={url && !validateUrl(url) ? "Please enter a valid URL" : ""}
+        />
+        <Button
+          title="Save Base URL"
+          onPress={handleSubmit}
+          style={styles.button}
+          isLoading={isLoading}
+        />
+      </View>
+    </View>
   );
 }
 
