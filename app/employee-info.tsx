@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Camera } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -8,13 +7,27 @@ import { StatusBar } from 'expo-status-bar';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import { useColors } from '@/hooks/useColors';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
-  // Hardcoded employee data for demo
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    loadFaceImage();
+  }, []);
+
+  const loadFaceImage = async () => {
+    try {
+      const faceData = await getRegisteredFace(params.contactRecordId as string);
+      setPreviewImage(faceData);
+    } catch (error) {
+      console.error('Error loading face image:', error);
+    }
+  };
+
   const employeeData = {
     name: params.name as string,
     id: params.id as string,
@@ -35,6 +48,12 @@ export default function EmployeeInfoScreen() {
       }
     });
   };
+
+  // Only allow admins to access this screen
+  if (!user || user.role !== 'admin') {
+    router.replace('/(tabs)');
+    return null;
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -101,6 +120,17 @@ export default function EmployeeInfoScreen() {
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.joinDate}</Text>
           </View>
         </View>
+
+        {previewImage && (
+          <View style={[styles.facePreviewCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.facePreviewTitle, { color: colors.text }]}>Registered Face ID</Text>
+            <Image 
+              source={{ uri: previewImage }}
+              style={styles.facePreviewImage}
+              resizeMode="cover"
+            />
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -179,5 +209,24 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     width: '100%',
+  },
+  facePreviewCard: {
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+  },
+  facePreviewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  facePreviewImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+  },
+  notRegisteredText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
