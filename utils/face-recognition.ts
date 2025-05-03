@@ -53,15 +53,7 @@ async function getBase64FromUri(uri: string): Promise<string | null> {
     }
     
     // For native platforms, use FileSystem
-    const FileSystem = require('expo-file-system');
-    
-    // Check if the file exists
-    const fileInfo = await FileSystem.getInfoAsync(uri);
-    if (!fileInfo.exists) {
-      throw new Error('File does not exist');
-    }
-    
-    // Read the file as base64
+    const { FileSystem } = require('expo-file-system');
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
@@ -115,19 +107,15 @@ async function compareFacesWithReplicate(image1: string, image2: string): Promis
 // Function to register a face
 export async function registerFace(imageUri: string, userId: string): Promise<boolean> {
   try {
-    // If the imageUri is already a base64 string, use it directly
-    const base64Image = imageUri.startsWith('data:image') 
-      ? imageUri 
-      : await getBase64FromUri(imageUri);
+    // Convert image to base64 if it's not already
+    const base64Image = await getBase64FromUri(imageUri);
     
     if (!base64Image) {
       throw new Error('Failed to convert image to base64');
     }
     
     // Store the face data in AsyncStorage
-    const storageKey = `face_data_${userId}`;
-    await AsyncStorage.setItem(storageKey, base64Image);
-    console.log('Face data stored successfully with key:', storageKey);
+    await AsyncStorage.setItem(`face_data_${userId}`, base64Image);
     
     return true;
   } catch (error) {
