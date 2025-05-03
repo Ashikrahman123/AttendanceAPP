@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -11,33 +11,33 @@ import {
   Animated,
   Dimensions,
   Alert,
-} from 'react-native';
-import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Mail, Lock, User, CheckCircle } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import Input from '@/components/Input';
-import Button from '@/components/Button';
-import Colors from '@/constants/colors';
-import { useAuthStore } from '@/store/auth-store';
+} from "react-native";
+import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Mail, Lock, User, CheckCircle } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
+import Colors from "@/constants/colors";
+import { useAuthStore } from "@/store/auth-store";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+  const [userNameError, setUserNameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
-  
+
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
-  
+
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
   const logoScale = React.useRef(new Animated.Value(0.8)).current;
-  
+
   useEffect(() => {
     // Start animations when component mounts
     Animated.parallel([
@@ -56,108 +56,108 @@ export default function LoginScreen() {
         friction: 8,
         tension: 40,
         useNativeDriver: true,
-      })
+      }),
     ]).start();
   }, []);
-  
+
   // Check if user is authenticated and redirect if needed
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     }
   }, [isAuthenticated]);
-  
+
   const validateForm = () => {
     let isValid = true;
-    
+
     // Email validation
-    if (!email) {
-      setEmailError('Email is required');
+    if (!userName) {
+      setUserNameError("Username is required");
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('Please enter a valid email');
+    } else if (userName.length < 3) {
+      setUserNameError("Username must be at least 3 characters");
       isValid = false;
     } else {
-      setEmailError('');
+      setUserNameError("");
     }
-    
+
     // Password validation
     if (!password) {
-      setPasswordError('Password is required');
+      setPasswordError("Password is required");
       isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError('Password must be at least 6 characters');
+    } else if (password.length < 5) {
+      setPasswordError("Password must be at least 5 characters");
       isValid = false;
     } else {
-      setPasswordError('');
+      setPasswordError("");
     }
-    
+
     return isValid;
   };
-  
+
   const handleLogin = async () => {
     if (!validateForm()) return;
-    
-    if (Platform.OS !== 'web') {
+
+    if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    
+
     try {
-      await login(email, password);
+      await login(userName, password);
       setLoginSuccess(true);
-      
+
       // Provide haptic feedback on success
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      
+
       // Router navigation is handled by the useEffect above
     } catch (error) {
-      console.error('Login error:', error);
-      
+      console.error("Login error:", error);
+
       // Provide haptic feedback on error
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     }
   };
-  
-  const handleDemoLogin = async (demoEmail: string) => {
-    if (Platform.OS !== 'web') {
+
+  const handleDemoLogin = async (demoUserName: string) => {
+    if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    
+
     try {
       // Use demo credentials
-      await login(demoEmail, 'password');
+      await login("demoUserName", "password"); // not ashik@example.com
       // Router navigation is handled by the useEffect above
     } catch (error) {
-      console.error('Demo login error:', error);
-      Alert.alert('Login Error', 'Failed to login with demo account. Please try again.');
+      console.error("Demo login error:", error);
+      Alert.alert(
+        "Login Error",
+        "Failed to login with demo account. Please try again.",
+      );
     }
   };
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.header, 
-              { 
+              styles.header,
+              {
                 opacity: fadeAnim,
-                transform: [
-                  { translateY: slideAnim },
-                  { scale: logoScale }
-                ] 
-              }
+                transform: [{ translateY: slideAnim }, { scale: logoScale }],
+              },
             ]}
           >
             <View style={styles.logoContainer}>
@@ -173,14 +173,14 @@ export default function LoginScreen() {
             <Text style={styles.title}>Face Attendance</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
           </Animated.View>
-          
-          <Animated.View 
+
+          <Animated.View
             style={[
               styles.formContainer,
-              { 
+              {
                 opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }] 
-              }
+                transform: [{ translateY: slideAnim }],
+              },
             ]}
           >
             {error && (
@@ -188,18 +188,17 @@ export default function LoginScreen() {
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
-            
+
             <Input
-              label="Email"
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
+              label="Username"
+              placeholder="Enter your username"
+              value={userName}
+              onChangeText={setUserName}
               autoCapitalize="none"
-              error={emailError}
-              leftIcon={<Mail size={20} color={Colors.textSecondary} />}
+              error={userNameError}
+              leftIcon={<User size={20} color={Colors.textSecondary} />}
             />
-            
+
             <Input
               label="Password"
               placeholder="Enter your password"
@@ -209,22 +208,26 @@ export default function LoginScreen() {
               isPassword
               leftIcon={<Lock size={20} color={Colors.textSecondary} />}
             />
-            
+
             <Button
               title={loginSuccess ? "Signed In!" : "Sign In"}
               onPress={handleLogin}
               isLoading={isLoading}
               style={styles.button}
-              icon={loginSuccess ? <CheckCircle size={20} color="#FFFFFF" /> : undefined}
+              icon={
+                loginSuccess ? (
+                  <CheckCircle size={20} color="#FFFFFF" />
+                ) : undefined
+              }
               iconPosition={loginSuccess ? "left" : undefined}
             />
-            
+
             <View style={styles.demoContainer}>
               <Text style={styles.demoText}>Quick Access:</Text>
               <View style={styles.demoButtons}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.demoButton}
-                  onPress={() => handleDemoLogin('ashik@example.com')}
+                  onPress={() => handleDemoLogin("ashik")}
                 >
                   <LinearGradient
                     colors={[Colors.primaryLight, Colors.primary]}
@@ -235,10 +238,10 @@ export default function LoginScreen() {
                     <Text style={styles.demoButtonText}>Admin</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-                
-                <TouchableOpacity 
+
+                <TouchableOpacity
                   style={styles.demoButton}
-                  onPress={() => handleDemoLogin('shankar@example.com')}
+                  onPress={() => handleDemoLogin("shankar")}
                 >
                   <LinearGradient
                     colors={[Colors.secondaryLight, Colors.secondary]}
@@ -247,6 +250,20 @@ export default function LoginScreen() {
                     end={{ x: 1, y: 1 }}
                   >
                     <Text style={styles.demoButtonText}>Employee</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.demoButton}
+                  onPress={() => router.replace("/baseurl")}
+                >
+                  <LinearGradient
+                    colors={[Colors.secondaryLight, Colors.secondary]}
+                    style={styles.demoButtonGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Text style={styles.demoButtonText}>Base URL</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -270,7 +287,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 60,
     marginBottom: 40,
   },
@@ -279,44 +296,44 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   logoGradient: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 20,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 10,
   },
   errorContainer: {
-    backgroundColor: Colors.error + '20', // 20% opacity
+    backgroundColor: Colors.error + "20", // 20% opacity
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
@@ -330,7 +347,7 @@ const styles = StyleSheet.create({
   },
   demoContainer: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   demoText: {
     fontSize: 14,
@@ -338,31 +355,33 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   demoButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-    gap: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 12,
+    width: "100%",
+    maxWidth: 360, // Optional: limits container width for better look on wide screens
   },
   demoButton: {
-    flex: 1,
+    flexBasis: "30%", // Each button takes ~1/3rd of space
     height: 44,
     borderRadius: 22,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   demoButtonGradient: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   demoButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
     fontSize: 14,
   },
 });

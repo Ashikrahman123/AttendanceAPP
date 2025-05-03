@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
-import { LinearGradient } from 'expo-linear-gradient';
-import { View, StyleSheet } from 'react-native';
-import Colors from '@/constants/colors';
+import { LinearGradient } from "expo-linear-gradient";
+import { View, StyleSheet } from "react-native";
+import Colors from "@/constants/colors";
 
 export default function AuthLayout() {
   return (
@@ -12,15 +12,15 @@ export default function AuthLayout() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      <Stack 
-        screenOptions={{ 
+      <Stack
+        screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: 'transparent' }
+          contentStyle: { backgroundColor: "transparent" },
         }}
       >
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
+        {/* <Stack.Screen name="register" /> */}
       </Stack>
     </View>
   );
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   background: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,

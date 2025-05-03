@@ -1,32 +1,52 @@
-import { User } from '@/types/user';
+import { User } from "@/types/user";
 
 export const mockUsers: User[] = [
   {
-    id: '1',
-    name: 'Ashik Rahman',
-    email: 'ashik@example.com',
-    role: 'admin',
-    profileImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80',
+    id: 1,
+    userName: "ashik",
+    name: "Ashik Rahman",
+    email: "ashik@example.com",
+    role: "admin",
+    orgId: 1,
+    orgName: "Test Org",
+    contactRecordId: 100,
+    profileImage:
+      "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&q=80",
   },
   {
-    id: '2',
-    name: 'Shankar Rao',
-    email: 'shankar@example.com',
-    role: 'employee',
-    profileImage: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80',
+    id: 2,
+    userName: "shankar",
+    name: "Shankar Rao",
+    email: "shankar@example.com",
+    role: "employee",
+    orgId: 1,
+    orgName: "Test Org",
+    contactRecordId: 101,
+    profileImage:
+      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=256&q=80",
   },
   {
-    id: '3',
-    name: 'Thaz Thahir',
-    email: 'thahir@example.com',
-    role: 'employee',
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80',
+    id: 3,
+    userName: "thahir",
+    name: "Thaz Thahir",
+    email: "thahir@example.com",
+    role: "employee",
+    orgId: 1,
+    orgName: "Test Org",
+    contactRecordId: 102,
+    profileImage:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80",
   },
   {
-    id: '4',
-    name: 'Salman Farash',
-    email: 'salman@example.com',
-    role: 'employee',
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=256&q=80',
+    id: 4,
+    userName: "salman",
+    name: "Salman Farash",
+    email: "salman@example.com",
+    role: "employee",
+    orgId: 1,
+    orgName: "Test Org",
+    contactRecordId: 103,
+    profileImage:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80",
   },
 ];

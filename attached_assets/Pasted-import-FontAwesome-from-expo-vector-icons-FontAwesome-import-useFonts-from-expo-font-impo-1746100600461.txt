@@ -16,22 +16,36 @@ function RootLayoutNav() {
   const { baseUrl, isLoading } = useBaseUrl();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
   const [showSplash, setShowSplash] = useState(true);
+  const [isMounted, setIsMounted] = useState(false); // New state to track mounting
+
+  console.log("Navigation state:", { baseUrl, isLoading, showSplash });
+
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
+    // Mark component as mounted
+    setIsMounted(true);
+
+    // Ensure splash screen shows for at least 2 seconds
+    if (!showSplash) return;
+
     const timer = setTimeout(() => {
       setShowSplash(false);
+      // Navigate based on authentication state after splash screen
+      if (isMounted) {
+        // Check if mounted before navigating
+        if (!isAuthenticated && baseUrl) {
+          router.replace("/(auth)/login");
+        }
+      }
     }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
 
-  useEffect(() => {
-    if (!showSplash && baseUrl && !isAuthenticated) {
-      router.replace("/(auth)/login");
-    }
-  }, [showSplash, baseUrl, isAuthenticated]);
+    return () => {
+      clearTimeout(timer);
+      setIsMounted(false); // Clean up on unmount
+    };
+  }, [showSplash, isAuthenticated, baseUrl, isMounted]);
 
-  // 🔐 Render ONLY the splash screen if splash is active or baseUrl is loading
   if (showSplash || isLoading) {
     return <CustomSplashScreen onFinish={() => {}} />;
   }
@@ -45,9 +59,23 @@ function RootLayoutNav() {
         },
       }}
     >
-      <Stack.Screen name="baseurl" />
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
+      {!baseUrl ? (
+        <Stack.Screen name="baseurl" />
+      ) : (
+        <>
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+
+          <Stack.Screen
+            name="face-verification"
+            options={{ presentation: "fullScreenModal" }}
+          />
+          <Stack.Screen
+            name="attendance-details"
+            options={{ presentation: "modal" }}
+          />
+        </>
+      )}
     </Stack>
   );
 }

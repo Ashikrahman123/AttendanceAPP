@@ -1,14 +1,22 @@
-export type UserRole = 'admin' | 'employee';
+export type UserRole = "admin" | "employee";
 
 export interface User {
   id: number;
+  userName: string;
+  name: string;
   email: string;
+  role: string;
+  profileImage?: string;
   orgId: number;
   orgName: string;
   contactRecordId: number;
 }
 
-export type AttendanceType = 'check-in' | 'break-start' | 'break-end' | 'check-out';
+export type AttendanceType =
+  | "check-in"
+  | "break-start"
+  | "break-end"
+  | "check-out";
 
 export interface AttendanceRecord {
   id: string;
@@ -49,7 +57,7 @@ export interface WorkingHoursSettings {
 }
 
 export interface AppSettings {
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   notifications: boolean;
   faceVerificationRequired: boolean;
   locationTracking: boolean;
@@ -62,8 +70,8 @@ export interface LeaveRequest {
   startDate: number;
   endDate: number;
   reason: string;
-  type: 'sick' | 'vacation' | 'personal' | 'other';
-  status: 'pending' | 'approved' | 'rejected';
+  type: "sick" | "vacation" | "personal" | "other";
+  status: "pending" | "approved" | "rejected";
   createdAt: number;
   approvedBy?: string;
   notes?: string;

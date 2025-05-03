@@ -1,13 +1,12 @@
-
-import { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { useBaseUrl } from '@/context/BaseUrlContext';
-import { router } from 'expo-router';
-import Input from '@/components/Input';
-import Button from '@/components/Button';
+import { useState } from "react";
+import { View, StyleSheet, Alert } from "react-native";
+import { useBaseUrl } from "@/context/BaseUrlContext";
+import { router } from "expo-router";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
 
 export default function BaseUrlScreen() {
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setBaseUrl } = useBaseUrl();
 
@@ -22,22 +21,30 @@ export default function BaseUrlScreen() {
 
   const testUrl = async (url: string) => {
     try {
-      const response = await fetch(`${url}MiddleWare/TestConnection`);
+      const response = await fetch(`${url}MiddleWare/NewMobileAppLogin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userName: "admin", // dummy or test user
+          password: "12345",
+        }),
+      });
+
       const data = await response.json();
-      return data.isSuccess === true;
-    } catch {
+      return data?.isSuccess === true;
+    } catch (error) {
       return false;
     }
   };
 
   const handleSubmit = async () => {
     if (!url.trim()) {
-      Alert.alert('Error', 'Please enter a base URL');
+      Alert.alert("Error", "Please enter a base URL");
       return;
     }
 
     if (!validateUrl(url.trim())) {
-      Alert.alert('Error', 'Please enter a valid URL');
+      Alert.alert("Error", "Please enter a valid URL");
       return;
     }
 
@@ -45,14 +52,17 @@ export default function BaseUrlScreen() {
     try {
       const isValid = await testUrl(url.trim());
       if (!isValid) {
-        Alert.alert('Error', 'Could not connect to server. Please check the URL and try again.');
+        Alert.alert(
+          "Error",
+          "Could not connect to server. Please check the URL and try again.",
+        );
         return;
       }
 
       await setBaseUrl(url.trim());
-      router.replace('/(auth)');
+      router.replace("/(auth)");
     } catch (error) {
-      Alert.alert('Error', 'Failed to save base URL. Please try again.');
+      Alert.alert("Error", "Failed to save base URL. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -67,10 +77,10 @@ export default function BaseUrlScreen() {
         onChangeText={setUrl}
         autoCapitalize="none"
         keyboardType="url"
-        error={url && !validateUrl(url) ? 'Please enter a valid URL' : ''}
+        error={url && !validateUrl(url) ? "Please enter a valid URL" : ""}
       />
-      <Button 
-        title="Save Base URL" 
+      <Button
+        title="Save Base URL"
         onPress={handleSubmit}
         style={styles.button}
         isLoading={isLoading}
@@ -83,9 +93,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   button: {
     marginTop: 20,
-  }
+  },
 });
