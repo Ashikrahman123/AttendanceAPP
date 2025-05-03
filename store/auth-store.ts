@@ -53,13 +53,21 @@ export const useAuthStore = create<AuthState>()(
           const user: User = {
             id: data.userID,
             orgId: data.orgID,
-            orgName: data.organizationName || "",
-            userName: data.userName || userName,
-            contactRecordId: data.contactRecordId || 0,
-            email: data.email || "",
-            role: data.role || "user", // fallback to "user" if missing
-            name: data.name || "", // Add name property
+            orgName: "Digillium Demo 1", // From the token payload
+            userName: userName,
+            contactRecordId: 0,
+            email: "",
+            role: data.role,
+            name: userName,
           };
+
+          // Store auth data in AsyncStorage
+          await AsyncStorage.multiSet([
+            ['orgId', data.orgID.toString()],
+            ['userId', data.userID.toString()],
+            ['bearerToken', data.bearerTokenValue],
+            ['userRole', data.role]
+          ]);
 
           await AsyncStorage.setItem("bearerToken", data.bearerTokenValue);
 

@@ -54,8 +54,10 @@ export function BaseUrlProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const formattedUrl = url.endsWith('/') ? url : `${url}/`;
+      // Ensure URL ends with trailing slash
+      const formattedUrl = url.endsWith('/') ? url : `${url}/`;
       await AsyncStorage.setItem(BASE_URL_KEY, formattedUrl);
-      console.log('Base URL saved successfully');
+      console.log('Base URL saved successfully:', formattedUrl);
       setBaseUrlState(formattedUrl);
     } catch (error) {
       console.error('Failed to save base URL:', error);
