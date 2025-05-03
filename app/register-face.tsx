@@ -591,3 +591,147 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
 });
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, Alert, Text } from 'react-native';
+import { Camera } from 'expo-camera';
+import { useLocalSearchParams, router } from 'expo-router';
+import Button from '@/components/Button';
+import { Users } from 'lucide-react-native';
+import Colors from '@/constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useBaseUrl } from '@/context/BaseUrlContext';
+
+export default function RegisterFaceScreen() {
+  const { baseUrl } = useBaseUrl();
+  const { employeeId, employeeName, contactRecordId } = useLocalSearchParams();
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const cameraRef = useRef<Camera | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (!cameraRef.current) return;
+
+    try {
+      setIsLoading(true);
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.5,
+        base64: true,
+      });
+
+      const token = await AsyncStorage.getItem('bearerToken');
+      const orgId = await AsyncStorage.getItem('orgId');
+      const userId = await AsyncStorage.getItem('userId');
+
+      if (!token || !orgId || !userId) {
+        Alert.alert('Error', 'Authentication data missing');
+        return;
+      }
+
+      const response = await fetch(`${baseUrl}MiddleWare/Employee_Attendance_Face_Register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orgId: parseInt(orgId),
+          ContactRecordId: parseInt(contactRecordId as string),
+          FaceData: photo.base64,
+          ModifyUser: parseInt(userId),
+          BearerTokenValue: token
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.isSuccess) {
+        Alert.alert(
+          'Success',
+          'Face registered successfully',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      } else {
+        Alert.alert('Error', data.message || 'Failed to register face');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to register face');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (hasPermission === null) {
+    return <View />;
+  }
+
+  if (hasPermission === false) {
+    return <Text>No access to camera</Text>;
+  }
+
+  return (
+    <View style={styles.container}>
+      <Camera
+        ref={cameraRef}
+        style={styles.camera}
+        type={Camera.Constants.Type.front}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>
+              Register Face for {employeeName}
+            </Text>
+          </View>
+          
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Capture Face"
+              onPress={takePicture}
+              isLoading={isLoading}
+              icon={<Users size={20} color="#FFFFFF" />}
+              style={styles.captureButton}
+            />
+          </View>
+        </View>
+      </Camera>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'space-between',
+  },
+  header: {
+    padding: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  headerText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  captureButton: {
+    width: 200,
+  },
+});

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   View, 
@@ -9,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Modal,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Users, Search, ChevronRight, X, Clock, Calendar } from 'lucide-react-native';
@@ -21,6 +22,7 @@ import Colors from '@/constants/colors';
 import { useAuthStore } from '@/store/auth-store';
 import { User } from '@/types/user';
 import { useBaseUrl } from '@/context/BaseUrlContext';
+import { useNavigation } from '@react-navigation/native'; // Assuming React Navigation
 
 export default function EmployeesScreen() {
   console.log('[EmployeesScreen] Rendering');
@@ -30,6 +32,10 @@ export default function EmployeesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigation = useNavigation();
+
 
   useEffect(() => {
     console.log('[EmployeesScreen] Initial mount, fetching employees');
@@ -41,7 +47,7 @@ export default function EmployeesScreen() {
     try {
       const token = await AsyncStorage.getItem('bearerToken');
       const orgId = await AsyncStorage.getItem('orgId');
-      
+
       console.log('[EmployeesScreen] Token:', token ? 'Present' : 'Missing');
       console.log('[EmployeesScreen] OrgId:', orgId);
 
@@ -59,7 +65,7 @@ export default function EmployeesScreen() {
       };
 
       console.log('[EmployeesScreen] Making API request with data:', JSON.stringify(requestData));
-      
+
       const response = await fetch(`${baseUrl}MiddleWare/All_EmployeeList_NewMobileApp?requestData=${JSON.stringify(requestData)}`, {
         method: 'GET',
         headers: {
@@ -108,6 +114,28 @@ export default function EmployeesScreen() {
     return null;
   }
 
+  const handleEmployeePress = (employee: User) => {
+    setSelectedEmployee(employee);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedEmployee(null);
+    setIsModalVisible(false);
+  };
+
+  const handleRegisterFace = async () => {
+    if (!selectedEmployee) return;
+    //Navigate to face registration screen.  Replace with actual navigation
+    navigation.navigate('RegisterFace', {
+      employeeId: selectedEmployee.id,
+      employeeName: selectedEmployee.name,
+      contactRecordId: selectedEmployee.contactRecordId,
+    });
+    handleCloseModal();
+  };
+
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -146,7 +174,7 @@ export default function EmployeesScreen() {
           keyExtractor={item => item.id.toString()}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <View style={styles.employeeCard}>
+            <TouchableOpacity onPress={() => handleEmployeePress(item)} style={styles.employeeCard}>
               <UserAvatar 
                 name={item.name} 
                 imageUrl={item.profileImage}
@@ -159,7 +187,7 @@ export default function EmployeesScreen() {
               </View>
 
               <ChevronRight size={20} color={Colors.textSecondary} />
-            </View>
+            </TouchableOpacity>
           )}
         />
       ) : (
@@ -171,6 +199,29 @@ export default function EmployeesScreen() {
             : "There are no employees in the system."}
         />
       )}
+
+      <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity onPress={handleCloseModal} style={styles.closeModalButton}>
+              <X size={24} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            {selectedEmployee && (
+              <>
+                <Text style={styles.modalTitle}>{selectedEmployee.name}</Text>
+                {/* Add other employee details here */}
+                <Button
+                  title="Register Face"
+                  onPress={handleRegisterFace}
+                  variant="primary"
+                  icon={<Users size={20} color="#FFFFFF" />}
+                  style={styles.registerFaceButton}
+                />
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -243,5 +294,29 @@ const styles = StyleSheet.create({
   retryButton: {
     minWidth: 150,
     marginTop: 12,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  closeModalButton: {
+    marginTop: 15,
+    alignSelf: 'flex-end',
+  },
+  registerFaceButton: {
+    marginBottom: 20,
   },
 });
