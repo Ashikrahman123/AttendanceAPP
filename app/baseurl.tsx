@@ -12,8 +12,8 @@ export default function BaseUrlScreen() {
 
   const validateUrl = (url: string) => {
     try {
-      new URL(url);
-      return true;
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === "https:";
     } catch {
       return false;
     }
@@ -44,7 +44,7 @@ export default function BaseUrlScreen() {
     }
 
     if (!validateUrl(url.trim())) {
-      Alert.alert("Error", "Please enter a valid URL");
+      Alert.alert("Error", "Please enter a valid HTTPS URL");
       return;
     }
 

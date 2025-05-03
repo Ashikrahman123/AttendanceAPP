@@ -1,0 +1,27 @@
+LOG  [web] Logs will appear in the browser console
+Error: Unable to resolve module ./__replco/static/devtools/eruda/3.2.3/eruda from /home/runner/workspace/.: 
+
+None of these files exist:
+  * __replco/static/devtools/eruda/3.2.3/eruda(.web.ts|.ts|.web.tsx|.tsx|.web.mjs|.mjs|.web.js|.js|.web.jsx|.jsx|.web.json|.json|.web.cjs|.cjs|.web.scss|.scss|.web.sass|.sass|.web.css|.css)
+  * __replco/static/devtools/eruda/3.2.3/eruda
+    at ModuleResolver.resolveDependency (/home/runner/workspace/node_modules/metro/src/node-haste/DependencyGraph/ModuleResolution.js:114:15)
+    at DependencyGraph.resolveDependency (/home/runner/workspace/node_modules/metro/src/node-haste/DependencyGraph.js:248:43)
+    at /home/runner/workspace/node_modules/metro/src/lib/transformHelpers.js:165:21
+    at Server._resolveRelativePath (/home/runner/workspace/node_modules/metro/src/Server.js:1104:12)
+    at Server._explodedSourceMapForBundleOptions (/home/runner/workspace/node_modules/metro/src/Server.js:1052:35)
+    at async Promise.all (index 0)
+    at Server._symbolicate (/home/runner/workspace/node_modules/metro/src/Server.js:1009:26)
+    at Server._processRequest (/home/runner/workspace/node_modules/metro/src/Server.js:419:7)
+Error: Unable to resolve module ./__replco/static/devtools/eruda/3.2.3/eruda from /home/runner/workspace/.: 
+
+None of these files exist:
+  * __replco/static/devtools/eruda/3.2.3/eruda(.web.ts|.ts|.web.tsx|.tsx|.web.mjs|.mjs|.web.js|.js|.web.jsx|.jsx|.web.json|.json|.web.cjs|.cjs|.web.scss|.scss|.web.sass|.sass|.web.css|.css)
+  * __replco/static/devtools/eruda/3.2.3/eruda
+    at ModuleResolver.resolveDependency (/home/runner/workspace/node_modules/metro/src/node-haste/DependencyGraph/ModuleResolution.js:114:15)
+    at DependencyGraph.resolveDependency (/home/runner/workspace/node_modules/metro/src/node-haste/DependencyGraph.js:248:43)
+    at /home/runner/workspace/node_modules/metro/src/lib/transformHelpers.js:165:21
+    at Server._resolveRelativePath (/home/runner/workspace/node_modules/metro/src/Server.js:1104:12)
+    at Server._explodedSourceMapForBundleOptions (/home/runner/workspace/node_modules/metro/src/Server.js:1052:35)
+    at async Promise.all (index 0)
+    at Server._symbolicate (/home/runner/workspace/node_modules/metro/src/Server.js:1009:26)
+    at Server._processRequest (/home/runner/workspace/node_modules/metro/src/Server.js:419:7)
