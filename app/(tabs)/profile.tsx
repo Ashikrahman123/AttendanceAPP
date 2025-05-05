@@ -644,43 +644,55 @@ export default function ProfileScreen() {
               style={[styles.divider, { backgroundColor: colors.border }]}
             />
 
-            <TouchableOpacity
-              style={styles.settingsItem}
-              onPress={() => setShowFaceRegistrationModal(true)}
-            >
-              <View style={styles.settingsLeft}>
-                <View
-                  style={[
-                    styles.settingsIcon,
-                    { backgroundColor: colors.warning + "30" },
-                  ]}
-                >
-                  <Camera size={20} color={colors.warning} />
-                </View>
-                <Text style={[styles.settingsText, { color: colors.text }]}>
-                  {registeredFace ? "Update Face ID" : "Register Face ID"}
-                </Text>
-              </View>
-              {registeredFace ? (
-                <View
-                  style={[
-                    styles.registeredBadge,
-                    { backgroundColor: colors.success + "20" },
-                  ]}
-                >
-                  <Text
+            <View>
+              <TouchableOpacity
+                style={styles.settingsItem}
+                onPress={() => setShowFaceRegistrationModal(true)}
+              >
+                <View style={styles.settingsLeft}>
+                  <View
                     style={[
-                      styles.registeredBadgeText,
-                      { color: colors.success },
+                      styles.settingsIcon,
+                      { backgroundColor: colors.warning + "30" },
                     ]}
                   >
-                    Registered
+                    <Camera size={20} color={colors.warning} />
+                  </View>
+                  <Text style={[styles.settingsText, { color: colors.text }]}>
+                    {registeredFace ? "Update Face ID" : "Register Face ID"}
                   </Text>
                 </View>
-              ) : (
-                <ChevronRight size={20} color={colors.textSecondary} />
+                {registeredFace ? (
+                  <View
+                    style={[
+                      styles.registeredBadge,
+                      { backgroundColor: colors.success + "20" },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.registeredBadgeText,
+                        { color: colors.success },
+                      ]}
+                    >
+                      Registered
+                    </Text>
+                  </View>
+                ) : (
+                  <ChevronRight size={20} color={colors.textSecondary} />
+                )}
+              </TouchableOpacity>
+              
+              {registeredFace && (
+                <View style={styles.facePreviewContainer}>
+                  <Image
+                    source={{ uri: registeredFace }}
+                    style={styles.facePreview}
+                    resizeMode="cover"
+                  />
+                </View>
               )}
-            </TouchableOpacity>
+            </View>
 
             <View
               style={[styles.divider, { backgroundColor: colors.border }]}
@@ -1894,6 +1906,17 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  facePreviewContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  facePreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    borderWidth: 3,
+    borderColor: '#4F46E5',
+  },
   container: {
     flex: 1,
   },
