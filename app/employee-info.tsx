@@ -13,8 +13,16 @@ export default function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
-  // Hardcoded employee data for demo
+
+  useEffect(() => {
+    const loadFaceImage = async () => {
+      const faceImage = await getRegisteredFace(params.contactRecordId as string);
+      setPreviewImage(faceImage);
+    };
+    loadFaceImage();
+  }, [params.contactRecordId]);
+
+  // Employee data
   const employeeData = {
     name: params.name as string,
     id: params.id as string,
@@ -26,12 +34,14 @@ export default function EmployeeInfoScreen() {
   };
 
   const handleRegisterFace = () => {
+    const contactRecordId = params.contactRecordId as string;
+    console.log('[EmployeeInfo] Navigating to face registration with contactRecordId:', contactRecordId);
     router.push({
       pathname: '/register-face',
       params: {
         employeeId: employeeData.id,
         employeeName: employeeData.name,
-        contactRecordId: params.contactRecordId as string
+        contactRecordId: contactRecordId
       }
     });
   };
