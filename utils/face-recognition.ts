@@ -90,7 +90,7 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
 
     console.log('[Face Registration] Retrieved data:', {
       orgId,
-      contactRecordId: recordIdToUse,
+      contactRecordId,
       modifyUser,
       tokenExists: !!bearerToken
     });
@@ -135,8 +135,8 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
       throw new Error(data.message || 'Face registration failed');
     }
 
-    // Store the face data in AsyncStorage using the actual recordId
-    const storageKey = `face_data_${contactRecordId}`;
+    // Store the face data in AsyncStorage using the contact record ID
+    const storageKey = `face_data_contact_${contactRecordId}`;
     await AsyncStorage.setItem(storageKey, base64Image);
     console.log('[Face Registration] Face data stored successfully with key:', storageKey);
 
@@ -148,10 +148,10 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
 }
 
 // Function to get registered face
-export async function getRegisteredFace(userId: string): Promise<string | null> {
+export async function getRegisteredFace(contactRecordId: string): Promise<string | null> {
   try {
-    console.log('[Face Retrieval] Getting registered face for user:', userId);
-    const faceData = await AsyncStorage.getItem(`face_data_${userId}`);
+    console.log('[Face Retrieval] Getting registered face for contact:', contactRecordId);
+    const faceData = await AsyncStorage.getItem(`face_data_contact_${contactRecordId}`);
     console.log('[Face Retrieval] Face data found:', !!faceData);
     return faceData;
   } catch (error) {
