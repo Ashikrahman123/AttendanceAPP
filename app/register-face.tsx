@@ -125,8 +125,9 @@ export default function RegisterFaceScreen() {
       setIsCapturing(false);
       setIsProcessing(true);
 
-      // Use the contact record ID from props/route
-      const contactRecordId = route.params.contactRecordId;
+      // Get contact record ID from URL params
+      const params = useLocalSearchParams<{ contactRecordId: string }>();
+      const contactRecordId = params.contactRecordId;
 
       // Register the face with employee's contact record ID
       const success = await registerFace(imageUri, contactRecordId);
