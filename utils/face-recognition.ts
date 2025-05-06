@@ -66,11 +66,14 @@ export async function verifyFace(capturedFace: string, storedFace?: string): Pro
 
 
 // Function to register a face
-export async function registerFace(imageUri: string, contactRecordId: string): Promise<boolean> {
+export async function registerFace(imageUri: string, contactRecordId: string | number): Promise<boolean> {
   try {
     console.log('[Face Registration] Starting face registration process');
     console.log('[Face Registration] Image URI:', imageUri?.substring(0, 50) + '...');
     console.log('[Face Registration] Contact Record ID:', contactRecordId);
+
+    // Ensure contactRecordId is parsed as number
+    const recordId = typeof contactRecordId === 'string' ? parseInt(contactRecordId) : contactRecordId;
 
     // Convert image to base64
     const base64Image = await getBase64FromUri(imageUri);
@@ -106,7 +109,7 @@ export async function registerFace(imageUri: string, contactRecordId: string): P
     const requestBody = {
       DetailData: {
         orgId: parseInt(orgId),
-        ContactRecordId: parseInt(contactRecordId),
+        ContactRecordId: recordId,
         Image: base64Image,
         ModifyUser: parseInt(modifyUser)
       },
@@ -133,7 +136,7 @@ export async function registerFace(imageUri: string, contactRecordId: string): P
     }
 
     // Store the face data in AsyncStorage using the actual recordId
-    const storageKey = `face_data_${parseInt(contactRecordId)}`;
+    const storageKey = `face_data_${recordId}`;
     await AsyncStorage.setItem(storageKey, base64Image);
     console.log('[Face Registration] Face data stored successfully with key:', storageKey);
 
