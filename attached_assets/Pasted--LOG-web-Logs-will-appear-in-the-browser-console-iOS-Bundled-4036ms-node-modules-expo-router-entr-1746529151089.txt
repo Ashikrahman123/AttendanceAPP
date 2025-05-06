@@ -1,0 +1,31 @@
+ LOG  [web] Logs will appear in the browser console
+iOS Bundled 4036ms node_modules/expo-router/entry.js (2788 modules)
+iOS Bundled 132ms node_modules/expo-router/entry.js (1 module)
+ (NOBRIDGE) LOG  Bridgeless mode is enabled
+ INFO  
+ 💡 JavaScript logs will be removed from Metro in React Native 0.77! Please use React Native DevTools as your default tool. Tip: Type j in the terminal to open (requires Google Chrome or Microsoft Edge).
+ (NOBRIDGE) LOG  Loading base URL from storage
+ (NOBRIDGE) LOG  Stored base URL: null
+iOS Bundled 152ms node_modules/expo-router/entry.js (1 module)
+ (NOBRIDGE) LOG  Bridgeless mode is enabled
+ INFO  
+ 💡 JavaScript logs will be removed from Metro in React Native 0.77! Please use React Native DevTools as your default tool. Tip: Type j in the terminal to open (requires Google Chrome or Microsoft Edge).
+ (NOBRIDGE) LOG  Loading base URL from storage
+ (NOBRIDGE) LOG  Stored base URL: null
+ (NOBRIDGE) LOG  Setting base URL: https://wageuat.digierp.net/
+ (NOBRIDGE) LOG  Base URL saved successfully: https://wageuat.digierp.net/
+ (NOBRIDGE) LOG  [EmployeesScreen] Rendering
+ (NOBRIDGE) LOG  [EmployeesScreen] Initial mount, fetching employees
+ (NOBRIDGE) LOG  [EmployeesScreen] Starting fetchEmployees
+ (NOBRIDGE) LOG  [EmployeesScreen] Token: Present
+ (NOBRIDGE) LOG  [EmployeesScreen] OrgId: 1
+ (NOBRIDGE) LOG  [EmployeesScreen] Making API request with data: {"OrgId":1,"pageId":0,"PageNumber":1,"PageSize":1000,"BearerTokenValue":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJSZWNvcmRJZCI6IjEiLCJEZXZpY2VUeXBlIjoidyIsIk9yZ0lkIjoiMSIsIlVzZXJOYW1lIjoiYWRtaW4iLCJPcmdhbmlzYXRpb25OYW1lIjoiRGlnaWxsaXVtIERlbW8gMSIsIkVtcGxveWVlQ291bnQiOiIxNSIsIlVzZXJDb3VudCI6IjEwIiwiUHJvZHVjdENvdW50IjoiMjUiLCJDb250YWN0Q291bnQiOiIyMCIsIlRyYW5zYWN0aW9uQ291bnQiOiIzMCIsImV4cCI6MTc0NjUzMDI2MSwiaXNzIjoiQ2hlYXJJdCIsImF1ZCI6IkNoZWFySXQifQ.2FicuHWVQJWc5Iym2hPgXTw-997GAPaUVjhOkf-C0OQ"}
+ (NOBRIDGE) LOG  [EmployeesScreen] API Response: {"data":[{"orgId":1,"recordId":3202,"recordName":"TEST-APR-SHANKAR"},{"orgId":1,"recordId":3206,"recordName":"MOHD I SUMAIYA FARVEEN"},{"orgId":1,"recordId":3204,"recordName":"MD IBRAHIM M MD Z M"},{"orgId":1,"recordId":3205,"recordName":"SULTAN EBRAHIM ABDUL RAZACK"},{"orgId":1,"recordId":3203,"recordName":"TEST-APR-SALMAN"}],"isSuccess":true}
+ (NOBRIDGE) LOG  [EmployeesScreen] Formatted employees: 5
+ (NOBRIDGE) LOG  [EmployeesScreen] Rendering
+ (NOBRIDGE) LOG  [Face Retrieval] Getting registered face for user: 1
+ (NOBRIDGE) LOG  [Face Retrieval] Face data found: false
+ (NOBRIDGE) LOG  [Face Registration] Starting face registration process
+ (NOBRIDGE) LOG  [Face Registration] Image URI: file:///var/mobile/Containers/Data/Application/B78...
+ (NOBRIDGE) LOG  [Face Registration] Contact Record ID: 1
+ (NOBRIDGE) ERROR  [Face Registration] Error registering face: [ReferenceError: Property 'recordIdToUse' doesn't exist]
