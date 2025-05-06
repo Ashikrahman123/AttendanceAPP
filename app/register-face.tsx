@@ -125,8 +125,12 @@ export default function RegisterFaceScreen() {
       setIsCapturing(false);
       setIsProcessing(true);
 
-      // Register the face
-      const success = await registerFace(imageUri, user.id);
+      // Get contact record ID from params
+      const params = useLocalSearchParams<{ contactRecordId: string }>();
+      const contactRecordId = params.contactRecordId;
+
+      // Register the face with employee's contact record ID
+      const success = await registerFace(imageUri, contactRecordId);
 
       // Update state based on registration result
       setIsRegistered(success);
