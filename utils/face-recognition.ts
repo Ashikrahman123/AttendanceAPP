@@ -133,7 +133,7 @@ export async function registerFace(imageUri: string, contactRecordId: string): P
     }
 
     // Store the face data in AsyncStorage
-    const storageKey = `face_data_${userId}`;
+    const storageKey = `face_data_${contactRecordId}`;
     await AsyncStorage.setItem(storageKey, base64Image);
     console.log('[Face Registration] Face data stored successfully with key:', storageKey);
 
