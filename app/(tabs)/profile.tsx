@@ -314,7 +314,7 @@ export default function ProfileScreen() {
       setCapturedImage(photo.uri);
 
       // Register the face
-      const success = await registerFace(photo.uri, user.id);
+      const success = await registerFace(photo.uri, user.contactRecordId.toString());
 
       if (success) {
         if (Platform.OS !== "web") {

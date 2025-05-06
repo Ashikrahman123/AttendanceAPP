@@ -66,11 +66,11 @@ export async function verifyFace(capturedFace: string, storedFace?: string): Pro
 
 
 // Function to register a face
-export async function registerFace(imageUri: string, userId: string): Promise<boolean> {
+export async function registerFace(imageUri: string, contactRecordId: string): Promise<boolean> {
   try {
     console.log('[Face Registration] Starting face registration process');
     console.log('[Face Registration] Image URI:', imageUri?.substring(0, 50) + '...');
-    console.log('[Face Registration] User ID:', userId);
+    console.log('[Face Registration] Contact Record ID:', contactRecordId);
 
     // Convert image to base64
     const base64Image = await getBase64FromUri(imageUri);
@@ -79,9 +79,8 @@ export async function registerFace(imageUri: string, userId: string): Promise<bo
     }
 
     // Get required data from AsyncStorage
-    const [orgId, contactRecordId, modifyUser, bearerToken] = await Promise.all([
+    const [orgId, modifyUser, bearerToken] = await Promise.all([
       AsyncStorage.getItem('orgId'),
-      AsyncStorage.getItem('contactRecordId'),
       AsyncStorage.getItem('userId'),
       AsyncStorage.getItem('bearerToken')
     ]);
