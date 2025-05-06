@@ -88,9 +88,12 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
       AsyncStorage.getItem('bearerToken')
     ]);
 
+    // Ensure we're using the passed contactRecordId
+    const recordIdToUse = typeof contactRecordId === 'string' ? parseInt(contactRecordId) : contactRecordId;
+
     console.log('[Face Registration] Retrieved data:', {
       orgId,
-      contactRecordId: parseInt(contactRecordId),
+      contactRecordId: recordIdToUse,
       modifyUser,
       tokenExists: !!bearerToken
     });
@@ -136,7 +139,7 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
     }
 
     // Store the face data in AsyncStorage using the actual recordId
-    const storageKey = `face_data_${recordId}`;
+    const storageKey = `face_data_${recordIdToUse}`;
     await AsyncStorage.setItem(storageKey, base64Image);
     console.log('[Face Registration] Face data stored successfully with key:', storageKey);
 
