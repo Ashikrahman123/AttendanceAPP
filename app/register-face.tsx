@@ -84,7 +84,7 @@ export default function RegisterFaceScreen() {
     // If registration is complete, redirect to profile after a delay
     if (registrationComplete) {
       const timer = setTimeout(() => {
-        router.replace('/(tabs)/employee-info?contactRecordId=' + user?.contactRecordId + '&name=' + user?.name + '&id=' + user?.id,');
+        router.replace(`/(tabs)/employee-info?contactRecordId=${user?.contactRecordId}&name=${user?.name}&id=${user?.id}`);
       }, 2000);
       
       return () => clearTimeout(timer);

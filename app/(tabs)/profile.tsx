@@ -156,7 +156,8 @@ export default function ProfileScreen() {
     if (!user) return;
 
     try {
-      const faceData = await getRegisteredFace(user.id);
+      const faces = await getRegisteredFaces(user.id);
+      const faceData = faces.length > 0 ? faces[0] : null;
       setRegisteredFace(faceData);
     } catch (error) {
       console.error("Error checking registered face:", error);
