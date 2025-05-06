@@ -80,14 +80,14 @@ export async function registerFace(imageUri: string, contactRecordId: string): P
 
     // Get required data from AsyncStorage
     const [orgId, modifyUser, bearerToken] = await Promise.all([
-      AsyncStorage.getItem('orgId'),
+      AsyncStorage.getItem('orgId'), 
       AsyncStorage.getItem('userId'),
       AsyncStorage.getItem('bearerToken')
     ]);
 
     console.log('[Face Registration] Retrieved data:', {
       orgId,
-      contactRecordId,
+      contactRecordId: parseInt(contactRecordId),
       modifyUser,
       tokenExists: !!bearerToken
     });
@@ -132,8 +132,8 @@ export async function registerFace(imageUri: string, contactRecordId: string): P
       throw new Error(data.message || 'Face registration failed');
     }
 
-    // Store the face data in AsyncStorage
-    const storageKey = `face_data_${contactRecordId}`;
+    // Store the face data in AsyncStorage using the actual recordId
+    const storageKey = `face_data_${parseInt(contactRecordId)}`;
     await AsyncStorage.setItem(storageKey, base64Image);
     console.log('[Face Registration] Face data stored successfully with key:', storageKey);
 
