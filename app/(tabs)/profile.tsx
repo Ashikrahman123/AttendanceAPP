@@ -683,15 +683,7 @@ export default function ProfileScreen() {
                 )}
               </TouchableOpacity>
               
-              {registeredFace && (
-                <View style={styles.facePreviewContainer}>
-                  <Image
-                    source={{ uri: registeredFace }}
-                    style={styles.facePreview}
-                    resizeMode="cover"
-                  />
-                </View>
-              )}
+              
             </View>
 
             <View

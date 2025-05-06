@@ -148,15 +148,30 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
 }
 
 // Function to get registered face
-export async function getRegisteredFace(contactRecordId: string): Promise<string | null> {
+export async function getRegisteredFaces(contactRecordId: string): Promise<string[]> {
   try {
-    console.log('[Face Retrieval] Getting registered face for contact:', contactRecordId);
-    const faceData = await AsyncStorage.getItem(`face_data_contact_${contactRecordId}`);
-    console.log('[Face Retrieval] Face data found:', !!faceData);
-    return faceData;
+    console.log('[Face Retrieval] Getting registered faces for contact:', contactRecordId);
+    const facesKey = `face_data_contact_${contactRecordId}_faces`;
+    const facesData = await AsyncStorage.getItem(facesKey);
+    const faces = facesData ? JSON.parse(facesData) : [];
+    console.log('[Face Retrieval] Found faces:', faces.length);
+    return faces;
   } catch (error) {
-    console.error('[Face Retrieval] Error getting registered face:', error);
-    return null;
+    console.error('[Face Retrieval] Error getting registered faces:', error);
+    return [];
+  }
+}
+
+export async function addRegisteredFace(contactRecordId: string, faceImage: string): Promise<boolean> {
+  try {
+    const facesKey = `face_data_contact_${contactRecordId}_faces`;
+    const existingFaces = await getRegisteredFaces(contactRecordId);
+    const updatedFaces = [...existingFaces, faceImage];
+    await AsyncStorage.setItem(facesKey, JSON.stringify(updatedFaces));
+    return true;
+  } catch (error) {
+    console.error('[Face Registration] Error adding face:', error);
+    return false;
   }
 }
 

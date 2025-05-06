@@ -14,12 +14,14 @@ export default function EmployeeInfoScreen() {
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  const [registeredFaces, setRegisteredFaces] = useState<string[]>([]);
+
   useEffect(() => {
-    const loadFaceImage = async () => {
-      const faceImage = await getRegisteredFace(params.contactRecordId as string);
-      setPreviewImage(faceImage);
+    const loadFaceImages = async () => {
+      const faces = await getRegisteredFaces(params.contactRecordId as string);
+      setRegisteredFaces(faces);
     };
-    loadFaceImage();
+    loadFaceImages();
   }, [params.contactRecordId]);
 
   // Employee data
@@ -110,6 +112,27 @@ export default function EmployeeInfoScreen() {
             <Text style={[styles.label, { color: colors.textSecondary }]}>Join Date</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.joinDate}</Text>
           </View>
+          
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          
+          <View style={styles.facePreviewsSection}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Registered Face Images</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.facePreviewsScroll}>
+              {registeredFaces.map((face, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: face }}
+                  style={styles.facePreviewImage}
+                  resizeMode="cover"
+                />
+              ))}
+              {registeredFaces.length === 0 && (
+                <Text style={[styles.noFacesText, { color: colors.textSecondary }]}>
+                  No face images registered
+                </Text>
+              )}
+            </ScrollView>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -117,6 +140,24 @@ export default function EmployeeInfoScreen() {
 }
 
 const styles = StyleSheet.create({
+  facePreviewsSection: {
+    marginTop: 12,
+  },
+  facePreviewsScroll: {
+    marginTop: 8,
+  },
+  facePreviewImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  noFacesText: {
+    fontStyle: 'italic',
+    padding: 8,
+  },
   container: {
     flex: 1,
   },
