@@ -78,7 +78,7 @@ export default function EmployeeInfoScreen() {
       <View style={styles.content}>
         <Button
           title="Register Face ID"
-          onPress={() => handleRegisterFace(employee?.contactRecordId)}
+          onPress={handleRegisterFace}
           icon={<Camera size={20} color="#FFFFFF" />}
           style={styles.registerButton}
         />
