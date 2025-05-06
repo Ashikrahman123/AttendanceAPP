@@ -96,7 +96,7 @@ export default function EmployeesScreen() {
           orgId: emp.orgId,
           orgName: "Organization",
           userName: emp.recordName,
-          contactRecordId: emp.recordId,
+          contactRecordId: emp.recordId, // Using recordId as contactRecordId
           profileImage: undefined,
         }));
         console.log(

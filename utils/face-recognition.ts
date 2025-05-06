@@ -36,13 +36,13 @@ async function getBase64FromUri(uri: string): Promise<string | null> {
   }
 }
 
-// Face verification using Replicate API
+// Simple face verification
 export async function verifyFace(capturedFace: string, storedFace?: string): Promise<boolean> {
   try {
-    // If no stored face, just return true for demo purposes
+    // If no stored face, return false
     if (!storedFace) {
-      console.log('No stored face found, skipping verification');
-      return true;
+      console.log('No stored face found');
+      return false;
     }
     
     // Get base64 data from image URIs
@@ -56,21 +56,11 @@ export async function verifyFace(capturedFace: string, storedFace?: string): Pro
       return false;
     }
     
-    // Call Replicate API for face comparison
-    const similarity = await compareFacesWithReplicate(
-      capturedFaceBase64, 
-      storedFaceBase64
-    );
-    
-    console.log('Face similarity score:', similarity);
-    
-    // Consider a match if similarity is above 0.6 (60%)
-    return similarity > 0.6;
+    // For now, just return true if we have both images
+    return true;
   } catch (error) {
     console.error('Face verification error:', error);
-    
-    // For demo purposes, return true 80% of the time if API fails
-    return Math.random() < 0.8;
+    return false;
   }
 }
 
@@ -168,44 +158,7 @@ export async function getRegisteredFace(userId: string): Promise<string | null> 
   }
 }
 
-// Function to compare faces using Replicate API
-async function compareFacesWithReplicate(image1: string, image2: string): Promise<number> {
-  try {
-    // Prepare images for API
-    const img1 = image1.replace(/^data:image\/\w+;base64,/, '');
-    const img2 = image2.replace(/^data:image\/\w+;base64,/, '');
-    
-    // Call Replicate API
-    const response = await fetch('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Token r8_YOUR_REPLICATE_API_KEY', // Replace with your API key
-      },
-      body: JSON.stringify({
-        version: "c4c1223f5def6d349be68b0a0e1b8763e1d1c5070e0c9d4f6f28c7d5a44b5e67",
-        input: {
-          img1: img1,
-          img2: img2,
-        },
-      }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // For demo purposes, return a random similarity score
-    // In production, you would poll the API for results
-    return Math.random() * 0.4 + 0.6; // Random score between 0.6 and 1.0
-  } catch (error) {
-    console.error('Replicate API error:', error);
-    // Return a fallback similarity score for demo
-    return Math.random() * 0.4 + 0.6;
-  }
-}
+
 
 // Function to detect if an image contains a face
 export async function detectFace(imageUri: string): Promise<boolean> {
