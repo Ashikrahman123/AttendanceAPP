@@ -1,0 +1,91 @@
+const handleCapture = async () => {
+    if (!user || !cameraReady || !cameraRef.current) return;
+
+    setIsCapturing(true);
+
+    try {
+      // Provide haptic feedback
+      if (Platform.OS !== "web") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+
+      // Capture the image
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: true,
+        exif: false,
+      });
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+
+      // Set the captured image
+      const imageUri = photo.uri;
+      setCapturedImage(imageUri);
+
+      // Move to processing state
+      setIsCapturing(false);
+      setIsProcessing(true);
+
+      // Use the contact record ID from props/route
+      const contactRecordId = route.params.contactRecordId;
+
+      // Register the face with employee's contact record ID
+      const success = await registerFace(imageUri, contactRecordId);
+
+      // Update state based on registration result
+      setIsRegistered(success);
+
+      if (success) {
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+
+        // Animate success
+        Animated.timing(successAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }).start();
+
+        // Set registration complete to trigger redirect
+        setRegistrationComplete(true);
+      } else {
+        if (Platform.OS !== "web") {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
+
+        Alert.alert(
+          "Registration Failed",
+          "Failed to register your face. Please try again.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                setCapturedImage(null);
+                setIsProcessing(false);
+              },
+            },
+          ],
+        );
+      }
+    } catch (error) {
+      console.error("Error capturing image:", error);
+
+      if (Platform.OS !== "web") {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+
+      Alert.alert("Error", "Failed to capture image. Please try again.", [
+        {
+          text: "OK",
+          onPress: () => {
+            setCapturedImage(null);
+            setIsCapturing(false);
+            setIsProcessing(false);
+          },
+        },
+      ]);
+    }
+  };
