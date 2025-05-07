@@ -33,20 +33,20 @@ export default function HomeScreen() {
     getTodayAttendanceSummary,
     getTodayRecords
   } = useAttendanceStore();
-  
+
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
-  
+
   const lastRecord = user ? getLastAttendanceRecord(user.id) : undefined;
   const nextAction = user ? getNextExpectedAction(user.id) : null;
   const todaySummary = user ? getTodayAttendanceSummary(user.id) : undefined;
   const todayRecords = user ? getTodayRecords(user.id) : [];
-  
+
   useEffect(() => {
     // Start animations
     Animated.parallel([
@@ -61,18 +61,18 @@ export default function HomeScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     // Update time every minute
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     // Get current location on mount
     fetchCurrentLocation();
-    
+
     return () => clearInterval(timer);
   }, []);
-  
+
   const fetchCurrentLocation = async () => {
     try {
       const location = await getCurrentLocation();
@@ -83,14 +83,14 @@ export default function HomeScreen() {
       console.error('Error fetching location:', error);
     }
   };
-  
+
   const handleAttendance = async () => {
     if (!user || !nextAction) return;
-    
+
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    
+
     // Navigate to face verification screen
     router.push({
       pathname: '/face-verification',
@@ -99,12 +99,12 @@ export default function HomeScreen() {
       },
     });
   };
-  
+
   const handleManualAttendance = async () => {
     if (!user || !nextAction) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       await addAttendanceRecord({
         userId: user.id,
@@ -112,11 +112,11 @@ export default function HomeScreen() {
         type: nextAction,
         verified: false,
       });
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      
+
       Alert.alert(
         'Success',
         getActionSuccessMessage(nextAction),
@@ -124,11 +124,11 @@ export default function HomeScreen() {
       );
     } catch (error) {
       console.error('Error recording attendance:', error);
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-      
+
       Alert.alert(
         'Error',
         'Failed to record attendance. Please try again.',
@@ -138,7 +138,7 @@ export default function HomeScreen() {
       setIsLoading(false);
     }
   };
-  
+
   const getActionSuccessMessage = (action: AttendanceType): string => {
     switch (action) {
       case 'check-in':
@@ -153,7 +153,7 @@ export default function HomeScreen() {
         return 'Action recorded successfully.';
     }
   };
-  
+
   const getActionButtonText = (action: AttendanceType | null): string => {
     switch (action) {
       case 'check-in':
@@ -168,7 +168,7 @@ export default function HomeScreen() {
         return 'Day Complete';
     }
   };
-  
+
   const getManualActionButtonText = (action: AttendanceType | null): string => {
     switch (action) {
       case 'check-in':
@@ -183,10 +183,10 @@ export default function HomeScreen() {
         return 'Day Complete';
     }
   };
-  
+
   const getStatusText = (): string => {
     if (!lastRecord) return 'Not checked in';
-    
+
     switch (lastRecord.type) {
       case 'check-in':
         return 'Checked In';
@@ -200,10 +200,10 @@ export default function HomeScreen() {
         return 'Unknown Status';
     }
   };
-  
+
   const getStatusColor = (): string => {
     if (!lastRecord) return Colors.textSecondary;
-    
+
     switch (lastRecord.type) {
       case 'check-in':
         return Colors.primary;
@@ -217,10 +217,10 @@ export default function HomeScreen() {
         return Colors.textSecondary;
     }
   };
-  
+
   const getStatusIcon = () => {
     if (!lastRecord) return <Clock size={16} color={Colors.textSecondary} />;
-    
+
     switch (lastRecord.type) {
       case 'check-in':
         return <CheckCircle size={16} color={Colors.primary} />;
@@ -234,9 +234,9 @@ export default function HomeScreen() {
         return <Clock size={16} color={Colors.textSecondary} />;
     }
   };
-  
+
   if (!user) return null;
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -263,7 +263,7 @@ export default function HomeScreen() {
             </View>
           </View>
         </Animated.View>
-        
+
         <Animated.View 
           style={[
             styles.timeCardContainer,
@@ -283,7 +283,7 @@ export default function HomeScreen() {
               <Text style={styles.date}>{formatDate(currentTime.getTime())}</Text>
               <Text style={styles.time}>{formatTime(currentTime.getTime())}</Text>
             </View>
-            
+
             <View style={styles.locationContainer}>
               <MapPin size={16} color="#FFFFFF" />
               <Text style={styles.location} numberOfLines={2}>
@@ -292,7 +292,7 @@ export default function HomeScreen() {
             </View>
           </LinearGradient>
         </Animated.View>
-        
+
         <Animated.View 
           style={[
             styles.statusCard,
@@ -316,7 +316,7 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-          
+
           {lastRecord ? (
             <View style={styles.lastRecordContainer}>
               <View style={styles.lastRecordInfo}>
@@ -325,7 +325,7 @@ export default function HomeScreen() {
                   {getStatusText()} at {formatTime(lastRecord.timestamp)}
                 </Text>
               </View>
-              
+
               {lastRecord.verified && (
                 <View style={styles.verificationStatus}>
                   <CheckCircle size={16} color={Colors.success} />
@@ -334,7 +334,7 @@ export default function HomeScreen() {
                   </Text>
                 </View>
               )}
-              
+
               {!lastRecord.verified && (
                 <View style={styles.verificationStatus}>
                   <XCircle size={16} color={Colors.warning} />
@@ -350,11 +350,11 @@ export default function HomeScreen() {
               <Text style={styles.noRecordText}>No attendance records today</Text>
             </View>
           )}
-          
+
           {todaySummary && (
             <View style={styles.summaryContainer}>
               <Text style={styles.summaryTitle}>Today's Summary</Text>
-              
+
               <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>Session 1</Text>
@@ -362,14 +362,14 @@ export default function HomeScreen() {
                     {formatHours(todaySummary.sessionOneHours)}
                   </Text>
                 </View>
-                
+
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>Session 2</Text>
                   <Text style={styles.summaryValue}>
                     {formatHours(todaySummary.sessionTwoHours)}
                   </Text>
                 </View>
-                
+
                 <View style={styles.summaryItem}>
                   <Text style={styles.summaryLabel}>Total</Text>
                   <Text style={[styles.summaryValue, styles.totalHours]}>
@@ -380,7 +380,7 @@ export default function HomeScreen() {
             </View>
           )}
         </Animated.View>
-        
+
         <Animated.View 
           style={[
             styles.timelineContainer,
@@ -391,7 +391,7 @@ export default function HomeScreen() {
           ]}
         >
           <Text style={styles.timelineTitle}>Today's Timeline</Text>
-          
+
           {todayRecords.length > 0 ? (
             <View style={styles.timeline}>
               {todayRecords.map((record, index) => (
@@ -402,7 +402,7 @@ export default function HomeScreen() {
                     {record.type === 'break-end' && <Timer size={16} color={Colors.secondary} />}
                     {record.type === 'check-out' && <XCircle size={16} color={Colors.success} />}
                   </View>
-                  
+
                   <View style={styles.timelineContent}>
                     <Text style={styles.timelineTime}>{formatTime(record.timestamp)}</Text>
                     <Text style={styles.timelineAction}>
@@ -412,7 +412,7 @@ export default function HomeScreen() {
                       {record.type === 'check-out' && 'Checked Out'}
                     </Text>
                   </View>
-                  
+
                   {index < todayRecords.length - 1 && (
                     <View style={styles.timelineConnector} />
                   )}
@@ -425,7 +425,7 @@ export default function HomeScreen() {
             </View>
           )}
         </Animated.View>
-        
+
         <Animated.View 
           style={[
             styles.actionContainer,
@@ -451,7 +451,7 @@ export default function HomeScreen() {
                   <XCircle size={20} color="#FFFFFF" />
                 }
               />
-              
+
               <TouchableOpacity 
                 style={styles.manualButton}
                 onPress={handleManualAttendance}
@@ -470,6 +470,15 @@ export default function HomeScreen() {
                 You've completed all attendance actions for today
               </Text>
             </View>
+          )}
+
+          {user?.role === 'admin' && (
+            <Button
+              title="View Stored Face Data"
+              onPress={() => router.push('/stored-faces')}
+              variant="secondary"
+              style={styles.storedFacesButton}
+            />
           )}
         </Animated.View>
       </ScrollView>
@@ -758,5 +767,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  storedFacesButton: {
+    marginTop: 20,
   },
 });
