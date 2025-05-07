@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { useBaseUrl } from "@/context/BaseUrlContext";
 import { router } from "expo-router";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function BaseUrlScreen() {
   const [url, setUrl] = useState("");
@@ -54,7 +54,7 @@ export default function BaseUrlScreen() {
       if (!isValid) {
         Alert.alert(
           "Error",
-          "Could not connect to server. Please check the URL and try again."
+          "Could not connect to server. Please check the URL and try again.",
         );
         return;
       }
@@ -64,6 +64,19 @@ export default function BaseUrlScreen() {
       Alert.alert("Error", "Failed to save base URL. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const deleteBaseUrl = async () => {
+    try {
+      await AsyncStorage.removeItem("baseUrl");
+      Alert.alert("Success", "Base URL deleted successfully.");
+      console.log("Existing base URL has been removed");
+      setUrl(""); // Clear the input field after deletion
+    } catch (error) {
+      console.error("Error deleting base URL:", error);
+      console.log("Error deleting base URL:", error);
+      Alert.alert("Error", "Failed to delete base URL. Please try again.");
     }
   };
 
@@ -85,22 +98,24 @@ export default function BaseUrlScreen() {
           style={styles.button}
           isLoading={isLoading}
         />
+        <Button
+          title="Delete Existing URL"
+          onPress={deleteBaseUrl}
+          style={styles.button}
+          variant="secondary" // Optional: style for differentiation
+        />
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: "center",
-    backgroundColor: "#ffffff",
+    alignItems: "center",
   },
   formContainer: {
-    width: "100%",
-    maxWidth: 500,
-    alignSelf: "center",
+    width: "80%",
   },
   button: {
     marginTop: 20,
