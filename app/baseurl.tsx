@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { View, StyleSheet, Alert, Platform } from "react-native";
 import { useBaseUrl } from "@/context/BaseUrlContext";
@@ -24,10 +23,10 @@ export default function BaseUrlScreen() {
   const testUrl = async (url: string) => {
     try {
       // Skip URL testing for web preview
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         return true;
       }
-      
+
       const response = await fetch(`${url}MiddleWare/NewMobileAppLogin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,7 +39,7 @@ export default function BaseUrlScreen() {
       return data?.isSuccess === true;
     } catch (error) {
       console.error("Test URL error:", error);
-      return Platform.OS === 'web'; // Allow proceeding on web
+      return Platform.OS === "web"; // Allow proceeding on web
     }
   };
 
@@ -58,7 +57,7 @@ export default function BaseUrlScreen() {
     setIsLoading(true);
     try {
       const isValid = await testUrl(url.trim());
-      if (!isValid && Platform.OS !== 'web') {
+      if (!isValid && Platform.OS !== "web") {
         Alert.alert(
           "Error",
           "Could not connect to server. Please check the URL and try again.",
@@ -69,11 +68,13 @@ export default function BaseUrlScreen() {
       router.replace("/(auth)");
     } catch (error) {
       console.error("Submit error:", error);
-      Alert.alert("Error", Platform.OS === 'web' ? 
-        "URL saved. Proceeding to login." : 
-        "Failed to save base URL. Please try again."
+      Alert.alert(
+        "Error",
+        Platform.OS === "web"
+          ? "URL saved. Proceeding to login."
+          : "Failed to save base URL. Please try again.",
       );
-      if (Platform.OS === 'web') {
+      if (Platform.OS === "web") {
         router.replace("/(auth)");
       }
     } finally {
