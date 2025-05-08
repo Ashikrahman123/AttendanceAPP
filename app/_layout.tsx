@@ -3,7 +3,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import { useBaseUrl } from "@/context/BaseUrlContext";
 import { BaseUrlProvider } from "@/context/BaseUrlContext";
 import ThemeProvider from "@/components/ThemeProvider";
