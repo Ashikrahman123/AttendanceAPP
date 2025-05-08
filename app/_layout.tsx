@@ -65,12 +65,20 @@ export default function RootLayout() {
     return null;
   }
 
-  // Initialize React DevTools
+  // Initialize DevTools
   if (__DEV__ && typeof window !== 'undefined') {
+    // Initialize Eruda for web debugging
+    if (Platform.OS === 'web') {
+      import('eruda').then(({ default: eruda }) => {
+        eruda.init();
+      });
+    }
+    
+    // Initialize React DevTools
     try {
       import('react-devtools-core').then(({ connectToDevTools }) => {
         connectToDevTools({
-          host: 'localhost',
+          host: '0.0.0.0',
           port: 8097,
         });
       });
