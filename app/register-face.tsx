@@ -244,15 +244,9 @@ export default function RegisterFaceScreen() {
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
           >
-            <TouchableOpacity
-              style={Platform.OS === 'android' ? styles.androidTouchable : undefined}
-              onPress={Platform.OS === 'android' ? handleCapture : undefined}
-              activeOpacity={1}
-            >
-              <FaceDetectionOverlay isDetecting={isCapturing} />
-            </TouchableOpacity>
+            <FaceDetectionOverlay isDetecting={isCapturing} />
 
-            <SafeAreaView style={[styles.overlay, { paddingTop: Platform.OS === 'android' ? 40 : 0 }]}>
+            <SafeAreaView style={styles.overlay}>
               <Animated.View
                 style={[
                   styles.header,
@@ -434,11 +428,6 @@ export default function RegisterFaceScreen() {
 }
 
 const styles = StyleSheet.create({
-  androidTouchable: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     backgroundColor: "#000",
