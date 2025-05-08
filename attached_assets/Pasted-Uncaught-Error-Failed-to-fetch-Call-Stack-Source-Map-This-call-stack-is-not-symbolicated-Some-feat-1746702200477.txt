@@ -1,0 +1,44 @@
+Uncaught Error
+Failed to fetch
+Call Stack
+
+Source Map
+This call stack is not symbolicated. Some features are unavailable such as viewing the function name or tapping to open files.
+window.fetch
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642
+testUrl
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:223834:32
+handleSubmit
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:223861:31
+onClick
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:46046:15
+HTMLUnknownElement.callCallback
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:11293:20
+Object.invokeGuardedCallbackDev
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:11337:22
+invokeGuardedCallback
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:11394:37
+invokeGuardedCallbackAndCatchFirstError
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:11408:31
+executeDispatch
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15551:9
+processDispatchQueueItemsInOrder
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15577:13
+processDispatchQueue
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15588:11
+dispatchEventsForPlugins
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15597:9
+<unknown>
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15757:18
+batchedUpdates$1
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:30180:18
+batchedUpdates
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:11141:18
+dispatchEventForPluginEventSystem
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:15756:9
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:13263:11
+dispatchEvent
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/node_modules/expo-router/entry.bundle:13257:11
+dispatchDiscreteEvent
+https://5e796207-e30c-41b7-82b6-c9519dbdb665-00-142vb31dtisf5.sisko.replit.dev/n
