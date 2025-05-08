@@ -33,10 +33,6 @@ export const useAuthStore = create<AuthState>()(
           const baseUrl = await AsyncStorage.getItem("baseUrl");
           if (!baseUrl) throw new Error("Base URL not configured");
 
-          // Add error handling for fetch
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000);
-
           const response = await fetch(
             `${baseUrl}MiddleWare/NewMobileAppLogin`,
             {
@@ -45,11 +41,8 @@ export const useAuthStore = create<AuthState>()(
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({ userName, password }),
-              signal: controller.signal,
             },
           );
-
-          clearTimeout(timeoutId);
 
           const data = await response.json();
 
@@ -86,17 +79,13 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
         } catch (error) {
-          if (error.name === 'AbortError') {
-            set({ error: "Login timed out", isLoading: false, isAuthenticated: false, user: null, bearerToken: null });
-          } else {
-            set({
-              error: error instanceof Error ? error.message : "Login failed",
-              isLoading: false,
-              isAuthenticated: false,
-              user: null,
-              bearerToken: null,
-            });
-          }
+          set({
+            error: error instanceof Error ? error.message : "Login failed",
+            isLoading: false,
+            isAuthenticated: false,
+            user: null,
+            bearerToken: null,
+          });
           throw error;
         }
       },

@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -38,7 +39,7 @@ export function BaseUrlProvider({ children }: { children: React.ReactNode }) {
   const validateUrl = (url: string) => {
     try {
       const parsedUrl = new URL(url);
-      return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:";
+      return parsedUrl.protocol === 'https:';
     } catch {
       return false;
     }
@@ -48,7 +49,7 @@ export function BaseUrlProvider({ children }: { children: React.ReactNode }) {
     console.log('Setting base URL:', url);
     if (!validateUrl(url)) {
       console.error('Invalid URL format');
-      throw new Error('Invalid URL format. URL must start with http:// or https://');
+      throw new Error('Invalid URL format. URL must start with https://');
     }
 
     try {
