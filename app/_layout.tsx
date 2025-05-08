@@ -80,6 +80,8 @@ export default function RootLayout() {
         connectToDevTools({
           host: '0.0.0.0',
           port: 8097,
+          isSecure: true,
+          websocket: null
         });
       });
     } catch (err) {
