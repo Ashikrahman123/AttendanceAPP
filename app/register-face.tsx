@@ -29,8 +29,6 @@ export default function RegisterFaceScreen() {
   const { user } = useAuthStore();
   const colors = useColors();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const params = useLocalSearchParams<{ contactRecordId: string }>();
-  const contactRecordId = params.contactRecordId;
 
   const [facing, setFacing] = useState<CameraType>("front");
   const [isCapturing, setIsCapturing] = useState(false);
@@ -126,6 +124,10 @@ export default function RegisterFaceScreen() {
       // Move to processing state
       setIsCapturing(false);
       setIsProcessing(true);
+
+      // Get contact record ID from URL params
+      const params = useLocalSearchParams<{ contactRecordId: string }>();
+      const contactRecordId = params.contactRecordId;
 
       // Register the face with employee's contact record ID
       const success = await registerFace(imageUri, contactRecordId);
