@@ -22,7 +22,7 @@ runButton = "Web Dev"
 [[workflows.workflow]]
 name = "Web Dev"
 author = 42226973
-mode = "parallel"
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

@@ -70,10 +70,10 @@ export const useAuthStore = create<AuthState>()(
 
           // Store auth data in AsyncStorage
           await AsyncStorage.multiSet([
-            ["orgId", data.orgID.toString()],
-            ["userId", data.userID.toString()],
-            ["bearerToken", data.bearerTokenValue],
-            ["userRole", data.role],
+            ['orgId', data.orgID.toString()],
+            ['userId', data.userID.toString()],
+            ['bearerToken', data.bearerTokenValue],
+            ['userRole', data.role]
           ]);
 
           await AsyncStorage.setItem("bearerToken", data.bearerTokenValue);
@@ -86,14 +86,8 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
         } catch (error) {
-          if (error.name === "AbortError") {
-            set({
-              error: "Login timed out",
-              isLoading: false,
-              isAuthenticated: false,
-              user: null,
-              bearerToken: null,
-            });
+          if (error.name === 'AbortError') {
+            set({ error: "Login timed out", isLoading: false, isAuthenticated: false, user: null, bearerToken: null });
           } else {
             set({
               error: error instanceof Error ? error.message : "Login failed",
