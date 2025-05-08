@@ -69,21 +69,7 @@ export default function RegisterFaceScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-
-    // Add volume button listener
-    const subscription = Platform.OS === 'android' 
-      ? BackHandler.addEventListener('hardwareBackPress', () => {
-          handleCapture();
-          return true;
-        })
-      : null;
-
-    return () => {
-      if (subscription) {
-        subscription.remove();
-      }
-    };
-  }, [cameraReady]);
+  }, []);
 
   useEffect(() => {
     // If permission is denied, show alert and go back
