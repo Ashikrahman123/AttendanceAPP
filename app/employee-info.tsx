@@ -31,24 +31,44 @@ export default function EmployeeInfoScreen() {
   };
 
   const handleAttendanceAction = async (action: 'CI' | 'CO' | 'SB' | 'EB') => {
+    console.log('[AttendanceAction] Starting attendance action:', action);
     try {
       setLoading(true);
+      
+      // Get required data from storage
+      console.log('[AttendanceAction] Fetching auth data from storage');
       const [orgId, modifyUser, bearerToken] = await Promise.all([
         AsyncStorage.getItem('orgId'),
         AsyncStorage.getItem('userId'),
         AsyncStorage.getItem('bearerToken')
       ]);
 
+      console.log('[AttendanceAction] Auth data retrieved:', {
+        orgId: orgId ? 'Present' : 'Missing',
+        modifyUser: modifyUser ? 'Present' : 'Missing',
+        bearerToken: bearerToken ? 'Present' : 'Missing'
+      });
+
+      // Validate required data
       if (!orgId || !modifyUser || !bearerToken) {
+        console.error('[AttendanceAction] Missing required data:', {
+          orgId: !orgId,
+          modifyUser: !modifyUser,
+          bearerToken: !bearerToken
+        });
         Alert.alert('Error', 'Missing required authentication data');
         return;
       }
 
+      // Get and validate base URL
+      console.log('[AttendanceAction] Fetching base URL');
       const baseUrl = await AsyncStorage.getItem('baseUrl');
       if (!baseUrl) {
+        console.error('[AttendanceAction] Base URL not configured');
         Alert.alert('Error', 'Base URL not configured');
         return;
       }
+      console.log('[AttendanceAction] Base URL:', baseUrl);
 
       const currentTime = new Date();
       const timeString = currentTime.toLocaleTimeString('en-US', { 
@@ -70,6 +90,15 @@ export default function EmployeeInfoScreen() {
         BearerTokenValue: bearerToken
       };
 
+      console.log('[AttendanceAction] Request payload:', {
+        url: baseUrl + 'MiddleWare/Employee_Attendance_Update',
+        method: 'POST',
+        DetailData: {
+          ...requestBody.DetailData,
+          bearerToken: 'HIDDEN'
+        }
+      });
+
       const response = await fetch(baseUrl + 'MiddleWare/Employee_Attendance_Update', {
         method: 'POST',
         headers: {
@@ -79,7 +108,9 @@ export default function EmployeeInfoScreen() {
         body: JSON.stringify(requestBody)
       });
 
+      console.log('[AttendanceAction] Response status:', response.status);
       const data = await response.json();
+      console.log('[AttendanceAction] API Response:', data);
 
       if (data.success) {
         if (action === 'CI') setIsCheckedIn(true);
@@ -92,9 +123,13 @@ export default function EmployeeInfoScreen() {
         Alert.alert('Error', data.message || 'Failed to update attendance');
       }
     } catch (error) {
-      console.error('Error updating attendance:', error);
+      console.error('[AttendanceAction] Error:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        error
+      });
       Alert.alert('Error', 'Failed to update attendance');
     } finally {
+      console.log('[AttendanceAction] Completed attendance action:', action);
       setLoading(false);
     }
   };
