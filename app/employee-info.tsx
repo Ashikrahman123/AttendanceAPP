@@ -1,33 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Camera } from 'lucide-react-native';
+import { Camera, Clock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import { useColors } from '@/hooks/useColors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  const [registeredFaces, setRegisteredFaces] = useState<string[]>([]);
-
-  useEffect(() => {
-    const loadFaceImages = async () => {
-      const faces = await getRegisteredFaces(params.contactRecordId as string);
-      setRegisteredFaces(faces);
-    };
-    loadFaceImages();
-  }, [params.contactRecordId]);
+  const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const [isOnBreak, setIsOnBreak] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Employee data
   const employeeData = {
     name: params.name as string,
     id: params.id as string,
+    contactRecordId: params.contactRecordId as string,
     department: "Engineering",
     position: "Software Developer",
     email: "employee@company.com",
@@ -35,17 +30,73 @@ export default function EmployeeInfoScreen() {
     joinDate: "01/01/2023"
   };
 
-  const handleRegisterFace = () => {
-    const contactRecordId = params.contactRecordId as string;
-    console.log('[EmployeeInfo] Navigating to face registration with contactRecordId:', contactRecordId);
-    router.push({
-      pathname: '/register-face',
-      params: {
-        employeeId: employeeData.id,
-        employeeName: employeeData.name,
-        contactRecordId: contactRecordId
+  const handleAttendanceAction = async (action: 'CI' | 'CO' | 'SB' | 'EB') => {
+    try {
+      setLoading(true);
+      const [orgId, modifyUser, bearerToken] = await Promise.all([
+        AsyncStorage.getItem('orgId'),
+        AsyncStorage.getItem('userId'),
+        AsyncStorage.getItem('bearerToken')
+      ]);
+
+      if (!orgId || !modifyUser || !bearerToken) {
+        Alert.alert('Error', 'Missing required authentication data');
+        return;
       }
-    });
+
+      const baseUrl = await AsyncStorage.getItem('baseUrl');
+      if (!baseUrl) {
+        Alert.alert('Error', 'Base URL not configured');
+        return;
+      }
+
+      const currentTime = new Date();
+      const timeString = currentTime.toLocaleTimeString('en-US', { 
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const requestBody = {
+        DetailData: {
+          OrgId: parseInt(orgId),
+          Module: action,
+          ModifyUser: parseInt(modifyUser),
+          CreateUser: parseInt(modifyUser),
+          Time: timeString,
+          ContactRecordId: parseInt(employeeData.contactRecordId)
+        },
+        BearerTokenValue: bearerToken
+      };
+
+      const response = await fetch(baseUrl + 'MiddleWare/Employee_Attendance_Update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${bearerToken}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (action === 'CI') setIsCheckedIn(true);
+        if (action === 'CO') setIsCheckedIn(false);
+        if (action === 'SB') setIsOnBreak(true);
+        if (action === 'EB') setIsOnBreak(false);
+        
+        Alert.alert('Success', data.message);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to update attendance');
+      }
+    } catch (error) {
+      console.error('Error updating attendance:', error);
+      Alert.alert('Error', 'Failed to update attendance');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -76,13 +127,6 @@ export default function EmployeeInfoScreen() {
       </View>
 
       <View style={styles.content}>
-        <Button
-          title="Register Face ID"
-          onPress={handleRegisterFace}
-          icon={<Camera size={20} color="#FFFFFF" />}
-          style={styles.registerButton}
-        />
-
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Employee ID</Text>
@@ -112,27 +156,25 @@ export default function EmployeeInfoScreen() {
             <Text style={[styles.label, { color: colors.textSecondary }]}>Join Date</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.joinDate}</Text>
           </View>
+        </View>
+
+        <View style={styles.attendanceActions}>
+          <Button
+            title={isCheckedIn ? "Check Out" : "Check In"}
+            onPress={() => handleAttendanceAction(isCheckedIn ? 'CO' : 'CI')}
+            icon={<Clock size={20} color="#FFFFFF" />}
+            style={styles.actionButton}
+            loading={loading}
+          />
           
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          
-          <View style={styles.facePreviewsSection}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Registered Face Images</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.facePreviewsScroll}>
-              {registeredFaces.map((face, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: face }}
-                  style={styles.facePreviewImage}
-                  resizeMode="cover"
-                />
-              ))}
-              {registeredFaces.length === 0 && (
-                <Text style={[styles.noFacesText, { color: colors.textSecondary }]}>
-                  No face images registered
-                </Text>
-              )}
-            </ScrollView>
-          </View>
+          <Button
+            title={isOnBreak ? "End Break" : "Start Break"}
+            onPress={() => handleAttendanceAction(isOnBreak ? 'EB' : 'SB')}
+            variant="secondary"
+            icon={<Clock size={20} color="#FFFFFF" />}
+            style={styles.actionButton}
+            loading={loading}
+          />
         </View>
       </View>
     </ScrollView>
@@ -140,24 +182,6 @@ export default function EmployeeInfoScreen() {
 }
 
 const styles = StyleSheet.create({
-  facePreviewsSection: {
-    marginTop: 12,
-  },
-  facePreviewsScroll: {
-    marginTop: 8,
-  },
-  facePreviewImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  noFacesText: {
-    fontStyle: 'italic',
-    padding: 8,
-  },
   container: {
     flex: 1,
   },
@@ -206,9 +230,6 @@ const styles = StyleSheet.create({
     padding: 20,
     marginTop: -40,
   },
-  registerButton: {
-    marginBottom: 20,
-  },
   infoCard: {
     borderRadius: 12,
     padding: 16,
@@ -230,5 +251,11 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     width: '100%',
+  },
+  attendanceActions: {
+    gap: 12,
+  },
+  actionButton: {
+    marginBottom: 8,
   },
 });
