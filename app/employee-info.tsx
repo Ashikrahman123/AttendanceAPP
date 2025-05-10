@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useColors } from '@/hooks/useColors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function EmployeeInfoScreen() {
+function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -402,3 +402,6 @@ const styles = StyleSheet.create({
   },
 });
 
+
+
+export default EmployeeInfoScreen;
