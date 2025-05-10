@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { Camera, Clock, Coffee, Timer } from 'lucide-react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useColors } from '@/hooks/useColors';
@@ -225,10 +225,16 @@ function EmployeeInfoScreen() {
               disabled={loading || isCheckedIn}
             >
               <View style={[styles.iconContainer, { backgroundColor: '#007AFF20' }]}>
-                <Clock size={20} color="#007AFF" />
+                <Icon name="log-in-outline" size={24} color="#007AFF" />
               </View>
               <Text style={[styles.buttonTitle, { color: colors.text }]}>Clock In</Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {isCheckedIn ? new Date().toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) : '--:--'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -237,10 +243,12 @@ function EmployeeInfoScreen() {
               disabled={loading || !isCheckedIn}
             >
               <View style={[styles.iconContainer, { backgroundColor: '#FF3B3020' }]}>
-                <Clock size={20} color="#FF3B30" />
+                <Icon name="log-out-outline" size={24} color="#FF3B30" />
               </View>
               <Text style={[styles.buttonTitle, { color: colors.text }]}>Clock Out</Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {isCheckedIn && !isOnBreak ? '--:--' : '--:--'}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -251,10 +259,16 @@ function EmployeeInfoScreen() {
               disabled={loading || !isCheckedIn || isOnBreak}
             >
               <View style={[styles.iconContainer, { backgroundColor: '#FF950020' }]}>
-                <Coffee size={20} color="#FF9500" />
+                <Icon name="play-outline" size={24} color="#FF9500" />
               </View>
               <Text style={[styles.buttonTitle, { color: colors.text }]}>Start Break</Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {isOnBreak ? new Date().toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) : '--:--'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -263,10 +277,12 @@ function EmployeeInfoScreen() {
               disabled={loading || !isOnBreak}
             >
               <View style={[styles.iconContainer, { backgroundColor: '#34C75920' }]}>
-                <Timer size={20} color="#34C759" />
+                <Icon name="stop-outline" size={24} color="#34C759" />
               </View>
               <Text style={[styles.buttonTitle, { color: colors.text }]}>End Break</Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {isOnBreak ? '--:--' : '--:--'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
