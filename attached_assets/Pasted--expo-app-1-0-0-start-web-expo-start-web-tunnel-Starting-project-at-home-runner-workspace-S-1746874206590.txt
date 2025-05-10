@@ -1,0 +1,67 @@
+> expo-app@1.0.0 start-web
+> expo start --web --tunnel
+
+Starting project at /home/runner/workspace
+Starting Metro Bundler
+Tunnel connected.
+Tunnel ready.
+The following packages should be updated for best compatibility with the installed expo version:
+  react-native-reanimated@3.17.5 - expected version: ~3.16.1
+Your project may not work correctly until you install the expected versions of the packages.
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ ▄▄▄▄▄ █▄▄██████▄██▄▀█ ▄▄▄▄▄ █
+█ █   █ █ ▀█ ▄    ▀▀▄ █ █   █ █
+█ █▄▄▄█ █▄ ▄▄▀█▄▄▄█▀  █ █▄▄▄█ █
+█▄▄▄▄▄▄▄█▄▀▄▀▄█▄█▄▀ █ █▄▄▄▄▄▄▄█
+█▄▄ ▄▀█▄█▄▀████ ▄  █ ▄ ▀▀ ▄ █ █
+█▀▄▀▄▀█▄  ██▀▀▀███▄██▄▀█▄ ▀██▀█
+█ █▀███▄▀▀▄▀ █▀▀ ▀  ▀▄▄▀██▀▄ ▀█
+█ ▀ █▄▄▄ ▀█▄█ ▀▄█ █▀ ▄▄██ █▄ ▄█
+█▄ ██ ▄▄▄ █ ▄▀▀█ ▀▀▀▄ ▄██▄█▀▀▄█
+█▄██▀ ▀▄ ▀▀ ▄ ██▄█▀▄█  █ ▄  ▀██
+██▄▄██▄▄█ █▀▄  ▀█▀▄██ ▄▄▄ ▄   █
+█ ▄▄▄▄▄ ██▄ ▄▄▄██▀▄▀▄ █▄█ █▄ ██
+█ █   █ █▀▀█▀ █ ▀ ▄▄█  ▄▄ ▀▄█▀█
+█ █▄▄▄█ █ ██ █▄▀▀▀▄ ▄  █▄▀ ▄▀▄█
+█▄▄▄▄▄▄▄█▄▄▄█▄█▄███▄▄▄▄▄██▄█▄██
+
+› Metro waiting on exp://hntq2jc-ashikr142-8081.exp.direct
+› Scan the QR code above with Expo Go (Android) or the Camera app
+(iOS)
+
+› Web is waiting on http://localhost:8081
+
+› Using Expo Go
+› Press s │ switch to development build
+
+› Press a │ open Android
+› Press w │ open web
+
+› Press j │ open debugger
+› Press r │ reload app
+› Press m │ toggle menu
+› shift+m │ more tools
+› Press o │ open project code in your editor
+
+› Press ? │ show all commands
+
+Logs for your project will appear below. Press Ctrl+C to exit.
+› Reloading apps
+No apps connected. Sending "reload" to all React Native apps failed. Make sure your app is running in the simulator or on a phone connected via USB.
+Web Bundled 146504ms node_modules/expo-router/entry.js (2559 modules)
+Web Bundled 34710ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 228ms node_modules/expo-router/entry.js (1 module)
+› Detected a change in babel.config.js. Restart the server to see the new results. You may need to clear the bundler cache with the --clear flag for your changes to take effect.
+ LOG  [web] Logs will appear in the browser console
+Web Bundled 213ms node_modules/expo-router/entry.js (1 module)
+ LOG  [web] Logs will appear in the browser console
+iOS Bundled 203549ms node_modules/expo-router/entry.js (1 module)
+iOS Bundled 21020ms node_modules/expo-router/entry.js (1 module)
+ (NOBRIDGE) LOG  Bridgeless mode is enabled
+ INFO  
+ 💡 JavaScript logs will be removed from Metro in React Native 0.77! Please use React Native DevTools as your default tool. Tip: Type j in the terminal to open (requires Google Chrome or Microsoft Edge).
+ (NOBRIDGE) ERROR  ReanimatedError: [Reanimated] Native part of Reanimated doesn't seem to be initialized (Worklets).
+See https://docs.swmansion.com/react-native-reanimated/docs/guides/troubleshooting#native-part-of-reanimated-doesnt-seem-to-be-initialized for more details. [Component Stack]
+ (NOBRIDGE) WARN  Route "./employee-info.tsx" is missing the required default export. Ensure a React component is exported as default. [Component Stack]
+ (NOBRIDGE) LOG  Loading base URL from storage
+ (NOBRIDGE) LOG  Stored base URL: https://wageuat.digierp.net/
