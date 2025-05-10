@@ -17,6 +17,16 @@ export default function EmployeeInfoScreen() {
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isOnBreak, setIsOnBreak] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Employee data
   const employeeData = {
@@ -193,23 +203,67 @@ export default function EmployeeInfoScreen() {
           </View>
         </View>
 
-        <View style={styles.attendanceActions}>
-          <Button
-            title={isCheckedIn ? "Check Out" : "Check In"}
-            onPress={() => handleAttendanceAction(isCheckedIn ? 'CO' : 'CI')}
-            icon={<Clock size={20} color="#FFFFFF" />}
-            style={styles.actionButton}
-            loading={loading}
-          />
-          
-          <Button
-            title={isOnBreak ? "End Break" : "Start Break"}
-            onPress={() => handleAttendanceAction(isOnBreak ? 'EB' : 'SB')}
-            variant="secondary"
-            icon={<Clock size={20} color="#FFFFFF" />}
-            style={styles.actionButton}
-            loading={loading}
-          />
+        <View style={styles.timeContainer}>
+          <Text style={styles.timeText}>
+            {currentTime.toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
+          </Text>
+          <Text style={styles.dateText}>
+            {currentTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric'
+            })}
+          </Text>
+        </View>
+
+        <View style={styles.attendanceGrid}>
+          <TouchableOpacity 
+            style={[styles.attendanceButton, { backgroundColor: colors.white }]}
+            onPress={() => handleAttendanceAction('CI')}
+            disabled={loading || isCheckedIn}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#007AFF20' }]}>
+              <Clock size={24} color="#007AFF" />
+            </View>
+            <Text style={styles.buttonTitle}>Clock In</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.attendanceButton, { backgroundColor: colors.white }]}
+            onPress={() => handleAttendanceAction('CO')}
+            disabled={loading || !isCheckedIn}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#FF3B3020' }]}>
+              <Clock size={24} color="#FF3B30" />
+            </View>
+            <Text style={styles.buttonTitle}>Clock Out</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.attendanceButton, { backgroundColor: colors.white }]}
+            onPress={() => handleAttendanceAction('SB')}
+            disabled={loading || !isCheckedIn || isOnBreak}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#FF950020' }]}>
+              <Coffee size={24} color="#FF9500" />
+            </View>
+            <Text style={styles.buttonTitle}>Start Break</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.attendanceButton, { backgroundColor: colors.white }]}
+            onPress={() => handleAttendanceAction('EB')}
+            disabled={loading || !isOnBreak}
+          >
+            <View style={[styles.iconContainer, { backgroundColor: '#34C75920' }]}>
+              <Timer size={24} color="#34C759" />
+            </View>
+            <Text style={styles.buttonTitle}>End Break</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -287,10 +341,52 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
   },
-  attendanceActions: {
-    gap: 12,
+  timeContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
-  actionButton: {
-    marginBottom: 8,
+  timeText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  dateText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  attendanceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  attendanceButton: {
+    width: '45%',
+    aspectRatio: 1,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  buttonTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text,
+    textAlign: 'center',
   },
 });
