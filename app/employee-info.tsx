@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { FadeInDown } from 'react-native-reanimated';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Camera, Clock, Coffee, Timer } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -43,7 +41,7 @@ function EmployeeInfoScreen() {
     console.log('[AttendanceAction] Starting attendance action:', action);
     try {
       setLoading(true);
-      
+
       // Get required data from storage
       console.log('[AttendanceAction] Fetching auth data from storage');
       const [orgId, modifyUser, bearerToken] = await Promise.all([
@@ -126,7 +124,7 @@ function EmployeeInfoScreen() {
         if (action === 'CO') setIsCheckedIn(false);
         if (action === 'SB') setIsOnBreak(true);
         if (action === 'EB') setIsOnBreak(false);
-        
+
         Alert.alert('Success', data.message);
       } else {
         Alert.alert('Error', data.message || 'Failed to update attendance');
@@ -177,25 +175,25 @@ function EmployeeInfoScreen() {
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.id}</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Department</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.department}</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Email</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.email}</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Phone</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.phone}</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          
+
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Join Date</Text>
             <Text style={[styles.value, { color: colors.text }]}>{employeeData.joinDate}</Text>
@@ -220,7 +218,7 @@ function EmployeeInfoScreen() {
         </View>
 
         <View style={styles.attendanceGrid}>
-          <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.buttonRow}>
+          <View style={styles.buttonRow}>
             <TouchableOpacity 
               style={[styles.attendanceButton, { backgroundColor: colors.card }]}
               onPress={() => handleAttendanceAction('CI')}
@@ -244,9 +242,9 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>Clock Out</Text>
               <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
 
-          <Animated.View entering={FadeInDown.delay(400).duration(700)} style={styles.buttonRow}>
+          <View style={styles.buttonRow}>
             <TouchableOpacity 
               style={[styles.attendanceButton, { backgroundColor: colors.card }]}
               onPress={() => handleAttendanceAction('SB')}
@@ -270,7 +268,7 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>End Break</Text>
               <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
             </TouchableOpacity>
-          </Animated.View>
+          </View>
         </View>
       </View>
     </ScrollView>
