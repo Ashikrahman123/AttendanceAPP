@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Camera, Clock, Coffee, Timer } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -219,35 +220,57 @@ export default function EmployeeInfoScreen() {
         </View>
 
         <View style={styles.attendanceGrid}>
-          <TouchableOpacity 
-            style={[styles.attendanceButton, { backgroundColor: colors.card }]}
-            onPress={() => handleAttendanceAction(isCheckedIn ? 'CO' : 'CI')}
-            disabled={loading}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: isCheckedIn ? '#FF3B3020' : '#007AFF20' }]}>
-              <Clock size={24} color={isCheckedIn ? '#FF3B30' : '#007AFF'} />
-            </View>
-            <Text style={[styles.buttonTitle, { color: colors.text }]}>
-              {isCheckedIn ? 'Clock Out' : 'Clock In'}
-            </Text>
-          </TouchableOpacity>
+          <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.buttonRow}>
+            <TouchableOpacity 
+              style={[styles.attendanceButton, { backgroundColor: colors.card }]}
+              onPress={() => handleAttendanceAction('CI')}
+              disabled={loading || isCheckedIn}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#007AFF20' }]}>
+                <Clock size={20} color="#007AFF" />
+              </View>
+              <Text style={[styles.buttonTitle, { color: colors.text }]}>Clock In</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.attendanceButton, { backgroundColor: colors.card }]}
-            onPress={() => handleAttendanceAction(isOnBreak ? 'EB' : 'SB')}
-            disabled={loading || !isCheckedIn}
-          >
-            <View style={[styles.iconContainer, { backgroundColor: isOnBreak ? '#34C75920' : '#FF950020' }]}>
-              {isOnBreak ? (
-                <Timer size={24} color="#34C759" />
-              ) : (
-                <Coffee size={24} color="#FF9500" />
-              )}
-            </View>
-            <Text style={[styles.buttonTitle, { color: colors.text }]}>
-              {isOnBreak ? 'End Break' : 'Start Break'}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.attendanceButton, { backgroundColor: colors.card }]}
+              onPress={() => handleAttendanceAction('CO')}
+              disabled={loading || !isCheckedIn}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#FF3B3020' }]}>
+                <Clock size={20} color="#FF3B30" />
+              </View>
+              <Text style={[styles.buttonTitle, { color: colors.text }]}>Clock Out</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.delay(400).duration(700)} style={styles.buttonRow}>
+            <TouchableOpacity 
+              style={[styles.attendanceButton, { backgroundColor: colors.card }]}
+              onPress={() => handleAttendanceAction('SB')}
+              disabled={loading || !isCheckedIn || isOnBreak}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#FF950020' }]}>
+                <Coffee size={20} color="#FF9500" />
+              </View>
+              <Text style={[styles.buttonTitle, { color: colors.text }]}>Start Break</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.attendanceButton, { backgroundColor: colors.card }]}
+              onPress={() => handleAttendanceAction('EB')}
+              disabled={loading || !isOnBreak}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#34C75920' }]}>
+                <Timer size={20} color="#34C759" />
+              </View>
+              <Text style={[styles.buttonTitle, { color: colors.text }]}>End Break</Text>
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>--:--</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       </View>
     </ScrollView>
@@ -338,13 +361,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   attendanceGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 16,
     marginTop: 16,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
   attendanceButton: {
-    width: '48%',
-    aspectRatio: 1,
+    flex: 1,
+    height: 110,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -356,16 +383,21 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   buttonTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  buttonSubtitle: {
+    fontSize: 12,
     textAlign: 'center',
   },
 });
