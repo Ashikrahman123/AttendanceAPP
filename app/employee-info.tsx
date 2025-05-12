@@ -23,6 +23,8 @@ function EmployeeInfoScreen() {
   const [isOnBreak, setIsOnBreak] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [clockInTime, setClockInTime] = useState<Date | null>(null);
+  const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
 
   // Update time every second
   useEffect(() => {
@@ -131,9 +133,15 @@ function EmployeeInfoScreen() {
       console.log("[AttendanceAction] API Response:", data);
 
       if (data.success) {
-        if (action === "CI") setIsCheckedIn(true);
+        if (action === "CI") {
+          setIsCheckedIn(true);
+          setClockInTime(new Date());
+        }
         if (action === "CO") setIsCheckedIn(false);
-        if (action === "SB") setIsOnBreak(true);
+        if (action === "SB") {
+          setIsOnBreak(true);
+          setBreakStartTime(new Date());
+        }
         if (action === "EB") setIsOnBreak(false);
 
         Alert.alert("Success", data.message);
@@ -273,16 +281,12 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Clock In
               </Text>
-              <Text
-                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
-              >
-                {isCheckedIn
-                  ? new Date().toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "--:--"}
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {clockInTime ? clockInTime.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) : '--:--'}
               </Text>
             </TouchableOpacity>
 
@@ -327,16 +331,12 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Start Break
               </Text>
-              <Text
-                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
-              >
-                {isOnBreak
-                  ? new Date().toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "--:--"}
+              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
+                {breakStartTime ? breakStartTime.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
+                }) : '--:--'}
               </Text>
             </TouchableOpacity>
 
