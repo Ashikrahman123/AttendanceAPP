@@ -153,7 +153,7 @@ function EmployeeInfoScreen() {
     } finally {
       console.log("[AttendanceAction] Completed attendance action:", action);
       setLoading(false);
-      
+
       // Show welcome message when checking out
       if (action === "CO") {
         setShowWelcomeMessage(true);
@@ -201,7 +201,7 @@ function EmployeeInfoScreen() {
 
       <View style={styles.content}>
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          <View style={styles.infoRow}>
+          {/* <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
               Employee ID
             </Text>
@@ -209,14 +209,14 @@ function EmployeeInfoScreen() {
               {employeeData.id}
             </Text>
           </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} /> */}
 
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
               Check In Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {clockInTime ? formatTime(clockInTime.getTime()) : '--:--'}
+              {clockInTime ? formatTime(clockInTime.getTime()) : "--:--"}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -226,7 +226,7 @@ function EmployeeInfoScreen() {
               Break Start Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {breakStartTime ? formatTime(breakStartTime.getTime()) : '--:--'}
+              {breakStartTime ? formatTime(breakStartTime.getTime()) : "--:--"}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -236,7 +236,11 @@ function EmployeeInfoScreen() {
               Break End Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {isOnBreak ? '--:--' : breakStartTime ? formatTime(new Date().getTime()) : '--:--'}
+              {isOnBreak
+                ? "--:--"
+                : breakStartTime
+                  ? formatTime(new Date().getTime())
+                  : "--:--"}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -246,11 +250,13 @@ function EmployeeInfoScreen() {
               Check Out Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {isCheckedIn && !isOnBreak ? formatTime(new Date().getTime()) : '--:--'}
+              {isCheckedIn && !isOnBreak
+                ? formatTime(new Date().getTime())
+                : "--:--"}
             </Text>
           </View>
         </View>
-        
+
         {showWelcomeMessage && (
           <View style={styles.welcomeContainer}>
             <Text style={[styles.welcomeMessage, { color: colors.text }]}>
@@ -294,12 +300,16 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Clock In
               </Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
-                {clockInTime ? clockInTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                }) : '--:--'}
+              <Text
+                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
+              >
+                {clockInTime
+                  ? clockInTime.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "--:--"}
               </Text>
             </TouchableOpacity>
 
@@ -344,12 +354,16 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Start Break
               </Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
-                {breakStartTime ? breakStartTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                }) : '--:--'}
+              <Text
+                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
+              >
+                {breakStartTime
+                  ? breakStartTime.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : "--:--"}
               </Text>
             </TouchableOpacity>
 
@@ -508,13 +522,13 @@ const styles = StyleSheet.create({
   welcomeContainer: {
     marginTop: 20,
     padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   welcomeMessage: {
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 
