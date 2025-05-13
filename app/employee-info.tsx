@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useColors } from "@/hooks/useColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { formatTime } from "@/utils/formatTime"; // Import formatTime
 
 function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
@@ -154,13 +155,15 @@ function EmployeeInfoScreen() {
       console.log("[AttendanceAction] Completed attendance action:", action);
       setLoading(false);
 
-      // Show welcome message when checking out
+      // Show welcome message when checking out and reset all times
       if (action === "CO") {
         setShowWelcomeMessage(true);
         setClockInTime(null);
         setBreakStartTime(null);
         setIsCheckedIn(false);
         setIsOnBreak(false);
+
+        // Clear all displayed times on buttons
       }
     }
   };
@@ -195,7 +198,9 @@ function EmployeeInfoScreen() {
             )}
           </View>
           <Text style={styles.name}>{employeeData.name}</Text>
-          <Text style={styles.position}>{employeeData.contactRecordId}</Text>
+          <Text style={styles.position}>
+            ({employeeData.contactRecordId})
+          </Text>
         </LinearGradient>
       </View>
 
@@ -216,7 +221,7 @@ function EmployeeInfoScreen() {
               Check In Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {clockInTime ? formatTime(clockInTime.getTime()) : "--:--"}
+              {clockInTime ? formatTime(clockInTime) : "--:--"}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -226,7 +231,7 @@ function EmployeeInfoScreen() {
               Break Start Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {breakStartTime ? formatTime(breakStartTime.getTime()) : "--:--"}
+              {breakStartTime ? formatTime(breakStartTime) : "--:--"}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -239,7 +244,7 @@ function EmployeeInfoScreen() {
               {isOnBreak
                 ? "--:--"
                 : breakStartTime
-                  ? formatTime(new Date().getTime())
+                  ? formatTime(new Date())
                   : "--:--"}
             </Text>
           </View>
@@ -251,7 +256,7 @@ function EmployeeInfoScreen() {
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
               {isCheckedIn && !isOnBreak
-                ? formatTime(new Date().getTime())
+                ? formatTime(new Date())
                 : "--:--"}
             </Text>
           </View>
@@ -304,11 +309,7 @@ function EmployeeInfoScreen() {
                 style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
               >
                 {clockInTime
-                  ? clockInTime.toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
+                  ? formatTime(clockInTime)
                   : "--:--"}
               </Text>
             </TouchableOpacity>
@@ -358,11 +359,7 @@ function EmployeeInfoScreen() {
                 style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
               >
                 {breakStartTime
-                  ? breakStartTime.toLocaleTimeString("en-US", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
+                  ? formatTime(breakStartTime)
                   : "--:--"}
               </Text>
             </TouchableOpacity>

@@ -187,8 +187,7 @@ export default function EmployeesScreen() {
               />
 
               <View style={styles.employeeInfo}>
-                <Text style={styles.employeeName}>{item.name}</Text>
-                <Text style={styles.employeeEmail}>{item.email}</Text>
+                <Text style={styles.employeeName}>{item.name} ({item.id})</Text>
               </View>
 
               <ChevronRight size={20} color={Colors.textSecondary} />
