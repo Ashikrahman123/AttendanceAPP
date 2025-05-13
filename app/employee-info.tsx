@@ -36,16 +36,12 @@ function EmployeeInfoScreen() {
   }, []);
 
   // Employee data
-  const employeeData = {
+  const [employeeData, setEmployeeData] = useState({
     name: params.name as string,
     id: params.id as string,
     contactRecordId: params.contactRecordId as string,
-    department: "Engineering",
-    position: "Software Developer",
-    email: "employee@company.com",
-    phone: "+1234567890",
-    joinDate: "01/01/2023",
-  };
+  });
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
 
   const handleAttendanceAction = async (action: "CI" | "CO" | "SB" | "EB") => {
     console.log("[AttendanceAction] Starting attendance action:", action);
@@ -157,6 +153,15 @@ function EmployeeInfoScreen() {
     } finally {
       console.log("[AttendanceAction] Completed attendance action:", action);
       setLoading(false);
+      
+      // Show welcome message when checking out
+      if (action === "CO") {
+        setShowWelcomeMessage(true);
+        setClockInTime(null);
+        setBreakStartTime(null);
+        setIsCheckedIn(false);
+        setIsOnBreak(false);
+      }
     }
   };
 
@@ -208,43 +213,51 @@ function EmployeeInfoScreen() {
 
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Department
+              Check In Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.department}
+              {clockInTime ? formatTime(clockInTime.getTime()) : '--:--'}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Email
+              Break Start Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.email}
+              {breakStartTime ? formatTime(breakStartTime.getTime()) : '--:--'}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Phone
+              Break End Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.phone}
+              {isOnBreak ? '--:--' : breakStartTime ? formatTime(new Date().getTime()) : '--:--'}
             </Text>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.infoRow}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Join Date
+              Check Out Time
             </Text>
             <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.joinDate}
+              {isCheckedIn && !isOnBreak ? formatTime(new Date().getTime()) : '--:--'}
             </Text>
           </View>
         </View>
+        
+        {showWelcomeMessage && (
+          <View style={styles.welcomeContainer}>
+            <Text style={[styles.welcomeMessage, { color: colors.text }]}>
+              Your day is complete! Have a great evening!
+            </Text>
+          </View>
+        )}
 
         <View style={styles.timeContainer}>
           <Text style={[styles.timeText, { color: colors.text }]}>
@@ -491,6 +504,17 @@ const styles = StyleSheet.create({
   buttonSubtitle: {
     fontSize: 12,
     textAlign: "center",
+  },
+  welcomeContainer: {
+    marginTop: 20,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  welcomeMessage: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
