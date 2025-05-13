@@ -206,66 +206,33 @@ function EmployeeInfoScreen() {
 
       <View style={styles.content}>
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          {/* <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Employee ID
+          <View style={styles.clockContainer}>
+            <Text style={[styles.timeText, { color: colors.text }]}>
+              {currentTime.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.id}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} /> */}
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Check In Time
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {clockInTime ? formatTime(clockInTime) : "--:--"}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Break Start Time
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {breakStartTime ? formatTime(breakStartTime) : "--:--"}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Break End Time
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {isOnBreak
-                ? "--:--"
-                : breakStartTime
-                  ? formatTime(new Date())
-                  : "--:--"}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Check Out Time
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {isCheckedIn && !isOnBreak
-                ? formatTime(new Date())
-                : "--:--"}
+            <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+              {currentTime.toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </Text>
           </View>
         </View>
 
         {showWelcomeMessage && (
-          <View style={styles.welcomeContainer}>
+          <View style={[styles.welcomeContainer, { backgroundColor: colors.card }]}>
+            <Icon name="star" size={32} color={colors.primary} style={styles.welcomeIcon} />
             <Text style={[styles.welcomeMessage, { color: colors.text }]}>
-              Your day is complete! Have a great evening!
+              Thank you for your hard work today!
+            </Text>
+            <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>
+              Have a wonderful evening and see you tomorrow!
             </Text>
           </View>
         )}
@@ -521,11 +488,24 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: 12,
   },
   welcomeMessage: {
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 5,
+  },
+  welcomeIcon: {
+    marginBottom: 10,
+  },
+  clockContainer: {
+    alignItems: "center",
+    padding: 10,
   },
 });
 
