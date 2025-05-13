@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useColors } from "@/hooks/useColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { formatTime } from "@/utils/formatTime"; // Import formatTime
+import { formatTime } from "@/utils/date-formatter";
 
 function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
