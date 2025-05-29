@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   SafeAreaView,
@@ -7,12 +8,14 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useColors } from "@/hooks/useColors";
 import { StatusBar } from "expo-status-bar";
-import { X } from "lucide-react-native";
+import { X, Camera, Upload } from "lucide-react-native";
+import { FaceSDK, Enum, FaceCaptureResponse } from '@regulaforensics/react-native-face-api';
 
 function FaceComparisonScreen() {
   const colors = useColors();
@@ -20,8 +23,38 @@ function FaceComparisonScreen() {
   const [img2, setImg2] = React.useState<{ uri: string } | null>(null);
   const [similarity, setSimilarity] = React.useState("Select two images to compare");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
-  const pickImage = async (isFirst: boolean) => {
+  React.useEffect(() => {
+    initializeFaceSDK();
+  }, []);
+
+  const initializeFaceSDK = async () => {
+    try {
+      // Initialize the Face SDK
+      const config = {
+        license: "", // Add your license key here if you have one
+        licenseUpdate: false,
+      };
+      
+      await FaceSDK.init(config, (response) => {
+        if (response.success) {
+          console.log("Face SDK initialized successfully");
+          setIsInitialized(true);
+        } else {
+          console.error("Face SDK initialization failed:", response.error);
+          Alert.alert("Error", "Failed to initialize Face SDK");
+        }
+      }, (error) => {
+        console.error("Face SDK initialization error:", error);
+        Alert.alert("Error", "Face SDK initialization failed");
+      });
+    } catch (error) {
+      console.error("Error initializing Face SDK:", error);
+    }
+  };
+
+  const pickImageFromGallery = async (isFirst: boolean) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission required', 'Please grant camera roll permissions to select images.');
@@ -46,9 +79,50 @@ function FaceComparisonScreen() {
     }
   };
 
+  const captureImageFromCamera = async (isFirst: boolean) => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please grant camera permissions to take photos.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Use Face SDK's face capture for better face detection
+      FaceSDK.presentFaceCaptureActivity({
+        cameraPosition: Enum.CameraPosition.FRONT,
+        timeout: 10000,
+      }, (response: FaceCaptureResponse) => {
+        setIsLoading(false);
+        if (response.image) {
+          const imageUri = `data:image/jpeg;base64,${response.image}`;
+          if (isFirst) {
+            setImg1({ uri: imageUri });
+          } else {
+            setImg2({ uri: imageUri });
+          }
+        }
+      }, (error) => {
+        setIsLoading(false);
+        console.error("Face capture error:", error);
+        Alert.alert("Error", "Failed to capture face image");
+      });
+    } catch (error) {
+      setIsLoading(false);
+      console.error("Camera error:", error);
+      Alert.alert("Error", "Failed to access camera");
+    }
+  };
+
   const compareFaces = async () => {
     if (!img1 || !img2) {
       Alert.alert('Missing Images', 'Please select two images to compare');
+      return;
+    }
+
+    if (!isInitialized) {
+      Alert.alert('SDK Not Ready', 'Face SDK is still initializing. Please wait.');
       return;
     }
 
@@ -56,28 +130,84 @@ function FaceComparisonScreen() {
     setSimilarity("Processing...");
 
     try {
-      // Simulate face comparison since we can't use the Face SDK in Expo Go
-      // In a production app, you would send these images to a backend service
-      // that can perform actual face comparison using ML models
-      
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
-      
-      // Generate a mock similarity score for demonstration
-      const mockSimilarity = Math.floor(Math.random() * 100);
-      setSimilarity(`${mockSimilarity}% similarity`);
-      
-      Alert.alert(
-        'Comparison Complete',
-        `The images show ${mockSimilarity}% similarity. Note: This is a demo implementation. For production use, integrate with a real face comparison service.`,
-        [{ text: 'OK' }]
-      );
+      // Convert images to base64 if they aren't already
+      const getBase64FromUri = (uri: string) => {
+        if (uri.startsWith('data:image')) {
+          return uri.split(',')[1];
+        }
+        return uri;
+      };
+
+      const image1Base64 = getBase64FromUri(img1.uri);
+      const image2Base64 = getBase64FromUri(img2.uri);
+
+      // Use Face SDK to compare faces
+      const matchRequest = {
+        images: [
+          {
+            imageType: Enum.ImageType.PRINTED,
+            image: image1Base64,
+          },
+          {
+            imageType: Enum.ImageType.PRINTED, 
+            image: image2Base64,
+          }
+        ]
+      };
+
+      FaceSDK.matchFaces(JSON.stringify(matchRequest), (response) => {
+        setIsLoading(false);
+        
+        if (response.results && response.results.length > 0) {
+          const matchResult = response.results[0];
+          const similarityScore = Math.round(matchResult.similarity * 100);
+          const isMatch = matchResult.similarity > 0.75; // 75% threshold
+          
+          setSimilarity(`${similarityScore}% similarity`);
+          
+          Alert.alert(
+            'Comparison Complete',
+            `The faces show ${similarityScore}% similarity.\n${isMatch ? 'MATCH' : 'NO MATCH'} (threshold: 75%)`,
+            [{ text: 'OK' }]
+          );
+        } else {
+          setSimilarity("No faces detected for comparison");
+          Alert.alert('Error', 'No faces were detected in one or both images. Please try with clearer face photos.');
+        }
+      }, (error) => {
+        setIsLoading(false);
+        console.error('Face comparison error:', error);
+        setSimilarity("Error occurred during comparison");
+        Alert.alert('Error', 'Failed to compare faces. Please try again.');
+      });
+
     } catch (error) {
+      setIsLoading(false);
       console.error('Error comparing faces:', error);
       setSimilarity("Error occurred during comparison");
       Alert.alert('Error', 'Failed to compare faces. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const showImageSourceOptions = (isFirst: boolean) => {
+    Alert.alert(
+      'Select Image Source',
+      'Choose how you want to add the image',
+      [
+        {
+          text: 'Camera',
+          onPress: () => captureImageFromCamera(isFirst),
+        },
+        {
+          text: 'Gallery',
+          onPress: () => pickImageFromGallery(isFirst),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ]
+    );
   };
 
   return (
@@ -101,25 +231,26 @@ function FaceComparisonScreen() {
       {/* Content */}
       <View style={styles.content}>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Select two images to compare their facial similarity
+          Select two face images to compare their similarity
         </Text>
 
         <View style={styles.imagesContainer}>
           {/* Image 1 */}
           <View style={styles.imageSection}>
             <Text style={[styles.imageLabel, { color: colors.text }]}>
-              First Image
+              First Face
             </Text>
             <TouchableOpacity
               style={[styles.imageContainer, { borderColor: colors.border, backgroundColor: colors.card }]}
-              onPress={() => pickImage(true)}
+              onPress={() => showImageSourceOptions(true)}
             >
               {img1 ? (
                 <Image source={img1} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.imagePlaceholder}>
+                  <Camera size={32} color={colors.textSecondary} />
                   <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
-                    Tap to select
+                    Tap to capture or select
                   </Text>
                 </View>
               )}
@@ -134,18 +265,19 @@ function FaceComparisonScreen() {
           {/* Image 2 */}
           <View style={styles.imageSection}>
             <Text style={[styles.imageLabel, { color: colors.text }]}>
-              Second Image
+              Second Face
             </Text>
             <TouchableOpacity
               style={[styles.imageContainer, { borderColor: colors.border, backgroundColor: colors.card }]}
-              onPress={() => pickImage(false)}
+              onPress={() => showImageSourceOptions(false)}
             >
               {img2 ? (
                 <Image source={img2} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.imagePlaceholder}>
+                  <Camera size={32} color={colors.textSecondary} />
                   <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
-                    Tap to select
+                    Tap to capture or select
                   </Text>
                 </View>
               )}
@@ -158,16 +290,25 @@ function FaceComparisonScreen() {
           style={[
             styles.compareButton,
             {
-              backgroundColor: img1 && img2 ? colors.primary : colors.border,
+              backgroundColor: img1 && img2 && isInitialized ? colors.primary : colors.border,
               opacity: isLoading ? 0.7 : 1,
             }
           ]}
           onPress={compareFaces}
-          disabled={!img1 || !img2 || isLoading}
+          disabled={!img1 || !img2 || isLoading || !isInitialized}
         >
-          <Text style={[styles.compareButtonText, { color: '#FFFFFF' }]}>
-            {isLoading ? 'Comparing...' : 'Compare Faces'}
-          </Text>
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#FFFFFF" />
+              <Text style={[styles.compareButtonText, { color: '#FFFFFF', marginLeft: 8 }]}>
+                Comparing...
+              </Text>
+            </View>
+          ) : (
+            <Text style={[styles.compareButtonText, { color: '#FFFFFF' }]}>
+              Compare Faces
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Result */}
@@ -180,10 +321,19 @@ function FaceComparisonScreen() {
           </Text>
         </View>
 
-        {/* Disclaimer */}
-        <View style={[styles.disclaimerContainer, { backgroundColor: colors.cardAlt }]}>
-          <Text style={[styles.disclaimerText, { color: colors.textSecondary }]}>
-            Note: This is a demonstration. In production, this would use a real face comparison API service for accurate results.
+        {/* SDK Status */}
+        <View style={[styles.statusContainer, { backgroundColor: isInitialized ? colors.success + "20" : colors.warning + "20" }]}>
+          <Text style={[styles.statusText, { color: isInitialized ? colors.success : colors.warning }]}>
+            Face SDK: {isInitialized ? 'Ready' : 'Initializing...'}
+          </Text>
+        </View>
+
+        {/* Info */}
+        <View style={[styles.infoContainer, { backgroundColor: colors.cardAlt }]}>
+          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+            • Use clear, well-lit face photos for best results{'\n'}
+            • Faces should be looking directly at the camera{'\n'}
+            • Similarity threshold for match: 75%
           </Text>
         </View>
       </View>
@@ -254,10 +404,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     height: '100%',
+    padding: 10,
   },
   placeholderText: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'center',
+    marginTop: 8,
   },
   vsContainer: {
     paddingHorizontal: 20,
@@ -271,6 +423,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   compareButtonText: {
     fontSize: 16,
@@ -291,15 +447,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  disclaimerContainer: {
+  statusContainer: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  statusText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  infoContainer: {
     padding: 16,
     borderRadius: 8,
     marginTop: 'auto',
   },
-  disclaimerText: {
+  infoText: {
     fontSize: 12,
-    textAlign: 'center',
-    fontStyle: 'italic',
+    lineHeight: 16,
   },
 });
 

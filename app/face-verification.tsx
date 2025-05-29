@@ -28,18 +28,19 @@ import { AttendanceType } from '@/types/user';
 import * as FileSystem from 'expo-file-system';
 import { useThemeStore } from '@/store/theme-store';
 import LoadingOverlay from '@/components/LoadingOverlay';
+import { initializeFaceSDK, captureFaceImage, isSDKReady } from '@/utils/faceSDK';
 
 const { width, height } = Dimensions.get('window');
 
 export default function FaceVerificationScreen() {
   const params = useLocalSearchParams<{ type: AttendanceType }>();
   const type = params.type as AttendanceType || 'check-in';
-  
+
   const { user } = useAuthStore();
   const { addAttendanceRecord } = useAttendanceStore();
   const colors = useColors();
   const isDarkMode = useThemeStore(state => state.isDarkMode);
-  
+
   const [facing, setFacing] = useState<CameraType>('front');
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -48,23 +49,23 @@ export default function FaceVerificationScreen() {
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [registeredFace, setRegisteredFace] = useState<string | null>(null);
-  
+
   // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const successAnim = useRef(new Animated.Value(0)).current;
-  
+
   const cameraRef = useRef<any>(null);
-  
+
   useEffect(() => {
     // Request camera permission if needed
     if (!permission?.granted) {
       requestPermission();
     }
-    
+
     // Start animations
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -78,16 +79,16 @@ export default function FaceVerificationScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     // Load registered face if user exists
     if (user) {
       loadRegisteredFace();
     }
   }, []);
-  
+
   const loadRegisteredFace = async () => {
     if (!user) return;
-    
+
     try {
       const faceData = await getRegisteredFace(user.id);
       setRegisteredFace(faceData);
@@ -95,7 +96,7 @@ export default function FaceVerificationScreen() {
       console.error('Error loading registered face:', error);
     }
   };
-  
+
   useEffect(() => {
     // If permission is denied, show alert and go back
     if (permission && !permission.granted && !permission.canAskAgain) {
@@ -113,48 +114,48 @@ export default function FaceVerificationScreen() {
       const timer = setTimeout(() => {
         router.replace('/(tabs)');
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [verificationComplete]);
-  
+
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'front' ? 'back' : 'front'));
   };
-  
+
   const handleCapture = async () => {
     if (!user || !cameraReady || !cameraRef.current) return;
-    
+
     setIsCapturing(true);
-    
+
     try {
       // Provide haptic feedback
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
-      
+
       // Capture the image
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.7,
         base64: true,
         exif: false,
       });
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      
+
       // Set the captured image
       const imageUri = photo.uri;
       setCapturedImage(imageUri);
-      
+
       // Move to processing state
       setIsCapturing(false);
       setIsProcessing(true);
-      
+
       // Get base64 data
       let base64Image = photo.base64;
-      
+
       // If base64 wasn't included in the photo, read it from the file
       if (!base64Image && Platform.OS !== 'web') {
         try {
@@ -165,22 +166,22 @@ export default function FaceVerificationScreen() {
           console.error('Error reading image as base64:', error);
         }
       }
-      
+
       // Prepare the image data for storage
       const imageData = base64Image ? `data:image/jpeg;base64,${base64Image}` : undefined;
-      
+
       // Verify face against registered face or user's face data
       const faceToCompare = registeredFace || user.faceData;
       const isVerificationSuccessful = await verifyFace(imageUri, faceToCompare);
-      
+
       // Update state based on verification result
       setIsVerified(isVerificationSuccessful);
-      
+
       if (isVerificationSuccessful) {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
-        
+
         // Record attendance with the image data
         await addAttendanceRecord({
           userId: user.id,
@@ -189,21 +190,21 @@ export default function FaceVerificationScreen() {
           verified: true,
           imageData: imageData,
         });
-        
+
         // Animate success
         Animated.timing(successAnim, {
           toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }).start();
-        
+
         // Set verification complete to trigger redirect
         setVerificationComplete(true);
       } else {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
-        
+
         Alert.alert(
           'Verification Failed',
           'Face verification failed. Please try again or use manual check-in.',
@@ -233,11 +234,11 @@ export default function FaceVerificationScreen() {
       }
     } catch (error) {
       console.error('Error capturing image:', error);
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-      
+
       Alert.alert(
         'Error',
         'Failed to capture image. Please try again.',
@@ -252,11 +253,11 @@ export default function FaceVerificationScreen() {
       );
     }
   };
-  
+
   const handleCancel = () => {
     router.back();
   };
-  
+
   const getActionTitle = (): string => {
     switch (type) {
       case 'check-in':
@@ -271,7 +272,7 @@ export default function FaceVerificationScreen() {
         return 'Verify Face';
     }
   };
-  
+
   const getActionIcon = () => {
     switch (type) {
       case 'check-in':
@@ -286,7 +287,7 @@ export default function FaceVerificationScreen() {
         return <Camera size={24} color="#FFFFFF" />;
     }
   };
-  
+
   const getActionColor = (): [string, string] => {
     switch (type) {
       case 'check-in':
@@ -301,7 +302,7 @@ export default function FaceVerificationScreen() {
         return [colors.primaryGradientStart, colors.primaryGradientEnd];
     }
   };
-  
+
   if (!permission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -309,7 +310,7 @@ export default function FaceVerificationScreen() {
       </SafeAreaView>
     );
   }
-  
+
   if (!permission.granted) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -331,11 +332,11 @@ export default function FaceVerificationScreen() {
       </SafeAreaView>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
+
       {!capturedImage ? (
         <>
           <CameraView 
@@ -345,7 +346,7 @@ export default function FaceVerificationScreen() {
             onCameraReady={() => setCameraReady(true)}
           >
             <FaceDetectionOverlay isDetecting={isCapturing} />
-            
+
             <SafeAreaView style={styles.overlay}>
               <Animated.View 
                 style={[
@@ -362,12 +363,12 @@ export default function FaceVerificationScreen() {
                 >
                   <X size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                
+
                 <View style={styles.headerContent}>
                   <Text style={styles.title}>{getActionTitle()}</Text>
                   <Text style={styles.subtitle}>Position your face in the frame</Text>
                 </View>
-                
+
                 <TouchableOpacity 
                   style={styles.flipButton}
                   onPress={toggleCameraFacing}
@@ -375,7 +376,7 @@ export default function FaceVerificationScreen() {
                   <RefreshCw size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </Animated.View>
-              
+
               <Animated.View 
                 style={[
                   styles.footer,
@@ -403,7 +404,7 @@ export default function FaceVerificationScreen() {
                     )}
                   </TouchableOpacity>
                 </LinearGradient>
-                
+
                 <Text style={styles.captureText}>
                   {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
                 </Text>
@@ -418,7 +419,7 @@ export default function FaceVerificationScreen() {
             style={styles.capturedImage} 
             resizeMode="cover"
           />
-          
+
           <View style={styles.resultOverlay}>
             <SafeAreaView style={styles.resultContent}>
               <Animated.View 
@@ -435,7 +436,7 @@ export default function FaceVerificationScreen() {
                    isVerified ? 'Verification Successful!' : 'Verification Failed'}
                 </Text>
               </Animated.View>
-              
+
               {isProcessing ? (
                 <View style={styles.processingContainer}>
                   <ActivityIndicator size="large" color="#FFFFFF" />
@@ -496,14 +497,14 @@ export default function FaceVerificationScreen() {
                       variant="outline"
                       onPress={async () => {
                         if (!user) return;
-                        
+
                         await addAttendanceRecord({
                           userId: user.id,
                           userName: user.name,
                           type: type,
                           verified: false,
                         });
-                        
+
                         router.replace('/(tabs)');
                       }}
                       style={styles.manualButton}
@@ -515,7 +516,7 @@ export default function FaceVerificationScreen() {
           </View>
         </View>
       )}
-      
+
       <LoadingOverlay visible={isProcessing && !capturedImage} message="Processing..." transparent={true} />
     </View>
   );
