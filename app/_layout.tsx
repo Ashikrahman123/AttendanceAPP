@@ -48,7 +48,7 @@ function RootLayoutNav() {
       <Stack.Screen name="baseurl" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="faceComparisonScreen" />
+      <Stack.Screen name="faceComparisonScreen" options={{ presentation: "modal" }} />
     </Stack>
   );
 }
