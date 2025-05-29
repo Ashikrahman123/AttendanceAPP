@@ -1,6 +1,6 @@
+
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useBaseUrl } from '@/context/BaseUrlContext';
 
 // Helper function to get base64 from image URI
 async function getBase64FromUri(uri: string): Promise<string | null> {
@@ -63,7 +63,6 @@ export async function verifyFace(capturedFace: string, storedFace?: string): Pro
     return false;
   }
 }
-
 
 // Function to register a face
 export async function registerFace(imageUri: string, contactRecordId: string | number): Promise<boolean> {
@@ -181,6 +180,17 @@ export async function getRegisteredFaces(contactRecordId: string): Promise<strin
   }
 }
 
+// Function to get a single registered face (first one)
+export async function getRegisteredFace(contactRecordId: string): Promise<string | null> {
+  try {
+    const faces = await getRegisteredFaces(contactRecordId);
+    return faces.length > 0 ? faces[0] : null;
+  } catch (error) {
+    console.error('[Face Retrieval] Error getting registered face:', error);
+    return null;
+  }
+}
+
 export async function addRegisteredFace(contactRecordId: string, faceImage: string): Promise<boolean> {
   try {
     const facesKey = `face_data_contact_${contactRecordId}_faces`;
@@ -193,8 +203,6 @@ export async function addRegisteredFace(contactRecordId: string, faceImage: stri
     return false;
   }
 }
-
-
 
 // Function to detect if an image contains a face
 export async function detectFace(imageUri: string): Promise<boolean> {

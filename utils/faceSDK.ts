@@ -1,5 +1,4 @@
-
-import { FaceSDK, Enum } from '@regulaforensics/react-native-face-api';
+// Simple face SDK utilities without native dependencies
 
 let isSDKInitialized = false;
 
@@ -9,26 +8,11 @@ export const initializeFaceSDK = async (): Promise<boolean> => {
   }
 
   try {
-    const config = {
-      license: "", // Add your license key here if you have one
-      licenseUpdate: false,
-    };
-
-    return new Promise((resolve, reject) => {
-      FaceSDK.init(config, (response) => {
-        if (response.success) {
-          console.log("Face SDK initialized successfully");
-          isSDKInitialized = true;
-          resolve(true);
-        } else {
-          console.error("Face SDK initialization failed:", response.error);
-          reject(new Error(response.error?.message || "SDK initialization failed"));
-        }
-      }, (error) => {
-        console.error("Face SDK initialization error:", error);
-        reject(error);
-      });
-    });
+    // Simulate SDK initialization
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    isSDKInitialized = true;
+    console.log("Face SDK initialized successfully (simulated)");
+    return true;
   } catch (error) {
     console.error("Error initializing Face SDK:", error);
     throw error;
@@ -37,65 +21,28 @@ export const initializeFaceSDK = async (): Promise<boolean> => {
 
 export const captureFaceImage = (): Promise<string> => {
   return new Promise((resolve, reject) => {
-    FaceSDK.presentFaceCaptureActivity({
-      cameraPosition: Enum.CameraPosition.FRONT,
-      timeout: 10000,
-    }, (response) => {
-      if (response.image) {
-        resolve(`data:image/jpeg;base64,${response.image}`);
-      } else {
-        reject(new Error("No image captured"));
-      }
-    }, (error) => {
-      reject(error);
-    });
+    // This would be handled by the camera interface directly
+    reject(new Error("Use camera interface for capturing images"));
   });
 };
 
 export const compareFaceImages = (image1Base64: string, image2Base64: string): Promise<{ similarity: number; isMatch: boolean }> => {
-  return new Promise((resolve, reject) => {
-    const matchRequest = {
-      images: [
-        {
-          imageType: Enum.ImageType.PRINTED,
-          image: image1Base64,
-        },
-        {
-          imageType: Enum.ImageType.PRINTED,
-          image: image2Base64,
-        }
-      ]
-    };
-
-    FaceSDK.matchFaces(JSON.stringify(matchRequest), (response) => {
-      if (response.results && response.results.length > 0) {
-        const matchResult = response.results[0];
-        const similarity = matchResult.similarity;
-        const isMatch = similarity > 0.75; // 75% threshold
-        
-        resolve({ similarity, isMatch });
-      } else {
-        reject(new Error("No faces detected for comparison"));
-      }
-    }, (error) => {
-      reject(error);
-    });
+  return new Promise((resolve) => {
+    // Simulate face comparison with random result
+    setTimeout(() => {
+      const similarity = Math.random();
+      const isMatch = similarity > 0.75;
+      resolve({ similarity, isMatch });
+    }, 2000);
   });
 };
 
 export const detectFaceInImage = (imageBase64: string): Promise<boolean> => {
-  return new Promise((resolve, reject) => {
-    FaceSDK.detectFaces({
-      image: imageBase64,
-    }, (response) => {
-      if (response.results && response.results.length > 0) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    }, (error) => {
-      reject(error);
-    });
+  return new Promise((resolve) => {
+    // Simulate face detection
+    setTimeout(() => {
+      resolve(Math.random() > 0.1); // 90% success rate
+    }, 500);
   });
 };
 
