@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,31 +9,60 @@ import {
   Alert,
   TouchableOpacity,
   ActivityIndicator,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { launchImageLibrary, launchCamera, ImagePickerResponse } from 'react-native-image-picker';
+  Platform,
+  PermissionsAndroid,
+} from "react-native";
+import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
 import { RNCamera } from 'react-native-camera';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useColors } from '../hooks/useColors';
 
-export default function FaceComparisonScreen() {
-  const colors = useColors();
-  const navigation = useNavigation();
+interface Props {
+  navigation: any;
+}
+
+function FaceComparisonScreen({ navigation }: Props) {
   const [img1, setImg1] = useState<{ uri: string } | null>(null);
   const [img2, setImg2] = useState<{ uri: string } | null>(null);
-  const [similarity, setSimilarity] = useState('Select two images to compare');
+  const [similarity, setSimilarity] = useState("Select two images to compare");
   const [isLoading, setIsLoading] = useState(false);
   const [cameraVisible, setCameraVisible] = useState(false);
   const [currentImageSlot, setCurrentImageSlot] = useState<1 | 2>(1);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const cameraRef = useRef<RNCamera>(null);
 
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          {
+            title: 'Camera Permission',
+            message: 'App needs camera permission to take photos',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    } else {
+      const result = await request(PERMISSIONS.IOS.CAMERA);
+      return result === RESULTS.GRANTED;
+    }
+  };
+
   const pickImageFromGallery = async (isFirst: boolean) => {
     const options = {
-      mediaType: 'photo' as const,
+      mediaType: 'photo' as MediaType,
       includeBase64: false,
       maxHeight: 2000,
       maxWidth: 2000,
+      quality: 0.8,
     };
 
     launchImageLibrary(options, (response: ImagePickerResponse) => {
@@ -55,29 +84,37 @@ export default function FaceComparisonScreen() {
   };
 
   const openCamera = async (isFirst: boolean) => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission required', 'Please grant camera permissions to take photos.');
+      return;
+    }
+
     setCurrentImageSlot(isFirst ? 1 : 2);
     setCameraVisible(true);
   };
 
   const captureImage = async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !cameraReady) return;
 
     try {
       setIsLoading(true);
       const options = { quality: 0.7, base64: false };
       const data = await cameraRef.current.takePictureAsync(options);
 
+      const imageUri = data.uri;
+      
       if (currentImageSlot === 1) {
-        setImg1({ uri: data.uri });
+        setImg1({ uri: imageUri });
       } else {
-        setImg2({ uri: data.uri });
+        setImg2({ uri: imageUri });
       }
 
       setCameraVisible(false);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error capturing image:', error);
       Alert.alert('Error', 'Failed to capture image. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -89,13 +126,14 @@ export default function FaceComparisonScreen() {
     }
 
     setIsLoading(true);
-    setSimilarity('Processing...');
+    setSimilarity("Processing...");
 
     try {
       // Simulate face comparison processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Generate a random similarity score for demo purposes
+      // In a real implementation, you would use actual face recognition
       const randomSimilarity = Math.floor(Math.random() * 100);
       const isMatch = randomSimilarity > 75;
       
@@ -108,7 +146,7 @@ export default function FaceComparisonScreen() {
       );
     } catch (error) {
       console.error('Error comparing faces:', error);
-      setSimilarity('Error occurred during comparison');
+      setSimilarity("Error occurred during comparison");
       Alert.alert('Error', 'Failed to compare faces. Please try again.');
     } finally {
       setIsLoading(false);
@@ -144,12 +182,8 @@ export default function FaceComparisonScreen() {
           style={styles.camera}
           type={RNCamera.Constants.Type.front}
           flashMode={RNCamera.Constants.FlashMode.off}
-          androidCameraPermissionOptions={{
-            title: 'Permission to use camera',
-            message: 'We need your permission to use your camera',
-            buttonPositive: 'Ok',
-            buttonNegative: 'Cancel',
-          }}
+          onCameraReady={() => setCameraReady(true)}
+          captureAudio={false}
         >
           <SafeAreaView style={styles.cameraOverlay}>
             {/* Camera Header */}
@@ -170,19 +204,21 @@ export default function FaceComparisonScreen() {
 
             {/* Camera Footer */}
             <View style={styles.cameraFooter}>
-              <TouchableOpacity
-                style={styles.captureButton}
-                onPress={captureImage}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#FFFFFF" size="large" />
-                ) : (
-                  <Icon name="camera" size={32} color="#FFFFFF" />
-                )}
-              </TouchableOpacity>
+              <View style={styles.captureButtonContainer}>
+                <TouchableOpacity
+                  style={[styles.captureButton, { opacity: cameraReady && !isLoading ? 1 : 0.5 }]}
+                  onPress={captureImage}
+                  disabled={!cameraReady || isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#FFFFFF" size="large" />
+                  ) : (
+                    <Icon name="camera" size={32} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
               <Text style={styles.captureText}>
-                {isLoading ? 'Capturing...' : 'Tap to capture'}
+                {isLoading ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
               </Text>
             </View>
           </SafeAreaView>
@@ -192,16 +228,16 @@ export default function FaceComparisonScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={styles.header}>
         <TouchableOpacity
-          style={[styles.closeButton, { backgroundColor: colors.cardAlt }]}
+          style={styles.closeButton}
           onPress={() => navigation.goBack()}
         >
-          <Icon name="close" size={24} color={colors.text} />
+          <Icon name="close" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           Face Comparison
         </Text>
         <View style={{ width: 40 }} />
@@ -209,26 +245,26 @@ export default function FaceComparisonScreen() {
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+        <Text style={styles.subtitle}>
           Select two face images to compare their similarity
         </Text>
 
         <View style={styles.imagesContainer}>
           {/* Image 1 */}
           <View style={styles.imageSection}>
-            <Text style={[styles.imageLabel, { color: colors.text }]}>
+            <Text style={styles.imageLabel}>
               First Face
             </Text>
             <TouchableOpacity
-              style={[styles.imageContainer, { borderColor: colors.border, backgroundColor: colors.card }]}
+              style={styles.imageContainer}
               onPress={() => showImageSourceOptions(true)}
             >
               {img1 ? (
                 <Image source={img1} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.imagePlaceholder}>
-                  <Icon name="camera" size={32} color={colors.textSecondary} />
-                  <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+                  <Icon name="camera" size={32} color="#666" />
+                  <Text style={styles.placeholderText}>
                     Tap to add
                   </Text>
                 </View>
@@ -238,24 +274,24 @@ export default function FaceComparisonScreen() {
 
           {/* VS Divider */}
           <View style={styles.vsContainer}>
-            <Text style={[styles.vsText, { color: colors.primary }]}>VS</Text>
+            <Text style={styles.vsText}>VS</Text>
           </View>
 
           {/* Image 2 */}
           <View style={styles.imageSection}>
-            <Text style={[styles.imageLabel, { color: colors.text }]}>
+            <Text style={styles.imageLabel}>
               Second Face
             </Text>
             <TouchableOpacity
-              style={[styles.imageContainer, { borderColor: colors.border, backgroundColor: colors.card }]}
+              style={styles.imageContainer}
               onPress={() => showImageSourceOptions(false)}
             >
               {img2 ? (
                 <Image source={img2} style={styles.image} resizeMode="cover" />
               ) : (
                 <View style={styles.imagePlaceholder}>
-                  <Icon name="camera" size={32} color={colors.textSecondary} />
-                  <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+                  <Icon name="camera" size={32} color="#666" />
+                  <Text style={styles.placeholderText}>
                     Tap to add
                   </Text>
                 </View>
@@ -269,7 +305,7 @@ export default function FaceComparisonScreen() {
           style={[
             styles.compareButton,
             {
-              backgroundColor: img1 && img2 ? colors.primary : colors.border,
+              backgroundColor: img1 && img2 ? '#007AFF' : '#CCC',
               opacity: isLoading ? 0.7 : 1,
             }
           ]}
@@ -279,30 +315,30 @@ export default function FaceComparisonScreen() {
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="small" color="#FFFFFF" />
-              <Text style={[styles.compareButtonText, { color: '#FFFFFF', marginLeft: 8 }]}>
+              <Text style={[styles.compareButtonText, { marginLeft: 8 }]}>
                 Comparing...
               </Text>
             </View>
           ) : (
-            <Text style={[styles.compareButtonText, { color: '#FFFFFF' }]}>
+            <Text style={styles.compareButtonText}>
               Compare Faces
             </Text>
           )}
         </TouchableOpacity>
 
         {/* Result */}
-        <View style={[styles.resultContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.resultLabel, { color: colors.textSecondary }]}>
+        <View style={styles.resultContainer}>
+          <Text style={styles.resultLabel}>
             Result:
           </Text>
-          <Text style={[styles.resultText, { color: colors.text }]}>
+          <Text style={styles.resultText}>
             {similarity}
           </Text>
         </View>
 
         {/* Info */}
-        <View style={[styles.infoContainer, { backgroundColor: colors.cardAlt }]}>
-          <Text style={[styles.infoText, { color: colors.textSecondary }]}>
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>
             • Use clear, well-lit face photos for best results{'\n'}
             • Faces should be looking directly at the camera{'\n'}
             • This is a demo implementation with simulated results{'\n'}
@@ -317,6 +353,7 @@ export default function FaceComparisonScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F9FAFB',
   },
   header: {
     flexDirection: 'row',
@@ -324,6 +361,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 20,
     borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   closeButton: {
     width: 40,
@@ -331,10 +369,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F3F4F6',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#111827',
   },
   content: {
     flex: 1,
@@ -344,6 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 30,
+    color: '#6B7280',
   },
   imagesContainer: {
     flexDirection: 'row',
@@ -359,12 +400,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 10,
+    color: '#111827',
   },
   imageContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
     borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -383,6 +427,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: 'center',
     marginTop: 8,
+    color: '#6B7280',
   },
   vsContainer: {
     paddingHorizontal: 20,
@@ -390,6 +435,7 @@ const styles = StyleSheet.create({
   vsText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#007AFF',
   },
   compareButton: {
     paddingVertical: 16,
@@ -404,30 +450,37 @@ const styles = StyleSheet.create({
   compareButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
   },
   resultContainer: {
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     marginBottom: 20,
   },
   resultLabel: {
     fontSize: 14,
     marginBottom: 8,
+    color: '#6B7280',
   },
   resultText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#111827',
   },
   infoContainer: {
     padding: 16,
     borderRadius: 8,
+    backgroundColor: '#F3F4F6',
     marginTop: 'auto',
   },
   infoText: {
     fontSize: 12,
     lineHeight: 16,
+    color: '#6B7280',
   },
   // Camera styles
   cameraContainer: {
@@ -466,6 +519,9 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
+  captureButtonContainer: {
+    marginBottom: 12,
+  },
   captureButton: {
     width: 80,
     height: 80,
@@ -475,7 +531,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: '#FFFFFF',
-    marginBottom: 12,
   },
   captureText: {
     fontSize: 14,
@@ -483,3 +538,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+export default FaceComparisonScreen;
