@@ -1,0 +1,45 @@
+~/workspace$ npm install @regulaforensics/react-native-face-api
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: lucide-react-native@0.475.0
+npm error Found: react@19.0.0
+npm error node_modules/react
+npm error   peer react@"*" from @expo/vector-icons@14.1.0
+npm error   node_modules/@expo/vector-icons
+npm error     @expo/vector-icons@"^14.0.0" from expo@53.0.9
+npm error     node_modules/expo
+npm error       peer expo@"*" from expo-asset@11.1.5
+npm error       node_modules/expo-asset
+npm error         expo-asset@"~11.1.5" from expo@53.0.9
+npm error       18 more (expo-blur, expo-camera, expo-constants, ...)
+npm error     @expo/vector-icons@"^14.0.2" from the root project
+npm error   peer react@"^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc" from @radix-ui/react-compose-refs@1.1.2
+npm error   node_modules/@radix-ui/react-compose-refs
+npm error     @radix-ui/react-compose-refs@"1.1.2" from @radix-ui/react-slot@1.2.0
+npm error     node_modules/@radix-ui/react-slot
+npm error       @radix-ui/react-slot@"1.2.0" from expo-router@5.0.7
+npm error       node_modules/expo-router
+npm error         expo-router@"~5.0.7" from the root project
+npm error   33 more (@radix-ui/react-slot, ...)
+npm error
+npm error Could not resolve dependency:
+npm error peer react@"^16.5.1 || ^17.0.0 || ^18.0.0" from lucide-react-native@0.475.0
+npm error node_modules/lucide-react-native
+npm error   lucide-react-native@"^0.475.0" from the root project
+npm error
+npm error Conflicting peer dependency: react@18.3.1
+npm error node_modules/react
+npm error   peer react@"^16.5.1 || ^17.0.0 || ^18.0.0" from lucide-react-native@0.475.0
+npm error   node_modules/lucide-react-native
+npm error     lucide-react-native@"^0.475.0" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/runner/.npm/_logs/2025-05-29T07_37_44_258Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2025-05-29T07_37_44_258Z-debug-0.log
+~/workspace$ 
