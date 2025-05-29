@@ -3,22 +3,18 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Button,
   Text,
   Image,
   Alert,
   TouchableOpacity,
-  Platform,
-  NativeEventEmitter,
 } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
 import { useColors } from "@/hooks/useColors";
 import { StatusBar } from "expo-status-bar";
 import { X } from "lucide-react-native";
 
-export default function FaceComparisonScreen() {
+function FaceComparisonScreen() {
   const colors = useColors();
   const [img1, setImg1] = React.useState<{ uri: string } | null>(null);
   const [img2, setImg2] = React.useState<{ uri: string } | null>(null);
@@ -306,3 +302,5 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
+export default FaceComparisonScreen;

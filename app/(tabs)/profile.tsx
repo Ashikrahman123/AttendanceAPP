@@ -166,6 +166,8 @@ export default function ProfileScreen() {
       setRegisteredFace(faceData);
     } catch (error) {
       console.error("Error checking registered face:", error);
+      // Set to null if no face is registered
+      setRegisteredFace(null);
     }
   };
 
