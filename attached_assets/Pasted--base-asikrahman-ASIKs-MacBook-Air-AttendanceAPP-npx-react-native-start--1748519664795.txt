@@ -1,0 +1,110 @@
+(base) asikrahman@ASIKs-MacBook-Air AttendanceAPP % npx react-native start
+
+                        ▒▒▓▓▓▓▒▒
+                     ▒▓▓▓▒▒░░▒▒▓▓▓▒
+                  ▒▓▓▓▓░░░▒▒▒▒░░░▓▓▓▓▒
+                 ▓▓▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▓▓
+                 ▓▓░░░░░▒▓▓▓▓▓▓▒░░░░░▓▓
+                 ▓▓░░▓▓▒░░░▒▒░░░▒▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▒▒▒▒▓▓▓▓▒░░▓▓
+                 ▓▓░░▓▓▓▓▓▓▓▓▓▓▓▓▓▒░░▓▓
+                 ▓▓▒░░▒▒▓▓▓▓▓▓▓▓▒░░░▒▓▓
+                  ▒▓▓▓▒░░░▒▓▓▒░░░▒▓▓▓▒
+                     ▒▓▓▓▒░░░░▒▓▓▓▒
+                        ▒▒▓▓▓▓▒▒
+
+
+                Welcome to Metro v0.76.8
+              Fast - Scalable - Integrated
+
+r - reload the app
+d - open developer menu
+i - run on iOS
+a - run on Android
+
+info Opening the app on Android...
+Waiting for Watchman `watch-project` (10s)...
+info JS server already running.
+
+info 💡 Tip: Make sure that you have set up your development environment correctly, by running react-native doctor. To read more about doctor command visit: https://github.com/react-native-community/cli/blob/main/packages/cli-doctor/README.md#doctor 
+
+e: file:///Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts:10:49: Unresolved reference: serviceOf
+e: file:///Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts:45:11: Unresolved reference: serviceOf
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts' line: 10
+
+* What went wrong:
+Script compilation errors:
+
+  Line 10: import org.gradle.configurationcache.extensions.serviceOf
+                                                           ^ Unresolved reference: serviceOf
+
+  Line 45:           serviceOf<ModuleRegistry>()
+                     ^ Unresolved reference: serviceOf
+
+2 errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 7s
+Waiting for Watchman `watch-project` (30s)...
+Waiting for Watchman `watch-project` (50s)...
+Waiting for Watchman `watch-project` (70s)...
+Waiting for Watchman `watch-project` (90s)...
+Waiting for Watchman `watch-project` (110s)...
+Waiting for Watchman `watch-project` (130s)...
+warning: Watchman `watch-project` returned a warning: opendir(/Users/asikrahman/Library/Containers/com.apple.corerecents.recentsd/Data/Library/Recents) -> Operation not permitted. Marking this portion of the tree deleted
+To clear this warning, run:
+`watchman watch-del '/Users/asikrahman' ; watchman watch-project '/Users/asikrahman'`
+
+Watchman `watch-project` finished after 146.2s.
+warning: Watchman `query` returned a warning: opendir(/Users/asikrahman/Library/Containers/com.apple.corerecents.recentsd/Data/Library/Recents) -> Operation not permitted. Marking this portion of the tree deleted
+To clear this warning, run:
+`watchman watch-del '/Users/asikrahman' ; watchman watch-project '/Users/asikrahman'`
+
+opendir(/Users/asikrahman/Library/Containers/com.apple.corerecents.recentsd/Data/Library/Recents) -> Operation not permitted. Marking this portion of the tree deleted
+To clear this warning, run:
+`watchman watch-del '/Users/asikrahman' ; watchman watch-project '/Users/asikrahman'`
+
+opendir(/Users/asikrahman/Library/Containers/com.apple.corerecents.recentsd/Data/Library/Recents) -> Operation not permitted. Marking this portion of the tree deleted
+To clear this warning, run:
+`watchman watch-del '/Users/asikrahman' ; watchman watch-project '/Users/asikrahman'`
+
+info Opening the app on Android...
+info JS server already running.
+
+info 💡 Tip: Make sure that you have set up your development environment correctly, by running react-native doctor. To read more about doctor command visit: https://github.com/react-native-community/cli/blob/main/packages/cli-doctor/README.md#doctor 
+
+e: file:///Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts:10:49: Unresolved reference: serviceOf
+e: file:///Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts:45:11: Unresolved reference: serviceOf
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/Users/asikrahman/Downloads/AttendanceAPP/node_modules/@react-native/gradle-plugin/build.gradle.kts' line: 10
+
+* What went wrong:
+Script compilation errors:
+
+  Line 10: import org.gradle.configurationcache.extensions.serviceOf
+                                                           ^ Unresolved reference: serviceOf
+
+  Line 45:           serviceOf<ModuleRegistry>()
+                     ^ Unresolved reference: serviceOf
+
+2 errors
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2s
