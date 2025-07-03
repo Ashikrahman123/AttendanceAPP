@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useColors } from "@/hooks/useColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { formatTime } from "@/utils/date-formatter";
 
 function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
@@ -36,16 +37,12 @@ function EmployeeInfoScreen() {
   }, []);
 
   // Employee data
-  const employeeData = {
+  const [employeeData, setEmployeeData] = useState({
     name: params.name as string,
     id: params.id as string,
     contactRecordId: params.contactRecordId as string,
-    department: "Engineering",
-    position: "Software Developer",
-    email: "employee@company.com",
-    phone: "+1234567890",
-    joinDate: "01/01/2023",
-  };
+  });
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
 
   const handleAttendanceAction = async (action: "CI" | "CO" | "SB" | "EB") => {
     console.log("[AttendanceAction] Starting attendance action:", action);
@@ -60,40 +57,11 @@ function EmployeeInfoScreen() {
         AsyncStorage.getItem("bearerToken"),
       ]);
 
-      console.log("[AttendanceAction] Auth data retrieved:", {
-        orgId: orgId ? "Present" : "Missing",
-        modifyUser: modifyUser ? "Present" : "Missing",
-        bearerToken: bearerToken ? "Present" : "Missing",
-      });
-
       // Validate required data
       if (!orgId || !modifyUser || !bearerToken) {
-        console.error("[AttendanceAction] Missing required data:", {
-          orgId: !orgId,
-          modifyUser: !modifyUser,
-          bearerToken: !bearerToken,
-        });
         Alert.alert("Error", "Missing required authentication data");
         return;
       }
-
-      // Get and validate base URL
-      console.log("[AttendanceAction] Fetching base URL");
-      const baseUrl = await AsyncStorage.getItem("baseUrl");
-      if (!baseUrl) {
-        console.error("[AttendanceAction] Base URL not configured");
-        Alert.alert("Error", "Base URL not configured");
-        return;
-      }
-      console.log("[AttendanceAction] Base URL:", baseUrl);
-
-      const currentTime = new Date();
-      const timeString = currentTime.toLocaleTimeString("en-US", {
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
 
       const requestBody = {
         DetailData: {
@@ -101,23 +69,19 @@ function EmployeeInfoScreen() {
           Module: action,
           ModifyUser: parseInt(modifyUser),
           CreateUser: parseInt(modifyUser),
-          Time: timeString,
+          Time: currentTime.toLocaleTimeString("en-US", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
           ContactRecordId: parseInt(employeeData.contactRecordId),
         },
         BearerTokenValue: bearerToken,
       };
 
-      console.log("[AttendanceAction] Request payload:", {
-        url: baseUrl + "MiddleWare/Employee_Attendance_Update",
-        method: "POST",
-        DetailData: {
-          ...requestBody.DetailData,
-          bearerToken: "HIDDEN",
-        },
-      });
-
       const response = await fetch(
-        baseUrl + "MiddleWare/Employee_Attendance_Update",
+        `${await AsyncStorage.getItem("baseUrl")}MiddleWare/Employee_Attendance_Update`,
         {
           method: "POST",
           headers: {
@@ -128,9 +92,7 @@ function EmployeeInfoScreen() {
         },
       );
 
-      console.log("[AttendanceAction] Response status:", response.status);
       const data = await response.json();
-      console.log("[AttendanceAction] API Response:", data);
 
       if (data.success) {
         if (action === "CI") {
@@ -149,14 +111,18 @@ function EmployeeInfoScreen() {
         Alert.alert("Error", data.message || "Failed to update attendance");
       }
     } catch (error) {
-      console.error("[AttendanceAction] Error:", {
-        message: error instanceof Error ? error.message : "Unknown error",
-        error,
-      });
+      console.error("[AttendanceAction] Error:", error);
       Alert.alert("Error", "Failed to update attendance");
     } finally {
-      console.log("[AttendanceAction] Completed attendance action:", action);
       setLoading(false);
+      // Show welcome message on checkout
+      if (action === "CO") {
+        setShowWelcomeMessage(true);
+        setClockInTime(null);
+        setBreakStartTime(null);
+        setIsCheckedIn(false);
+        setIsOnBreak(false);
+      }
     }
   };
 
@@ -190,78 +156,49 @@ function EmployeeInfoScreen() {
             )}
           </View>
           <Text style={styles.name}>{employeeData.name}</Text>
-          <Text style={styles.position}>{employeeData.contactRecordId}</Text>
+          <Text style={styles.position}>({employeeData.contactRecordId})</Text>
         </LinearGradient>
       </View>
 
       <View style={styles.content}>
         <View style={[styles.infoCard, { backgroundColor: colors.card }]}>
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Employee ID
+          <View style={styles.clockContainer}>
+            <Text style={[styles.timeText, { color: colors.text }]}>
+              {currentTime.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.id}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Department
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.department}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Email
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.email}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Phone
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.phone}
-            </Text>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>
-              Join Date
-            </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
-              {employeeData.joinDate}
+            <Text style={[styles.dateText, { color: colors.textSecondary }]}>
+              {currentTime.toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </Text>
           </View>
         </View>
 
-        <View style={styles.timeContainer}>
-          <Text style={[styles.timeText, { color: colors.text }]}>
-            {currentTime.toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}
-          </Text>
-          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-            {currentTime.toLocaleDateString("en-US", {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-            })}
-          </Text>
-        </View>
+        {showWelcomeMessage && (
+          <View style={styles.welcomeContainer}>
+            <Icon
+              name="star"
+              size={32}
+              color={colors.primary}
+              style={styles.welcomeIcon}
+            />
+            <Text style={[styles.welcomeMessage, { color: colors.text }]}>
+              Thank you for your hard work today!
+            </Text>
+            <Text
+              style={[styles.welcomeSubtext, { color: colors.textSecondary }]}
+            >
+              Have a wonderful evening and see you tomorrow!
+            </Text>
+          </View>
+        )}
 
         <View style={styles.attendanceGrid}>
           <View style={styles.buttonRow}>
@@ -281,12 +218,10 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Clock In
               </Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
-                {clockInTime ? clockInTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                }) : '--:--'}
+              <Text
+                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
+              >
+                {clockInTime ? formatTime(clockInTime) : "--:--"}
               </Text>
             </TouchableOpacity>
 
@@ -331,12 +266,10 @@ function EmployeeInfoScreen() {
               <Text style={[styles.buttonTitle, { color: colors.text }]}>
                 Start Break
               </Text>
-              <Text style={[styles.buttonSubtitle, { color: colors.textSecondary }]}>
-                {breakStartTime ? breakStartTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: true
-                }) : '--:--'}
+              <Text
+                style={[styles.buttonSubtitle, { color: colors.textSecondary }]}
+              >
+                {breakStartTime ? formatTime(breakStartTime) : "--:--"}
               </Text>
             </TouchableOpacity>
 
@@ -423,34 +356,9 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  clockContainer: {
     alignItems: "center",
-    paddingVertical: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  value: {
-    fontSize: 14,
-  },
-  divider: {
-    height: 1,
-    width: "100%",
-  },
-  timeContainer: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  timeText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  dateText: {
-    fontSize: 16,
+    padding: 10,
   },
   attendanceGrid: {
     gap: 16,
@@ -491,6 +399,26 @@ const styles = StyleSheet.create({
   buttonSubtitle: {
     fontSize: 12,
     textAlign: "center",
+  },
+  welcomeContainer: {
+    marginTop: 20,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
+  },
+  welcomeMessage: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  welcomeSubtext: {
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 5,
+  },
+  welcomeIcon: {
+    marginBottom: 10,
   },
 });
 
