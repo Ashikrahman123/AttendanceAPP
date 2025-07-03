@@ -222,7 +222,7 @@ export default function LoginScreen() {
               iconPosition={loginSuccess ? "left" : undefined}
             />
 
-            {/* <View style={styles.demoContainer}>
+            <View style={styles.demoContainer}>
               <Text style={styles.demoText}>Quick Access:</Text>
               <View style={styles.demoButtons}>
                 <TouchableOpacity
@@ -267,7 +267,7 @@ export default function LoginScreen() {
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
-            </View> */}
+            </View>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>

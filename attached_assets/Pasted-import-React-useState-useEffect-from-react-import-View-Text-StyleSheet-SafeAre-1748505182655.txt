@@ -39,8 +39,9 @@ import {
   Download,
   Share2,
   RefreshCw,
-  ScanFace,
 } from "lucide-react-native";
+import * as ImagePicker from "expo-image-picker";
+import { verifyFace } from "@regulaforensics/react-native-face-api";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -88,11 +89,6 @@ export default function ProfileScreen() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("front");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
-  // Navigate to Face Comparison Screen
-  const handleFaceComparisonRedirect = () => {
-    router.push("/faceComparisonScreen"); // Update the path to the correct screen
-  };
-
   // Camera ref
   const cameraRef = React.useRef<any>(null);
 
@@ -122,7 +118,6 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (user) {
-      loadLeaveData();
       checkRegisteredFace();
     }
   }, [user]);
@@ -160,14 +155,50 @@ export default function ProfileScreen() {
 
   const checkRegisteredFace = async () => {
     if (!user) return;
+    // Retrieve the registered face for the user. Implement this in utils
+    const faces = await getRegisteredFace(user.id);
+    setRegisteredFace(faces.length > 0 ? faces[0] : null);
+  };
+  const handleFaceComparison = async (capturedFaceImageUri: string) => {
+    if (!registeredFace) {
+      Alert.alert("No registered face found.");
+      return;
+    }
+    const isMatch = await verifyFace(capturedFaceImageUri, registeredFace);
 
-    try {
-      const faceData = await getRegisteredFace(user.contactRecordId.toString());
-      setRegisteredFace(faceData);
-    } catch (error) {
-      console.error("Error checking registered face:", error);
-      // Set to null if no face is registered
-      setRegisteredFace(null);
+    if (isMatch) {
+      Alert.alert("Face match successful!");
+    } else {
+      Alert.alert("Face does not match!");
+    }
+  };
+  const handleCameraCapture = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Camera permission is required to capture images.");
+      return;
+    }
+    // Capture a photo
+    const photo = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+      base64: true,
+    });
+    if (!photo.cancelled) {
+      handleFaceComparison(photo.uri);
+    }
+  };
+  const handleFileUpload = async () => {
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
+    if (!pickerResult.cancelled) {
+      handleFaceComparison(pickerResult.uri);
     }
   };
 
@@ -718,32 +749,6 @@ export default function ProfileScreen() {
               </View>
               <ChevronRight size={20} color={colors.textSecondary} />
             </TouchableOpacity>
-            <View
-              style={[styles.divider, { backgroundColor: colors.border }]}
-            />
-
-            <TouchableOpacity
-              onPress={handleFaceComparisonRedirect}
-              style={styles.settingItem} // Use your existing styles for consistency
-            >
-              <View style={styles.settingsLeft}>
-                <View
-                  style={[
-                    styles.settingsIcon,
-                    { backgroundColor: colors.cardAlt },
-                  ]}
-                >
-                  <ScanFace size={20} color={colors.textSecondary} />
-                </View>
-                <Text style={[styles.settingsText, { color: colors.text }]}>
-                  Face Comparison
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <View
-              style={[styles.divider, { backgroundColor: colors.border }]}
-            />
           </View>
         </View>
 
