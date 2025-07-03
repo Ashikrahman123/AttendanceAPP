@@ -37,7 +37,7 @@ function EmployeeInfoScreen() {
   }, []);
 
   // Employee data
-  const [employeeData] = useState({
+  const [employeeData, setEmployeeData] = useState({
     name: params.name as string,
     id: params.id as string,
     contactRecordId: params.contactRecordId as string,
@@ -354,19 +354,11 @@ const styles = StyleSheet.create({
   infoCard: {
     borderRadius: 12,
     padding: 16,
+    marginBottom: 20,
   },
   clockContainer: {
     alignItems: "center",
     padding: 10,
-  },
-  timeText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
-  dateText: {
-    fontSize: 16,
-    opacity: 0.8,
   },
   attendanceGrid: {
     gap: 16,
@@ -409,7 +401,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   welcomeContainer: {
-    marginTop: 10,
+    marginTop: 20,
     padding: 16,
     alignItems: "center",
     justifyContent: "center",

@@ -48,7 +48,6 @@ function RootLayoutNav() {
       <Stack.Screen name="baseurl" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="faceComparisonScreen" options={{ presentation: "modal", headerShown: false }} />
     </Stack>
   );
 }
@@ -67,16 +66,16 @@ export default function RootLayout() {
   }
 
   // Initialize React DevTools
-  if (__DEV__ && typeof window !== "undefined") {
+  if (__DEV__ && typeof window !== 'undefined') {
     try {
-      import("react-devtools-core").then(({ connectToDevTools }) => {
+      import('react-devtools-core').then(({ connectToDevTools }) => {
         connectToDevTools({
-          host: "localhost",
+          host: 'localhost',
           port: 8097,
         });
       });
     } catch (err) {
-      console.warn("React DevTools connection failed:", err);
+      console.warn('React DevTools connection failed:', err);
     }
   }
 

@@ -39,7 +39,6 @@ import {
   Download,
   Share2,
   RefreshCw,
-  ScanFace,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -87,11 +86,6 @@ export default function ProfileScreen() {
   const [cameraReady, setCameraReady] = useState(false);
   const [cameraFacing, setCameraFacing] = useState<CameraType>("front");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-
-  // Navigate to Face Comparison Screen
-  const handleFaceComparisonRedirect = () => {
-    router.push("/faceComparisonScreen"); // Update the path to the correct screen
-  };
 
   // Camera ref
   const cameraRef = React.useRef<any>(null);
@@ -162,12 +156,11 @@ export default function ProfileScreen() {
     if (!user) return;
 
     try {
-      const faceData = await getRegisteredFace(user.contactRecordId.toString());
+      const faces = await getRegisteredFaces(user.id);
+      const faceData = faces.length > 0 ? faces[0] : null;
       setRegisteredFace(faceData);
     } catch (error) {
       console.error("Error checking registered face:", error);
-      // Set to null if no face is registered
-      setRegisteredFace(null);
     }
   };
 
@@ -322,10 +315,7 @@ export default function ProfileScreen() {
       setCapturedImage(photo.uri);
 
       // Register the face
-      const success = await registerFace(
-        photo.uri,
-        user.contactRecordId.toString(),
-      );
+      const success = await registerFace(photo.uri, user.contactRecordId.toString());
 
       if (success) {
         if (Platform.OS !== "web") {
@@ -693,6 +683,8 @@ export default function ProfileScreen() {
                   <ChevronRight size={20} color={colors.textSecondary} />
                 )}
               </TouchableOpacity>
+              
+              
             </View>
 
             <View
@@ -718,32 +710,6 @@ export default function ProfileScreen() {
               </View>
               <ChevronRight size={20} color={colors.textSecondary} />
             </TouchableOpacity>
-            <View
-              style={[styles.divider, { backgroundColor: colors.border }]}
-            />
-
-            <TouchableOpacity
-              onPress={handleFaceComparisonRedirect}
-              style={styles.settingItem} // Use your existing styles for consistency
-            >
-              <View style={styles.settingsLeft}>
-                <View
-                  style={[
-                    styles.settingsIcon,
-                    { backgroundColor: colors.cardAlt },
-                  ]}
-                >
-                  <ScanFace size={20} color={colors.textSecondary} />
-                </View>
-                <Text style={[styles.settingsText, { color: colors.text }]}>
-                  Face Comparison
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <View
-              style={[styles.divider, { backgroundColor: colors.border }]}
-            />
           </View>
         </View>
 
@@ -1935,14 +1901,14 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   facePreviewContainer: {
     padding: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
   facePreview: {
     width: 200,
     height: 200,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: "#4F46E5",
+    borderColor: '#4F46E5',
   },
   container: {
     flex: 1,
