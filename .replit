@@ -21,7 +21,6 @@ localPort = 8083
 externalPort = 3001
 
 [workflows]
-runButton = "React Native Dev"
 
 [[workflows.workflow]]
 name = "Web Dev"
@@ -31,21 +30,3 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run start-web"
-
-[[workflows.workflow]]
-name = "Start Expo Web"
-author = 42226973
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run start-web"
-
-[[workflows.workflow]]
-name = "React Native Dev"
-author = 42226973
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx react-native start"
