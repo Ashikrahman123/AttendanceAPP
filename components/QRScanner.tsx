@@ -30,65 +30,69 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   }, [isVisible, permission]);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
-    if (!scanned && !isProcessing) {
-      setScanned(true);
-      setIsProcessing(true);
-      
-      console.log('QR Code detected:', data);
-
-      // Skip Expo development URLs
-      if (data.includes('exp://') || data.includes('expo.dev')) {
-        console.log('Skipping Expo development QR code');
-        Alert.alert(
-          'Invalid QR Code',
-          'This appears to be an Expo development QR code. Please scan a valid attendance QR code.',
-          [
-            {
-              text: 'Try Again',
-              onPress: () => {
-                setScanned(false);
-                setIsProcessing(false);
-              }
-            },
-            {
-              text: 'Cancel',
-              onPress: onClose
-            }
-          ]
-        );
-        return;
-      }
-
-      // For now, accept any QR code that's not empty and not an Expo URL
-      // This allows testing with simple QR codes from the generator website
-      if (!data || data.trim().length === 0) {
-        console.log('Empty QR code detected');
-        Alert.alert(
-          'Invalid QR Code',
-          'QR code appears to be empty. Please scan a valid QR code.',
-          [
-            {
-              text: 'Try Again',
-              onPress: () => {
-                setScanned(false);
-                setIsProcessing(false);
-              }
-            },
-            {
-              text: 'Cancel',
-              onPress: onClose
-            }
-          ]
-        );
-        return;
-      }
-
-      console.log('QR code validation passed, processing...');
-      
-      // Process the QR code immediately
-      console.log('Calling onScan with data:', data);
-      onScan(data);
+    // Prevent multiple scans while processing or already scanned
+    if (scanned || isProcessing) {
+      return;
     }
+
+    // Immediately set both flags to prevent duplicate processing
+    setScanned(true);
+    setIsProcessing(true);
+    
+    console.log('QR Code detected:', data);
+
+    // Skip Expo development URLs
+    if (data.includes('exp://') || data.includes('expo.dev')) {
+      console.log('Skipping Expo development QR code');
+      Alert.alert(
+        'Invalid QR Code',
+        'This appears to be an Expo development QR code. Please scan a valid attendance QR code.',
+        [
+          {
+            text: 'Try Again',
+            onPress: () => {
+              setScanned(false);
+              setIsProcessing(false);
+            }
+          },
+          {
+            text: 'Cancel',
+            onPress: onClose
+          }
+        ]
+      );
+      return;
+    }
+
+    // For now, accept any QR code that's not empty and not an Expo URL
+    // This allows testing with simple QR codes from the generator website
+    if (!data || data.trim().length === 0) {
+      console.log('Empty QR code detected');
+      Alert.alert(
+        'Invalid QR Code',
+        'QR code appears to be empty. Please scan a valid QR code.',
+        [
+          {
+            text: 'Try Again',
+            onPress: () => {
+              setScanned(false);
+              setIsProcessing(false);
+            }
+          },
+          {
+            text: 'Cancel',
+            onPress: onClose
+          }
+        ]
+      );
+      return;
+    }
+
+    console.log('QR code validation passed, processing...');
+    
+    // Process the QR code immediately
+    console.log('Calling onScan with data:', data);
+    onScan(data);
   };
 
   if (!isVisible) return null;
