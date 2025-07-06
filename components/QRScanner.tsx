@@ -49,6 +49,52 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         );
         return;
       }
+
+      // Basic validation for attendance QR codes
+      if (!data || data.length < 10) {
+        Alert.alert(
+          'Invalid QR Code',
+          'QR code appears to be empty or too short. Please scan a valid attendance QR code.',
+          [
+            {
+              text: 'Try Again',
+              onPress: () => setScanned(false)
+            },
+            {
+              text: 'Cancel',
+              onPress: onClose
+            }
+          ]
+        );
+        return;
+      }
+
+      // Try to parse JSON if it looks like JSON
+      if (data.startsWith('{') && data.endsWith('}')) {
+        try {
+          const qrData = JSON.parse(data);
+          if (qrData.type !== 'attendance') {
+            Alert.alert(
+              'Invalid QR Code',
+              'This QR code is not for attendance. Please scan a valid attendance QR code.',
+              [
+                {
+                  text: 'Try Again',
+                  onPress: () => setScanned(false)
+                },
+                {
+                  text: 'Cancel',
+                  onPress: onClose
+                }
+              ]
+            );
+            return;
+          }
+        } catch (error) {
+          // If JSON parsing fails, still proceed with the raw data
+          console.log('QR data is not valid JSON, using raw data:', data);
+        }
+      }
       
       // Add a small delay to prevent multiple rapid scans
       setTimeout(() => {
