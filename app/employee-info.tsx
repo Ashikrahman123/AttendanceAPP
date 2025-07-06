@@ -15,6 +15,7 @@ import { StatusBar } from "expo-status-bar";
 import { useColors } from "@/hooks/useColors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatTime } from "@/utils/date-formatter";
+import QRScanner from "@/components/QRScanner";
 
 function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
@@ -26,6 +27,9 @@ function EmployeeInfoScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
+  const [pendingAction, setPendingAction] = useState<"CI" | "CO" | "SB" | "EB" | null>(null);
 
   // Update time every second
   useEffect(() => {
@@ -34,6 +38,21 @@ function EmployeeInfoScreen() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Load attendance mode on component mount
+  useEffect(() => {
+    const loadAttendanceMode = async () => {
+      try {
+        const mode = await AsyncStorage.getItem("attendanceMode");
+        if (mode === "qr" || mode === "manual") {
+          setAttendanceMode(mode);
+        }
+      } catch (error) {
+        console.error("Error loading attendance mode:", error);
+      }
+    };
+    loadAttendanceMode();
   }, []);
 
   // Employee data
@@ -46,6 +65,14 @@ function EmployeeInfoScreen() {
 
   const handleAttendanceAction = async (action: "CI" | "CO" | "SB" | "EB") => {
     console.log("[AttendanceAction] Starting attendance action:", action);
+    
+    // If QR mode, show scanner instead of direct action
+    if (attendanceMode === "qr") {
+      setPendingAction(action);
+      setShowQRScanner(true);
+      return;
+    }
+    
     try {
       setLoading(true);
 
@@ -126,6 +153,101 @@ function EmployeeInfoScreen() {
     }
   };
 
+  const handleQRScan = async (qrData: string) => {
+    setShowQRScanner(false);
+    
+    if (!pendingAction) return;
+    
+    try {
+      setLoading(true);
+      console.log("[QR Scan] QR Data:", qrData);
+      console.log("[QR Scan] Pending Action:", pendingAction);
+
+      // Get required data from storage
+      const [orgId, modifyUser, bearerToken] = await Promise.all([
+        AsyncStorage.getItem("orgId"),
+        AsyncStorage.getItem("userId"),
+        AsyncStorage.getItem("bearerToken"),
+      ]);
+
+      if (!orgId || !modifyUser || !bearerToken) {
+        Alert.alert("Error", "Missing required authentication data");
+        return;
+      }
+
+      // Hardcoded QR-based attendance request body for now
+      const requestBody = {
+        DetailData: {
+          OrgId: parseInt(orgId),
+          Module: pendingAction,
+          ModifyUser: parseInt(modifyUser),
+          CreateUser: parseInt(modifyUser),
+          Time: currentTime.toLocaleTimeString("en-US", {
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+          ContactRecordId: parseInt(employeeData.contactRecordId),
+          QRData: qrData, // Include QR data
+          AttendanceMode: "QR", // Specify QR mode
+        },
+        BearerTokenValue: bearerToken,
+      };
+
+      const response = await fetch(
+        `${await AsyncStorage.getItem("baseUrl")}MiddleWare/Employee_Attendance_Update`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bearerToken}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        if (pendingAction === "CI") {
+          setIsCheckedIn(true);
+          setClockInTime(new Date());
+        }
+        if (pendingAction === "CO") setIsCheckedIn(false);
+        if (pendingAction === "SB") {
+          setIsOnBreak(true);
+          setBreakStartTime(new Date());
+        }
+        if (pendingAction === "EB") setIsOnBreak(false);
+
+        Alert.alert("Success", `QR attendance recorded: ${data.message}`);
+      } else {
+        Alert.alert("Error", data.message || "Failed to record QR attendance");
+      }
+    } catch (error) {
+      console.error("[QR Attendance] Error:", error);
+      Alert.alert("Error", "Failed to record QR attendance");
+    } finally {
+      setLoading(false);
+      setPendingAction(null);
+      
+      // Show welcome message on checkout
+      if (pendingAction === "CO") {
+        setShowWelcomeMessage(true);
+        setClockInTime(null);
+        setBreakStartTime(null);
+        setIsCheckedIn(false);
+        setIsOnBreak(false);
+      }
+    }
+  };
+
+  const handleQRScanClose = () => {
+    setShowQRScanner(false);
+    setPendingAction(null);
+  };
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -178,6 +300,11 @@ function EmployeeInfoScreen() {
                 day: "numeric",
               })}
             </Text>
+            <View style={[styles.modeIndicator, { backgroundColor: attendanceMode === "qr" ? "#4CAF50" : "#FF9500" }]}>
+              <Text style={styles.modeText}>
+                {attendanceMode === "qr" ? "QR Mode" : "Manual Mode"}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -298,6 +425,13 @@ function EmployeeInfoScreen() {
           </View>
         </View>
       </View>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        isVisible={showQRScanner}
+        onScan={handleQRScan}
+        onClose={handleQRScanClose}
+      />
     </ScrollView>
   );
 }
@@ -419,6 +553,18 @@ const styles = StyleSheet.create({
   },
   welcomeIcon: {
     marginBottom: 10,
+  },
+  modeIndicator: {
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: "center",
+  },
+  modeText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
 

@@ -12,9 +12,11 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  attendanceMode: "manual" | "qr";
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
+  setAttendanceMode: (mode: "manual" | "qr") => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,6 +27,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      attendanceMode: "manual",
 
       login: async (userName: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -158,6 +161,16 @@ export const useAuthStore = create<AuthState>()(
               error instanceof Error ? error.message : "Failed to update user",
             isLoading: false,
           });
+          throw error;
+        }
+      },
+
+      setAttendanceMode: async (mode: "manual" | "qr") => {
+        try {
+          await AsyncStorage.setItem("attendanceMode", mode);
+          set({ attendanceMode: mode });
+        } catch (error) {
+          console.error("Error setting attendance mode:", error);
           throw error;
         }
       },

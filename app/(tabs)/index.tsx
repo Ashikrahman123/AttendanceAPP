@@ -1,39 +1,39 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  SafeAreaView, 
+  TouchableOpacity, 
+  ScrollView,
+  Animated,
   Alert,
   Platform,
-  Animated,
-  ScrollView,
-} from "react-native";
-import { router } from "expo-router";
-import {
-  Clock,
-  MapPin,
-  CheckCircle,
-  XCircle,
+  RefreshControl,
+} from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { 
+  CheckCircle, 
+  XCircle, 
+  Coffee, 
+  Timer, 
+  MapPin, 
   Calendar,
-  Coffee,
-  Timer,
-} from "lucide-react-native";
-import { StatusBar } from "expo-status-bar";
-import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
-import Button from "@/components/Button";
-import UserAvatar from "@/components/UserAvatar";
-import Colors from "@/constants/colors";
-import { useAuthStore } from "@/store/auth-store";
-import { useAttendanceStore } from "@/store/attendance-store";
-import { formatDate, formatTime, formatHours } from "@/utils/date-formatter";
-import {
-  getCurrentLocation,
-  getAddressFromCoordinates,
-} from "@/utils/location-service";
-import { AttendanceType } from "@/types/user";
+  Clock,
+  BarChart3,
+  User,
+  Scan
+} from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
+import Colors from '@/constants/colors';
+import Button from '@/components/Button';
+import { useAuthStore } from '@/store/auth-store';
+import { useAttendanceStore } from '@/store/attendance-store';
+import { formatTime, formatHours, formatDate } from '@/utils/date-formatter';
+import { AttendanceType } from '@/types/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
@@ -48,6 +48,8 @@ export default function HomeScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
 
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -242,6 +244,20 @@ export default function HomeScreen() {
     }
   };
 
+  useEffect(() => {
+    const loadAttendanceMode = async () => {
+      try {
+        const mode = await AsyncStorage.getItem("attendanceMode");
+        if (mode === "qr" || mode === "manual") {
+          setAttendanceMode(mode);
+        }
+      } catch (error) {
+        console.error("Error loading attendance mode:", error);
+      }
+    };
+    loadAttendanceMode();
+  }, []);
+
   if (!user) return null;
 
   return (
@@ -270,6 +286,9 @@ export default function HomeScreen() {
               </Text>
               <Text style={styles.role}>
                 {user.role === "admin" ? "Administrator" : "Employee"}
+              </Text>
+              <Text style={styles.attendanceModeText}>
+                Attendance Mode: {attendanceMode === "qr" ? "QR Code" : "Manual"}
               </Text>
             </View>
           </View>
@@ -785,5 +804,10 @@ const styles = StyleSheet.create({
   },
   storedFacesButton: {
     marginTop: 20,
+  },
+   attendanceModeText: {
+    fontSize: 14,
+    color: Colors.text,
+    marginTop: 5,
   },
 });

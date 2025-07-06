@@ -21,6 +21,7 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import Colors from "@/constants/colors";
 import { useAuthStore } from "@/store/auth-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
@@ -30,6 +31,7 @@ export default function LoginScreen() {
   const [userNameError, setUserNameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
 
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
 
@@ -103,6 +105,8 @@ export default function LoginScreen() {
     }
 
     try {
+      // Store attendance mode before login
+      await AsyncStorage.setItem("attendanceMode", attendanceMode);
       await login(userName, password);
       setLoginSuccess(true);
 
@@ -188,6 +192,43 @@ export default function LoginScreen() {
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
+
+            <View style={styles.attendanceModeContainer}>
+              <Text style={styles.attendanceModeLabel}>Attendance Mode</Text>
+              <View style={styles.radioContainer}>
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => setAttendanceMode("manual")}
+                >
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      attendanceMode === "manual" && styles.radioSelected,
+                    ]}
+                  >
+                    {attendanceMode === "manual" && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+                  <Text style={styles.radioText}>Manual</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => setAttendanceMode("qr")}
+                >
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      attendanceMode === "qr" && styles.radioSelected,
+                    ]}
+                  >
+                    {attendanceMode === "qr" && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioText}>QR Scanner</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             <Input
               label="Username"
@@ -383,5 +424,53 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 14,
+  },
+  attendanceModeContainer: {
+    marginBottom: 20,
+  },
+  attendanceModeLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  radioContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  radioOption: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.textSecondary,
+    marginRight: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioSelected: {
+    borderColor: Colors.primary,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+  },
+  radioText: {
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: "500",
   },
 });
