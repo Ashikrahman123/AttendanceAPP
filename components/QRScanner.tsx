@@ -17,6 +17,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   const colors = useColors();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isVisible && !permission?.granted) {
@@ -24,12 +25,14 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
     }
     if (isVisible) {
       setScanned(false);
+      setIsProcessing(false);
     }
   }, [isVisible, permission]);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
-    if (!scanned) {
+    if (!scanned && !isProcessing) {
       setScanned(true);
+      setIsProcessing(true);
       
       // Validate QR code - should not be Expo development URL
       if (data.includes('exp://') || data.includes('expo.dev')) {
@@ -39,7 +42,10 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
           [
             {
               text: 'Try Again',
-              onPress: () => setScanned(false)
+              onPress: () => {
+                setScanned(false);
+                setIsProcessing(false);
+              }
             },
             {
               text: 'Cancel',
@@ -58,7 +64,10 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
           [
             {
               text: 'Try Again',
-              onPress: () => setScanned(false)
+              onPress: () => {
+                setScanned(false);
+                setIsProcessing(false);
+              }
             },
             {
               text: 'Cancel',
@@ -80,7 +89,10 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
               [
                 {
                   text: 'Try Again',
-                  onPress: () => setScanned(false)
+                  onPress: () => {
+                    setScanned(false);
+                    setIsProcessing(false);
+                  }
                 },
                 {
                   text: 'Cancel',
@@ -98,8 +110,10 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       
       // Add a small delay to prevent multiple rapid scans
       setTimeout(() => {
-        onScan(data);
-      }, 500);
+        if (isProcessing) {
+          onScan(data);
+        }
+      }, 300);
     }
   };
 

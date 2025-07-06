@@ -154,16 +154,24 @@ function EmployeeInfoScreen() {
   };
 
   const handleQRScan = async (qrData: string) => {
+    console.log("[QR Scan] Received QR data, closing scanner");
     setShowQRScanner(false);
     
     if (!pendingAction) {
+      console.log("[QR Scan] No pending action found");
       Alert.alert("Error", "No pending action found");
+      return;
+    }
+    
+    if (loading) {
+      console.log("[QR Scan] Already processing, ignoring duplicate");
       return;
     }
     
     // Store the current pending action and clear it immediately to prevent duplicates
     const currentAction = pendingAction;
     setPendingAction(null);
+    console.log("[QR Scan] Processing action:", currentAction, "with QR data:", qrData);
     
     try {
       setLoading(true);
