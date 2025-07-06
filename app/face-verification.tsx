@@ -343,73 +343,72 @@ export default function FaceVerificationScreen() {
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
-          />
-          
-          <FaceDetectionOverlay isDetecting={isCapturing} />
-          
-          <SafeAreaView style={styles.overlay}>
-              <Animated.View 
-                style={[
-                  styles.header,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
-                ]}
-              >
-                <TouchableOpacity 
-                  style={styles.closeButton}
-                  onPress={handleCancel}
-                >
-                  <X size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-                
-                <View style={styles.headerContent}>
-                  <Text style={styles.title}>{getActionTitle()}</Text>
-                  <Text style={styles.subtitle}>Position your face in the frame</Text>
-                </View>
-                
-                <TouchableOpacity 
-                  style={styles.flipButton}
-                  onPress={toggleCameraFacing}
-                >
-                  <RefreshCw size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </Animated.View>
-              
-              <Animated.View 
-                style={[
-                  styles.footer,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: -slideAnim }]
-                  }
-                ]}
-              >
-                <LinearGradient
-                  colors={getActionColor()}
-                  style={styles.captureButtonContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+          >
+            <FaceDetectionOverlay isDetecting={isCapturing} />
+            
+            <SafeAreaView style={styles.overlay}>
+                <Animated.View 
+                  style={[
+                    styles.header,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }]
+                    }
+                  ]}
                 >
                   <TouchableOpacity 
-                    style={styles.captureButton}
-                    onPress={handleCapture}
-                    disabled={isCapturing || !cameraReady}
+                    style={styles.closeButton}
+                    onPress={handleCancel}
                   >
-                    {isCapturing ? (
-                      <ActivityIndicator color="#FFFFFF" size="large" />
-                    ) : (
-                      getActionIcon()
-                    )}
+                    <X size={24} color="#FFFFFF" />
                   </TouchableOpacity>
-                </LinearGradient>
+                  
+                  <View style={styles.headerContent}>
+                    <Text style={styles.title}>{getActionTitle()}</Text>
+                    <Text style={styles.subtitle}>Position your face in the frame</Text>
+                  </View>
+                  
+                  <TouchableOpacity 
+                    style={styles.flipButton}
+                    onPress={toggleCameraFacing}
+                  >
+                    <RefreshCw size={24} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </Animated.View>
                 
-                <Text style={styles.captureText}>
-                  {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
-                </Text>
-              </Animated.View>
-            </SafeAreaView>
+                <Animated.View 
+                  style={[
+                    styles.footer,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: -slideAnim }]
+                    }
+                  ]}
+                >
+                  <LinearGradient
+                    colors={getActionColor()}
+                    style={styles.captureButtonContainer}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <TouchableOpacity 
+                      style={styles.captureButton}
+                      onPress={handleCapture}
+                      disabled={isCapturing || !cameraReady}
+                    >
+                      {isCapturing ? (
+                        <ActivityIndicator color="#FFFFFF" size="large" />
+                      ) : (
+                        getActionIcon()
+                      )}
+                    </TouchableOpacity>
+                  </LinearGradient>
+                  
+                  <Text style={styles.captureText}>
+                    {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
+                  </Text>
+                </Animated.View>
+              </SafeAreaView>
           </CameraView>
         </>
       ) : (
