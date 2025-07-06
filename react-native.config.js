@@ -4,7 +4,8 @@ module.exports = {
     'react-native-vector-icons': {
       platforms: {
         ios: {
-          project: './ios/EmployeeFaceAttendanceApp.xcodeproj',
+          sourceDir: '../node_modules/react-native-vector-icons/Fonts',
+          fonts: ['*.ttf'],
         },
         android: {
           sourceDir: '../node_modules/react-native-vector-icons/android',
