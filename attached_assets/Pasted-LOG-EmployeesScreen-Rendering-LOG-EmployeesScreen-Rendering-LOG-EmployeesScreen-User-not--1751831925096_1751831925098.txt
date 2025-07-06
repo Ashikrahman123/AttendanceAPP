@@ -1,0 +1,29 @@
+LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] User not authorized
+ LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] Initial mount, fetching employees
+ LOG  [EmployeesScreen] Starting fetchEmployees
+ LOG  [EmployeesScreen] Token: Present
+ LOG  [EmployeesScreen] OrgId: 1
+ LOG  [EmployeesScreen] Making API request with data: {"OrgId":1,"pageId":0,"PageNumber":1,"PageSize":1000,"BearerTokenValue":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJSZWNvcmRJZCI6IjEiLCJEZXZpY2VUeXBlIjoidyIsIk9yZ0lkIjoiMSIsIlVzZXJOYW1lIjoiYWRtaW4iLCJPcmdhbmlzYXRpb25OYW1lIjoiRGlnaWxsaXVtIERlbW8gMSIsIkVtcGxveWVlQ291bnQiOiIxNSIsIlVzZXJDb3VudCI6IjEwIiwiUHJvZHVjdENvdW50IjoiMjUiLCJDb250YWN0Q291bnQiOiIyMCIsIlRyYW5zYWN0aW9uQ291bnQiOiIzMCIsImV4cCI6MTc1MTgzMzYyNiwiaXNzIjoiQ2hlYXJJdCIsImF1ZCI6IkNoZWFySXQifQ.sjfH2BBgFdne5TxHdrUJY_iSqY9wzA94dZYaghd74kU"}
+ LOG  [EmployeesScreen] API Response: {"data":[{"orgId":1,"recordId":3210,"recordName":"Test Emp 06 Jul 2025"},{"orgId":1,"recordId":3209,"recordName":"KEVIN KUMAR"},{"orgId":1,"recordId":3208,"recordName":"RUBEN KEMAN"},{"orgId":1,"recordId":3207,"recordName":"RUBIN NICHOLAS"},{"orgId":1,"recordId":2117,"recordName":"MOHAMED ASHIK RAHMAN A"},{"orgId":1,"recordId":2106,"recordName":"TEST SALMAN RAO"},{"orgId":1,"recordId":3202,"recordName":"TEST-APR-SHANKAR"},{"orgId":1,"recordId":3206,"recordName":"MOHD I SUMAIYA FARVEEN"},{"orgId":1,"recordId":3204,"recordName":"MD IBRAHIM M MD Z M"},{"orgId":1,"recordId":3205,"recordName":"SULTAN EBRAHIM ABDUL RAZACK"},{"orgId":1,"recordId":3203,"recordName":"TEST-APR-SALMAN"}],"isSuccess":true}
+ LOG  [EmployeesScreen] Formatted employees: 11
+ LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] Rendering
+ LOG  [AttendanceAction] Starting attendance action: CI
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CI
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CI
+ LOG  [AttendanceAction] Starting attendance action: CO
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CO
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CO
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CO
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CO
+ LOG  [QR Scan] QR Data: exp://flahvly-ashikr142-8081.exp.direct
+ LOG  [QR Scan] Pending Action: CO
