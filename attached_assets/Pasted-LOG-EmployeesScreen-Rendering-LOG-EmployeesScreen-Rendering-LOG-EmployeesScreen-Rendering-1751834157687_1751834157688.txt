@@ -1,0 +1,83 @@
+LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] Rendering
+ LOG  [EmployeesScreen] Rendering
+ LOG  [AttendanceAction] Starting attendance action: CI
+ LOG  QR Code detected: CHECK_IN
+ LOG  QR code validation passed, processing...
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR scan ignored - same data as previous scan
+ LOG  Calling onScan with data: CHECK_IN
+ LOG  [QR Scan] handleQRScan called with data: CHECK_IN
+ LOG  [QR Scan] Current pending action: CI
+ LOG  [QR Scan] Current loading state: false
+ LOG  [QR Scan] Processing action: CI with QR data: CHECK_IN
+ LOG  [QR Scan] QR Data: CHECK_IN
+ LOG  [QR Scan] Processing Action: CI
+ LOG  [AttendanceAction] Starting attendance action: CO
+ LOG  QR Code detected: CHECK_OUT
+ LOG  QR code validation passed, processing...
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR Code detected: CHECK_OUT
+ LOG  QR code validation passed, processing...
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR scan ignored - same data as previous scan
+ LOG  QR Code detected: 
+ LOG  Empty QR code detected
+ LOG  QR Code detected: CHECK_OUT
+ LOG  QR code validation passed, processing...
+ LOG  Calling onScan with data: CHECK_OUT
+ LOG  [QR Scan] handleQRScan called with data: CHECK_OUT
+ LOG  [QR Scan] Current pending action: CO
+ LOG  [QR Scan] Current loading state: false
+ LOG  [QR Scan] Processing action: CO with QR data: CHECK_OUT
+ LOG  [QR Scan] QR Data: CHECK_OUT
+ LOG  [QR Scan] Processing Action: CO
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
+ LOG  [QR Scanner] Scanner closed, pending action cleared
