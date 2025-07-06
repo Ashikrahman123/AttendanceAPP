@@ -34,8 +34,11 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       setScanned(true);
       setIsProcessing(true);
       
-      // Validate QR code - should not be Expo development URL
+      console.log('QR Code detected:', data);
+
+      // Skip Expo development URLs
       if (data.includes('exp://') || data.includes('expo.dev')) {
+        console.log('Skipping Expo development QR code');
         Alert.alert(
           'Invalid QR Code',
           'This appears to be an Expo development QR code. Please scan a valid attendance QR code.',
@@ -56,11 +59,13 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         return;
       }
 
-      // Basic validation for attendance QR codes
-      if (!data || data.length < 10) {
+      // For now, accept any QR code that's not empty and not an Expo URL
+      // This allows testing with simple QR codes from the generator website
+      if (!data || data.trim().length === 0) {
+        console.log('Empty QR code detected');
         Alert.alert(
           'Invalid QR Code',
-          'QR code appears to be empty or too short. Please scan a valid attendance QR code.',
+          'QR code appears to be empty. Please scan a valid QR code.',
           [
             {
               text: 'Try Again',
@@ -78,42 +83,11 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         return;
       }
 
-      // Try to parse JSON if it looks like JSON
-      if (data.startsWith('{') && data.endsWith('}')) {
-        try {
-          const qrData = JSON.parse(data);
-          if (qrData.type !== 'attendance') {
-            Alert.alert(
-              'Invalid QR Code',
-              'This QR code is not for attendance. Please scan a valid attendance QR code.',
-              [
-                {
-                  text: 'Try Again',
-                  onPress: () => {
-                    setScanned(false);
-                    setIsProcessing(false);
-                  }
-                },
-                {
-                  text: 'Cancel',
-                  onPress: onClose
-                }
-              ]
-            );
-            return;
-          }
-        } catch (error) {
-          // If JSON parsing fails, still proceed with the raw data
-          console.log('QR data is not valid JSON, using raw data:', data);
-        }
-      }
+      console.log('QR code validation passed, processing...');
       
-      // Add a small delay to prevent multiple rapid scans
-      setTimeout(() => {
-        if (isProcessing) {
-          onScan(data);
-        }
-      }, 300);
+      // Process the QR code immediately
+      console.log('Calling onScan with data:', data);
+      onScan(data);
     }
   };
 
