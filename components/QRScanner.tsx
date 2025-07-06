@@ -32,6 +32,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     // Prevent multiple scans while processing or already scanned
     if (scanned || isProcessing) {
+      console.log('QR scan ignored - already processing or scanned');
       return;
     }
 
@@ -90,9 +91,11 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
 
     console.log('QR code validation passed, processing...');
     
-    // Process the QR code immediately
-    console.log('Calling onScan with data:', data);
-    onScan(data);
+    // Add a small delay to prevent rapid duplicate scans
+    setTimeout(() => {
+      console.log('Calling onScan with data:', data);
+      onScan(data);
+    }, 500);
   };
 
   if (!isVisible) return null;
