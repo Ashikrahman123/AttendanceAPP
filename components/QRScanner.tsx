@@ -37,6 +37,16 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         scanTimeout.current = null;
       }
       console.log('[QR Scanner] New scan session started:', scanSessionId.current);
+    } else {
+      // Clean up when scanner is hidden
+      if (scanTimeout.current) {
+        clearTimeout(scanTimeout.current);
+        scanTimeout.current = null;
+      }
+      setScanned(false);
+      setIsProcessing(false);
+      lastScannedData.current = null;
+      console.log('[QR Scanner] Scanner session ended, cleanup completed');
     }
   }, [isVisible, permission]);
 
@@ -63,34 +73,25 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
 
     // Skip Expo development URLs
     if (data.includes('exp://') || data.includes('expo.dev')) {
-      console.log('Skipping Expo development QR code');
-      Alert.alert(
-        'Invalid QR Code',
-        'This appears to be an Expo development QR code. Please scan a valid attendance QR code.',
-        [
-          {
-            text: 'Try Again',
-            onPress: () => {
-              setScanned(false);
-              setIsProcessing(false);
-              lastScannedData.current = null;
-            }
-          },
-          {
-            text: 'Cancel',
-            onPress: onClose
-          }
-        ]
-      );
-      return;
+      console.log('[QR Scanner] Skipping Expo development QR code');
+      return; // Don't show alert, just ignore silently
     }
 
-    // For now, accept any QR code that's not empty and not an Expo URL
+    // Skip empty or invalid QR codes silently
     if (!data || data.trim().length === 0) {
-      console.log('Empty QR code detected');
+      console.log('[QR Scanner] Empty QR code detected, ignoring');
+      return; // Don't show alert, just ignore silently
+    }
+
+    // Only accept attendance-related QR codes
+    const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+    const upperCaseData = data.trim().toUpperCase();
+    
+    if (!validAttendanceCodes.includes(upperCaseData)) {
+      console.log('[QR Scanner] Invalid attendance QR code:', data);
       Alert.alert(
         'Invalid QR Code',
-        'QR code appears to be empty. Please scan a valid QR code.',
+        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code.',
         [
           {
             text: 'Try Again',
@@ -109,19 +110,20 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       return;
     }
 
-    console.log('QR code validation passed, processing...');
+    console.log('[QR Scanner] Valid attendance QR code detected, processing...');
     
-    // Immediately set flags and store the scanned data
+    // Immediately set flags and store the scanned data (use normalized data)
+    const normalizedData = upperCaseData;
     setScanned(true);
     setIsProcessing(true);
-    lastScannedData.current = data;
+    lastScannedData.current = normalizedData;
     
-    // Use timeout to ensure only one scan is processed
+    // Use shorter timeout to reduce chance of wrong QR being processed
     scanTimeout.current = setTimeout(() => {
-      console.log('Calling onScan with data:', data);
-      onScan(data);
+      console.log('[QR Scanner] Calling onScan with normalized data:', normalizedData);
+      onScan(normalizedData);
       scanTimeout.current = null;
-    }, 300);
+    }, 100);
   };
 
   if (!isVisible) return null;

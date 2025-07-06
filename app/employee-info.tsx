@@ -206,9 +206,24 @@ function EmployeeInfoScreen() {
     try {
       setLoading(true);
 
-      // Basic QR validation - should contain some attendance-related data
-      if (!qrData || qrData.length < 5) {
-        Alert.alert("Error", "Invalid QR code scanned");
+      // Validate QR data format
+      const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+      if (!qrData || !validAttendanceCodes.includes(qrData.toUpperCase())) {
+        Alert.alert("Error", "Invalid attendance QR code scanned");
+        return;
+      }
+
+      // Validate that QR action matches pending action
+      const qrActionMap = {
+        'CHECK_IN': 'CI',
+        'CHECK_OUT': 'CO', 
+        'START_BREAK': 'SB',
+        'END_BREAK': 'EB'
+      };
+      
+      const expectedAction = qrActionMap[qrData.toUpperCase() as keyof typeof qrActionMap];
+      if (expectedAction !== currentAction) {
+        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${qrData}`);
         return;
       }
 
