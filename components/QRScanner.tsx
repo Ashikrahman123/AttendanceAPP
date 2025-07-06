@@ -20,12 +20,15 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   const [isProcessing, setIsProcessing] = useState(false);
   const lastScannedData = useRef<string | null>(null);
   const scanTimeout = useRef<NodeJS.Timeout | null>(null);
+  const scanSessionId = useRef<number>(0);
 
   useEffect(() => {
     if (isVisible && !permission?.granted) {
       requestPermission();
     }
     if (isVisible) {
+      // Start a new scan session - this allows the same QR to be used for different employees
+      scanSessionId.current = Date.now();
       setScanned(false);
       setIsProcessing(false);
       lastScannedData.current = null;
@@ -33,19 +36,21 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         clearTimeout(scanTimeout.current);
         scanTimeout.current = null;
       }
+      console.log('[QR Scanner] New scan session started:', scanSessionId.current);
     }
   }, [isVisible, permission]);
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     // Prevent multiple scans while processing or already scanned
     if (scanned || isProcessing) {
-      console.log('QR scan ignored - already processing or scanned');
+      console.log('[QR Scanner] QR scan ignored - already processing or scanned');
       return;
     }
 
-    // Check if this is the same data as the last scan
+    // Only check for duplicates within the same scan session (prevents rapid duplicate scans)
+    // But allows the same QR code to be used for different employees in different sessions
     if (lastScannedData.current === data) {
-      console.log('QR scan ignored - same data as previous scan');
+      console.log('[QR Scanner] QR scan ignored - same data in current session');
       return;
     }
 
@@ -54,7 +59,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       clearTimeout(scanTimeout.current);
     }
 
-    console.log('QR Code detected:', data);
+    console.log('[QR Scanner] QR Code detected:', data, 'in session:', scanSessionId.current);
 
     // Skip Expo development URLs
     if (data.includes('exp://') || data.includes('expo.dev')) {

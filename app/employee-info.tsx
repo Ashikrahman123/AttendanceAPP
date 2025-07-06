@@ -70,8 +70,15 @@ function EmployeeInfoScreen() {
     
     // If QR mode, show scanner instead of direct action
     if (attendanceMode === "qr") {
+      // Reset processing state for new employee session
+      lastProcessedQR.current = null;
+      if (processingTimeout.current) {
+        clearTimeout(processingTimeout.current);
+        processingTimeout.current = null;
+      }
       setPendingAction(action);
       setShowQRScanner(true);
+      console.log("[AttendanceAction] Opening QR scanner for employee:", employeeData.name);
       return;
     }
     
@@ -157,6 +164,7 @@ function EmployeeInfoScreen() {
 
   const handleQRScan = async (qrData: string) => {
     console.log("[QR Scan] handleQRScan called with data:", qrData);
+    console.log("[QR Scan] Employee:", employeeData.name, "ID:", employeeData.contactRecordId);
     console.log("[QR Scan] Current pending action:", pendingAction);
     console.log("[QR Scan] Current loading state:", loading);
     
@@ -166,9 +174,10 @@ function EmployeeInfoScreen() {
       return;
     }
     
-    // Check if this is the same QR data we just processed
+    // Check if this is the same QR data we just processed for THIS employee in THIS session
+    // This prevents rapid duplicate scans but allows the same QR for different employees
     if (lastProcessedQR.current === qrData) {
-      console.log("[QR Scan] Same QR data already processed, ignoring");
+      console.log("[QR Scan] Same QR data already processed in this session, ignoring");
       return;
     }
     
