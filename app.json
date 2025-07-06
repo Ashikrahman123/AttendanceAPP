@@ -1,47 +1,4 @@
 {
-  "expo": {
-    "name": "Employee Face Attendance App",
-    "slug": "employee-face-attendance-app",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/AppIcons/icon.png",
-    "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
-    "splash": {
-      "image": "./assets/images/AppIcons/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#4F46E5"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.chearit.attendanceapp"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/AppIcons/icon.png",
-        "backgroundColor": "#4F46E5"
-      },
-      "package": "com.chearit.attendanceapp",
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
-    "plugins": [
-      "expo-router",
-      "expo-camera"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "4419f3aa-a1ad-42e5-a71b-a67a7689ff1c"
-      }
-    }
-  }
+  "name": "AttendanceApp",
+  "displayName": "Employee Face Attendance App"
 }
