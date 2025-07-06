@@ -1,37 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
   SafeAreaView,
   TouchableOpacity,
   Alert,
   Platform,
   Animated,
   ScrollView,
-} from 'react-native';
-import { router } from 'expo-router';
-import { Clock, MapPin, CheckCircle, XCircle, Calendar, Coffee, Timer } from 'lucide-react-native';
-import { StatusBar } from 'expo-status-bar';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import Button from '@/components/Button';
-import UserAvatar from '@/components/UserAvatar';
-import Colors from '@/constants/colors';
-import { useAuthStore } from '@/store/auth-store';
-import { useAttendanceStore } from '@/store/attendance-store';
-import { formatDate, formatTime, formatHours } from '@/utils/date-formatter';
-import { getCurrentLocation, getAddressFromCoordinates } from '@/utils/location-service';
-import { AttendanceType } from '@/types/user';
+} from "react-native";
+import { router } from "expo-router";
+import {
+  Clock,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Coffee,
+  Timer,
+} from "lucide-react-native";
+import { StatusBar } from "expo-status-bar";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import Button from "@/components/Button";
+import UserAvatar from "@/components/UserAvatar";
+import Colors from "@/constants/colors";
+import { useAuthStore } from "@/store/auth-store";
+import { useAttendanceStore } from "@/store/attendance-store";
+import { formatDate, formatTime, formatHours } from "@/utils/date-formatter";
+import {
+  getCurrentLocation,
+  getAddressFromCoordinates,
+} from "@/utils/location-service";
+import { AttendanceType } from "@/types/user";
 
 export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
-  const { 
-    getLastAttendanceRecord, 
-    addAttendanceRecord, 
+  const {
+    getLastAttendanceRecord,
+    addAttendanceRecord,
     getNextExpectedAction,
     getTodayAttendanceSummary,
-    getTodayRecords
+    getTodayRecords,
   } = useAttendanceStore();
 
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -80,20 +91,20 @@ export default function HomeScreen() {
       const address = await getAddressFromCoordinates(latitude, longitude);
       setCurrentAddress(address);
     } catch (error) {
-      console.error('Error fetching location:', error);
+      console.error("Error fetching location:", error);
     }
   };
 
   const handleAttendance = async () => {
     if (!user || !nextAction) return;
 
-    if (Platform.OS !== 'web') {
+    if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
     // Navigate to face verification screen
     router.push({
-      pathname: '/face-verification',
+      pathname: "/face-verification",
       params: {
         type: nextAction,
       },
@@ -113,27 +124,23 @@ export default function HomeScreen() {
         verified: false,
       });
 
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      Alert.alert(
-        'Success',
-        getActionSuccessMessage(nextAction),
-        [{ text: 'OK' }]
-      );
+      Alert.alert("Success", getActionSuccessMessage(nextAction), [
+        { text: "OK" },
+      ]);
     } catch (error) {
-      console.error('Error recording attendance:', error);
+      console.error("Error recording attendance:", error);
 
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
-      Alert.alert(
-        'Error',
-        'Failed to record attendance. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert("Error", "Failed to record attendance. Please try again.", [
+        { text: "OK" },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -141,63 +148,63 @@ export default function HomeScreen() {
 
   const getActionSuccessMessage = (action: AttendanceType): string => {
     switch (action) {
-      case 'check-in':
-        return 'You have successfully checked in.';
-      case 'break-start':
-        return 'Your break has started.';
-      case 'break-end':
-        return 'Your break has ended.';
-      case 'check-out':
-        return 'You have successfully checked out.';
+      case "check-in":
+        return "You have successfully checked in.";
+      case "break-start":
+        return "Your break has started.";
+      case "break-end":
+        return "Your break has ended.";
+      case "check-out":
+        return "You have successfully checked out.";
       default:
-        return 'Action recorded successfully.';
+        return "Action recorded successfully.";
     }
   };
 
   const getActionButtonText = (action: AttendanceType | null): string => {
     switch (action) {
-      case 'check-in':
-        return 'Check In with Face ID';
-      case 'break-start':
-        return 'Start Break with Face ID';
-      case 'break-end':
-        return 'End Break with Face ID';
-      case 'check-out':
-        return 'Check Out with Face ID';
+      case "check-in":
+        return "Check In with Face ID";
+      case "break-start":
+        return "Start Break with Face ID";
+      case "break-end":
+        return "End Break with Face ID";
+      case "check-out":
+        return "Check Out with Face ID";
       default:
-        return 'Day Complete';
+        return "Day Complete";
     }
   };
 
   const getManualActionButtonText = (action: AttendanceType | null): string => {
     switch (action) {
-      case 'check-in':
-        return 'Manual Check In';
-      case 'break-start':
-        return 'Manual Break Start';
-      case 'break-end':
-        return 'Manual Break End';
-      case 'check-out':
-        return 'Manual Check Out';
+      case "check-in":
+        return "Manual Check In";
+      case "break-start":
+        return "Manual Break Start";
+      case "break-end":
+        return "Manual Break End";
+      case "check-out":
+        return "Manual Check Out";
       default:
-        return 'Day Complete';
+        return "Day Complete";
     }
   };
 
   const getStatusText = (): string => {
-    if (!lastRecord) return 'Not checked in';
+    if (!lastRecord) return "Not checked in";
 
     switch (lastRecord.type) {
-      case 'check-in':
-        return 'Checked In';
-      case 'break-start':
-        return 'On Break';
-      case 'break-end':
-        return 'Returned from Break';
-      case 'check-out':
-        return 'Checked Out';
+      case "check-in":
+        return "Checked In";
+      case "break-start":
+        return "On Break";
+      case "break-end":
+        return "Returned from Break";
+      case "check-out":
+        return "Checked Out";
       default:
-        return 'Unknown Status';
+        return "Unknown Status";
     }
   };
 
@@ -205,13 +212,13 @@ export default function HomeScreen() {
     if (!lastRecord) return Colors.textSecondary;
 
     switch (lastRecord.type) {
-      case 'check-in':
+      case "check-in":
         return Colors.primary;
-      case 'break-start':
+      case "break-start":
         return Colors.warning;
-      case 'break-end':
+      case "break-end":
         return Colors.secondary;
-      case 'check-out':
+      case "check-out":
         return Colors.success;
       default:
         return Colors.textSecondary;
@@ -222,13 +229,13 @@ export default function HomeScreen() {
     if (!lastRecord) return <Clock size={16} color={Colors.textSecondary} />;
 
     switch (lastRecord.type) {
-      case 'check-in':
+      case "check-in":
         return <CheckCircle size={16} color={Colors.primary} />;
-      case 'break-start':
+      case "break-start":
         return <Coffee size={16} color={Colors.warning} />;
-      case 'break-end':
+      case "break-end":
         return <Timer size={16} color={Colors.secondary} />;
-      case 'check-out':
+      case "check-out":
         return <XCircle size={16} color={Colors.success} />;
       default:
         return <Clock size={16} color={Colors.textSecondary} />;
@@ -241,36 +248,40 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Animated.View 
+        <Animated.View
           style={[
             styles.header,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
           <View style={styles.userInfo}>
-            <UserAvatar 
-              name={user.name} 
+            <UserAvatar
+              name={user.name}
               imageUrl={user.profileImage}
               size={50}
               showBorder
             />
             <View style={styles.userDetails}>
-              <Text style={styles.greeting}>Hello, {user?.name ? user.name.split(' ')[0] : 'User'}</Text>
-              <Text style={styles.role}>{user.role === 'admin' ? 'Administrator' : 'Employee'}</Text>
+              <Text style={styles.greeting}>
+                Hello, {user?.name ? user.name.split(" ")[0] : "User"}
+              </Text>
+              <Text style={styles.role}>
+                {user.role === "admin" ? "Administrator" : "Employee"}
+              </Text>
             </View>
           </View>
         </Animated.View>
 
-        <Animated.View 
+        <Animated.View
           style={[
             styles.timeCardContainer,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }]
-            }
+              transform: [{ translateY: slideAnim }],
+            },
           ]}
         >
           <LinearGradient
@@ -280,20 +291,24 @@ export default function HomeScreen() {
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.timeInfo}>
-              <Text style={styles.date}>{formatDate(currentTime.getTime())}</Text>
-              <Text style={styles.time}>{formatTime(currentTime.getTime())}</Text>
+              <Text style={styles.date}>
+                {formatDate(currentTime.getTime())}
+              </Text>
+              <Text style={styles.time}>
+                {formatTime(currentTime.getTime())}
+              </Text>
             </View>
 
             <View style={styles.locationContainer}>
               <MapPin size={16} color="#FFFFFF" />
               <Text style={styles.location} numberOfLines={2}>
-                {currentAddress || 'Fetching location...'}
+                {currentAddress || "Fetching location..."}
               </Text>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        <Animated.View 
+        {/* <Animated.View 
           style={[
             styles.statusCard,
             {
@@ -480,7 +495,7 @@ export default function HomeScreen() {
               style={styles.storedFacesButton}
             />
           )}
-        </Animated.View>
+        </Animated.View> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -500,15 +515,15 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   userDetails: {
     marginLeft: 12,
   },
   greeting: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
   },
   role: {
@@ -530,33 +545,33 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   timeInfo: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 16,
   },
   date: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
     marginBottom: 4,
   },
   time: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textShadowColor: "rgba(0, 0, 0, 0.1)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     padding: 12,
     borderRadius: 8,
     gap: 8,
   },
   location: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     flex: 1,
   },
   statusCard: {
@@ -575,14 +590,14 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   statusHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   statusTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
   },
   statusBadge: {
@@ -592,7 +607,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   lastRecordContainer: {
     backgroundColor: Colors.cardAlt,
@@ -601,8 +616,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   lastRecordInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
     gap: 8,
   },
@@ -611,23 +626,23 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   verificationStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   verificationText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   noRecordContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
     marginBottom: 16,
   },
   noRecordText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
   },
   summaryContainer: {
@@ -637,16 +652,16 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
     marginBottom: 12,
   },
   summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   summaryItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   summaryLabel: {
@@ -656,7 +671,7 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
   },
   totalHours: {
@@ -679,7 +694,7 @@ const styles = StyleSheet.create({
   },
   timelineTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
     marginBottom: 16,
   },
@@ -687,22 +702,22 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   timelineItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 16,
-    position: 'relative',
+    position: "relative",
   },
   timelineDot: {
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: Colors.cardAlt,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
     zIndex: 2,
   },
   timelineConnector: {
-    position: 'absolute',
+    position: "absolute",
     left: 15,
     top: 32,
     bottom: -16,
@@ -716,7 +731,7 @@ const styles = StyleSheet.create({
   },
   timelineTime: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.text,
     marginBottom: 2,
   },
@@ -725,40 +740,40 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   noTimelineContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
   },
   noTimelineText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   actionContainer: {
     padding: 20,
-    marginTop: 'auto',
+    marginTop: "auto",
   },
   actionButton: {
-    width: '100%',
+    width: "100%",
   },
   manualButton: {
     marginTop: 12,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 12,
   },
   manualButtonText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   dayCompleteContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 24,
-    backgroundColor: Colors.success + '10', // 10% opacity
+    backgroundColor: Colors.success + "10", // 10% opacity
     borderRadius: 16,
   },
   dayCompleteText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.success,
     marginTop: 12,
     marginBottom: 4,
@@ -766,7 +781,7 @@ const styles = StyleSheet.create({
   dayCompleteSubtext: {
     fontSize: 14,
     color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: "center",
   },
   storedFacesButton: {
     marginTop: 20,

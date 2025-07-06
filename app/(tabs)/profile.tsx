@@ -315,7 +315,10 @@ export default function ProfileScreen() {
       setCapturedImage(photo.uri);
 
       // Register the face
-      const success = await registerFace(photo.uri, user.contactRecordId.toString());
+      const success = await registerFace(
+        photo.uri,
+        user.contactRecordId.toString(),
+      );
 
       if (success) {
         if (Platform.OS !== "web") {
@@ -379,9 +382,9 @@ export default function ProfileScreen() {
       <StatusBar style={isDarkMode ? "light" : "dark"} />
 
       <ScrollView>
-        <View style={styles.header}>
+        {/* <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
-        </View>
+        </View> */}
 
         <View
           style={[
@@ -407,7 +410,7 @@ export default function ProfileScreen() {
             {user.role === "admin" ? "Administrator" : "Employee"}
           </Text>
 
-          <View style={styles.statsContainer}>
+          {/* <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.primary }]}>
                 {formatHours(totalHoursWorked)}
@@ -442,7 +445,7 @@ export default function ProfileScreen() {
                 Days Worked
               </Text>
             </View>
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.sectionContainer}>
@@ -535,7 +538,7 @@ export default function ProfileScreen() {
               style={[styles.divider, { backgroundColor: colors.border }]}
             />
 
-            <View style={styles.infoItem}>
+            {/* <View style={styles.infoItem}>
               <View
                 style={[
                   styles.infoIcon,
@@ -554,7 +557,7 @@ export default function ProfileScreen() {
                   {user.regularHours || 8} hours per day
                 </Text>
               </View>
-            </View>
+            </View> */}
           </View>
         </View>
 
@@ -573,7 +576,7 @@ export default function ProfileScreen() {
               },
             ]}
           >
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.settingsItem}
               onPress={() => setShowWorkingHoursModal(true)}
             >
@@ -683,13 +686,11 @@ export default function ProfileScreen() {
                   <ChevronRight size={20} color={colors.textSecondary} />
                 )}
               </TouchableOpacity>
-              
-              
             </View>
 
             <View
               style={[styles.divider, { backgroundColor: colors.border }]}
-            />
+            /> */}
 
             <TouchableOpacity
               style={styles.settingsItem}
@@ -724,7 +725,7 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Working Hours Modal */}
-      <Modal
+      {/* <Modal
         visible={showWorkingHoursModal}
         animationType="slide"
         transparent={true}
@@ -894,10 +895,10 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Leave Management Modal */}
-      <Modal
+      {/* <Modal
         visible={showLeaveManagementModal}
         animationType="slide"
         transparent={true}
@@ -1271,10 +1272,10 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* Reports Modal */}
-      <Modal
+      {/* <Modal
         visible={showReportsModal}
         animationType="slide"
         transparent={true}
@@ -1561,7 +1562,7 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       {/* App Settings Modal */}
       <Modal
@@ -1736,7 +1737,7 @@ export default function ProfileScreen() {
       </Modal>
 
       {/* Face Registration Modal */}
-      <Modal
+      {/* <Modal
         visible={showFaceRegistrationModal}
         animationType="slide"
         transparent={true}
@@ -1891,7 +1892,7 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
 
       <LoadingOverlay visible={isLoading} message="Please wait..." />
     </SafeAreaView>
@@ -1901,14 +1902,14 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   facePreviewContainer: {
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   facePreview: {
     width: 200,
     height: 200,
     borderRadius: 100,
     borderWidth: 3,
-    borderColor: '#4F46E5',
+    borderColor: "#4F46E5",
   },
   container: {
     flex: 1,

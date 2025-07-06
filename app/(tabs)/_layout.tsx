@@ -6,7 +6,7 @@ import { useThemeStore } from "@/store/theme-store";
 
 export default function TabLayout() {
   const colors = useColors();
-  const isDarkMode = useThemeStore(state => state.isDarkMode);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
   return (
     <Tabs
@@ -31,13 +31,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
+      {/* Take this tab from hidden-tab/history.tsx  */}
+      {/* <Tabs.Screen
         name="history"
         options={{
           title: "History",
           tabBarIcon: ({ color, size }) => <History size={size} color={color} />,
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="employees"
         options={{
