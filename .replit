@@ -21,7 +21,6 @@ localPort = 8083
 externalPort = 3001
 
 [workflows]
-runButton = "React Native Clean"
 
 [[workflows.workflow]]
 name = "Web Dev"
@@ -31,30 +30,3 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run start-web"
-
-[[workflows.workflow]]
-name = "Run with Bun"
-author = 42226973
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "bun run start"
-
-[[workflows.workflow]]
-name = "React Native Metro"
-author = 42226973
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx react-native start --host 0.0.0.0"
-
-[[workflows.workflow]]
-name = "React Native Clean"
-author = 42226973
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx react-native start --reset-cache --host 0.0.0.0"
