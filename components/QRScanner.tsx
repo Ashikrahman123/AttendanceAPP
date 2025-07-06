@@ -30,7 +30,30 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     if (!scanned) {
       setScanned(true);
-      onScan(data);
+      
+      // Validate QR code - should not be Expo development URL
+      if (data.includes('exp://') || data.includes('expo.dev')) {
+        Alert.alert(
+          'Invalid QR Code',
+          'This appears to be an Expo development QR code. Please scan a valid attendance QR code.',
+          [
+            {
+              text: 'Try Again',
+              onPress: () => setScanned(false)
+            },
+            {
+              text: 'Cancel',
+              onPress: onClose
+            }
+          ]
+        );
+        return;
+      }
+      
+      // Add a small delay to prevent multiple rapid scans
+      setTimeout(() => {
+        onScan(data);
+      }, 500);
     }
   };
 

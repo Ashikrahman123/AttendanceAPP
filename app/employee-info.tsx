@@ -156,12 +156,25 @@ function EmployeeInfoScreen() {
   const handleQRScan = async (qrData: string) => {
     setShowQRScanner(false);
     
-    if (!pendingAction) return;
+    if (!pendingAction) {
+      Alert.alert("Error", "No pending action found");
+      return;
+    }
+    
+    // Store the current pending action and clear it immediately to prevent duplicates
+    const currentAction = pendingAction;
+    setPendingAction(null);
     
     try {
       setLoading(true);
       console.log("[QR Scan] QR Data:", qrData);
-      console.log("[QR Scan] Pending Action:", pendingAction);
+      console.log("[QR Scan] Processing Action:", currentAction);
+
+      // Basic QR validation - should contain some attendance-related data
+      if (!qrData || qrData.length < 5) {
+        Alert.alert("Error", "Invalid QR code scanned");
+        return;
+      }
 
       // Get required data from storage
       const [orgId, modifyUser, bearerToken] = await Promise.all([
@@ -175,14 +188,14 @@ function EmployeeInfoScreen() {
         return;
       }
 
-      // Hardcoded QR-based attendance request body for now
+      // QR-based attendance request body
       const requestBody = {
         DetailData: {
           OrgId: parseInt(orgId),
-          Module: pendingAction,
+          Module: currentAction,
           ModifyUser: parseInt(modifyUser),
           CreateUser: parseInt(modifyUser),
-          Time: currentTime.toLocaleTimeString("en-US", {
+          Time: new Date().toLocaleTimeString("en-US", {
             hour12: false,
             hour: "2-digit",
             minute: "2-digit",
@@ -210,16 +223,16 @@ function EmployeeInfoScreen() {
       const data = await response.json();
 
       if (data.success) {
-        if (pendingAction === "CI") {
+        if (currentAction === "CI") {
           setIsCheckedIn(true);
           setClockInTime(new Date());
         }
-        if (pendingAction === "CO") setIsCheckedIn(false);
-        if (pendingAction === "SB") {
+        if (currentAction === "CO") setIsCheckedIn(false);
+        if (currentAction === "SB") {
           setIsOnBreak(true);
           setBreakStartTime(new Date());
         }
-        if (pendingAction === "EB") setIsOnBreak(false);
+        if (currentAction === "EB") setIsOnBreak(false);
 
         Alert.alert("Success", `QR attendance recorded: ${data.message}`);
       } else {
@@ -233,7 +246,7 @@ function EmployeeInfoScreen() {
       setPendingAction(null);
       
       // Show welcome message on checkout
-      if (pendingAction === "CO") {
+      if (currentAction === "CO") {
         setShowWelcomeMessage(true);
         setClockInTime(null);
         setBreakStartTime(null);
@@ -246,6 +259,7 @@ function EmployeeInfoScreen() {
   const handleQRScanClose = () => {
     setShowQRScanner(false);
     setPendingAction(null);
+    console.log("[QR Scanner] Scanner closed, pending action cleared");
   };
 
   return (
