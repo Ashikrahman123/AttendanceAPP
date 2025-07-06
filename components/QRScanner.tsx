@@ -71,30 +71,30 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         barcodeScannerSettings={{
           barcodeTypes: ['qr'],
         }}
-      >
-        <View style={styles.overlay}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          
-          <View style={styles.scanArea}>
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-          </View>
-          
-          <View style={styles.instructionContainer}>
-            <Scan size={32} color="#FFFFFF" />
-            <Text style={styles.instructionText}>
-              Position QR code within the frame
-            </Text>
-            {scanned && (
-              <Text style={styles.scannedText}>QR Code Scanned!</Text>
-            )}
-          </View>
+      />
+      
+      <View style={styles.overlay}>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <X size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        
+        <View style={styles.scanArea}>
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
         </View>
-      </CameraView>
+        
+        <View style={styles.instructionContainer}>
+          <Scan size={32} color="#FFFFFF" />
+          <Text style={styles.instructionText}>
+            Position QR code within the frame
+          </Text>
+          {scanned && (
+            <Text style={styles.scannedText}>QR Code Scanned!</Text>
+          )}
+        </View>
+      </View>
     </View>
   );
 }
@@ -116,7 +116,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',

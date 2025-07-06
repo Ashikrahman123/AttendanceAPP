@@ -241,10 +241,11 @@ export default function RegisterFaceScreen() {
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
-          >
-            <FaceDetectionOverlay isDetecting={isCapturing} />
+          />
+          
+          <FaceDetectionOverlay isDetecting={isCapturing} />
 
-            <SafeAreaView style={styles.overlay}>
+          <SafeAreaView style={styles.overlay}>
               <Animated.View
                 style={[
                   styles.header,

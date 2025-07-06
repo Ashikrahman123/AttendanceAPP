@@ -343,10 +343,11 @@ export default function FaceVerificationScreen() {
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
-          >
-            <FaceDetectionOverlay isDetecting={isCapturing} />
-            
-            <SafeAreaView style={styles.overlay}>
+          />
+          
+          <FaceDetectionOverlay isDetecting={isCapturing} />
+          
+          <SafeAreaView style={styles.overlay}>
               <Animated.View 
                 style={[
                   styles.header,
@@ -530,7 +531,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'space-between',
   },
   header: {

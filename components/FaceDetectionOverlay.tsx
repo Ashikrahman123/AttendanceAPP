@@ -8,11 +8,11 @@ interface FaceDetectionOverlayProps {
 
 export default function FaceDetectionOverlay({ isDetecting }: FaceDetectionOverlayProps) {
   const isDarkMode = useThemeStore(state => state.isDarkMode);
-  
+
   // Animation values
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  
+
   useEffect(() => {
     if (isDetecting) {
       // Scan line animation
@@ -24,7 +24,7 @@ export default function FaceDetectionOverlay({ isDetecting }: FaceDetectionOverl
           useNativeDriver: true,
         })
       ).start();
-      
+
       // Pulse animation
       Animated.loop(
         Animated.sequence([
@@ -47,32 +47,32 @@ export default function FaceDetectionOverlay({ isDetecting }: FaceDetectionOverl
       scanLineAnim.setValue(0);
       pulseAnim.setValue(0);
     }
-    
+
     return () => {
       scanLineAnim.stopAnimation();
       pulseAnim.stopAnimation();
     };
   }, [isDetecting, scanLineAnim, pulseAnim]);
-  
+
   // Calculate scan line position
   const scanLineTranslateY = scanLineAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [-300, 300],
   });
-  
+
   // Calculate pulse scale and opacity
   const pulseScale = pulseAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.8, 1.2],
   });
-  
+
   const pulseOpacity = pulseAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0.4, 0.2, 0],
   });
-  
+
   if (!isDetecting) return null;
-  
+
   return (
     <View style={styles.container}>
       {/* Face detection frame */}
@@ -82,7 +82,7 @@ export default function FaceDetectionOverlay({ isDetecting }: FaceDetectionOverl
         <View style={[styles.corner, styles.topRight]} />
         <View style={[styles.corner, styles.bottomLeft]} />
         <View style={[styles.corner, styles.bottomRight]} />
-        
+
         {/* Scan line */}
         {isDetecting && (
           <Animated.View 
@@ -92,7 +92,7 @@ export default function FaceDetectionOverlay({ isDetecting }: FaceDetectionOverl
             ]}
           />
         )}
-        
+
         {/* Pulse effect */}
         {isDetecting && (
           <Animated.View 
