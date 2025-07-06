@@ -33,32 +33,10 @@ export default function LoginScreen() {
 
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
 
-  // Animation values
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
-  const logoScale = React.useRef(new Animated.Value(0.8)).current;
-
-  useEffect(() => {
-    // Start animations when component mounts
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(logoScale, {
-        toValue: 1,
-        friction: 8,
-        tension: 40,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  // Animation values - simplified for stability
+  const fadeAnim = React.useRef(new Animated.Value(1)).current;
+  const slideAnim = React.useRef(new Animated.Value(0)).current;
+  const logoScale = React.useRef(new Animated.Value(1)).current;
 
   // Check if user is authenticated and redirect if needed
   useEffect(() => {
@@ -151,15 +129,7 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View
-            style={[
-              styles.header,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }, { scale: logoScale }],
-              },
-            ]}
-          >
+          <View style={styles.header}>
             <View style={styles.logoContainer}>
               <LinearGradient
                 colors={[Colors.secondary, Colors.primary]}
@@ -172,17 +142,9 @@ export default function LoginScreen() {
             </View>
             <Text style={styles.title}>Face Attendance</Text>
             <Text style={styles.subtitle}>Sign in to your account</Text>
-          </Animated.View>
+          </View>
 
-          <Animated.View
-            style={[
-              styles.formContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
+          <View style={styles.formContainer}>
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -268,7 +230,7 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
             </View> */}
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
