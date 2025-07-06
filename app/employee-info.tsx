@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -30,6 +30,8 @@ function EmployeeInfoScreen() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
   const [pendingAction, setPendingAction] = useState<"CI" | "CO" | "SB" | "EB" | null>(null);
+  const lastProcessedQR = useRef<string | null>(null);
+  const processingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Update time every second
   useEffect(() => {
@@ -164,6 +166,18 @@ function EmployeeInfoScreen() {
       return;
     }
     
+    // Check if this is the same QR data we just processed
+    if (lastProcessedQR.current === qrData) {
+      console.log("[QR Scan] Same QR data already processed, ignoring");
+      return;
+    }
+    
+    // Clear any existing timeout
+    if (processingTimeout.current) {
+      clearTimeout(processingTimeout.current);
+      processingTimeout.current = null;
+    }
+    
     if (!pendingAction) {
       console.log("[QR Scan] No pending action found");
       Alert.alert("Error", "No pending action found");
@@ -174,6 +188,7 @@ function EmployeeInfoScreen() {
     const currentAction = pendingAction;
     setPendingAction(null);
     setShowQRScanner(false);
+    lastProcessedQR.current = qrData;
     
     console.log("[QR Scan] Processing action:", currentAction, "with QR data:", qrData);
     console.log("[QR Scan] QR Data:", qrData);
@@ -257,6 +272,11 @@ function EmployeeInfoScreen() {
       setLoading(false);
       setPendingAction(null);
       
+      // Clear the processed QR after a delay to allow for potential duplicates to be filtered
+      processingTimeout.current = setTimeout(() => {
+        lastProcessedQR.current = null;
+      }, 2000);
+      
       // Show welcome message on checkout
       if (currentAction === "CO") {
         setShowWelcomeMessage(true);
@@ -271,6 +291,11 @@ function EmployeeInfoScreen() {
   const handleQRScanClose = () => {
     setShowQRScanner(false);
     setPendingAction(null);
+    lastProcessedQR.current = null;
+    if (processingTimeout.current) {
+      clearTimeout(processingTimeout.current);
+      processingTimeout.current = null;
+    }
     console.log("[QR Scanner] Scanner closed, pending action cleared");
   };
 

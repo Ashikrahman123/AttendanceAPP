@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, Dimensions } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { X, Scan } from 'lucide-react-native';
@@ -18,6 +18,8 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const lastScannedData = useRef<string | null>(null);
+  const scanTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isVisible && !permission?.granted) {
@@ -26,6 +28,11 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
     if (isVisible) {
       setScanned(false);
       setIsProcessing(false);
+      lastScannedData.current = null;
+      if (scanTimeout.current) {
+        clearTimeout(scanTimeout.current);
+        scanTimeout.current = null;
+      }
     }
   }, [isVisible, permission]);
 
@@ -36,10 +43,17 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       return;
     }
 
-    // Immediately set both flags to prevent duplicate processing
-    setScanned(true);
-    setIsProcessing(true);
-    
+    // Check if this is the same data as the last scan
+    if (lastScannedData.current === data) {
+      console.log('QR scan ignored - same data as previous scan');
+      return;
+    }
+
+    // Clear any existing timeout
+    if (scanTimeout.current) {
+      clearTimeout(scanTimeout.current);
+    }
+
     console.log('QR Code detected:', data);
 
     // Skip Expo development URLs
@@ -54,6 +68,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
             onPress: () => {
               setScanned(false);
               setIsProcessing(false);
+              lastScannedData.current = null;
             }
           },
           {
@@ -66,7 +81,6 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
     }
 
     // For now, accept any QR code that's not empty and not an Expo URL
-    // This allows testing with simple QR codes from the generator website
     if (!data || data.trim().length === 0) {
       console.log('Empty QR code detected');
       Alert.alert(
@@ -78,6 +92,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
             onPress: () => {
               setScanned(false);
               setIsProcessing(false);
+              lastScannedData.current = null;
             }
           },
           {
@@ -91,11 +106,17 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
 
     console.log('QR code validation passed, processing...');
     
-    // Add a small delay to prevent rapid duplicate scans
-    setTimeout(() => {
+    // Immediately set flags and store the scanned data
+    setScanned(true);
+    setIsProcessing(true);
+    lastScannedData.current = data;
+    
+    // Use timeout to ensure only one scan is processed
+    scanTimeout.current = setTimeout(() => {
       console.log('Calling onScan with data:', data);
       onScan(data);
-    }, 500);
+      scanTimeout.current = null;
+    }, 300);
   };
 
   if (!isVisible) return null;
