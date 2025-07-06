@@ -29,9 +29,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
+import UserAvatar from '@/components/UserAvatar';
 import { useAuthStore } from '@/store/auth-store';
 import { useAttendanceStore } from '@/store/attendance-store';
 import { formatTime, formatHours, formatDate } from '@/utils/date-formatter';
+import { getCurrentLocation, getAddressFromCoordinates } from '@/utils/location-service';
 import { AttendanceType } from '@/types/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
