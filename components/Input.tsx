@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 
 interface InputProps extends TextInputProps {
@@ -41,14 +41,14 @@ export default function Input({
   const colors = useColors();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-  
+
   // Animation values
   const focusAnim = React.useRef(new Animated.Value(0)).current;
-  
+
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
-  
+
   const handleFocus = () => {
     setIsFocused(true);
     if (animated) {
@@ -59,7 +59,7 @@ export default function Input({
       }).start();
     }
   };
-  
+
   const handleBlur = () => {
     setIsFocused(false);
     if (animated) {
@@ -70,7 +70,7 @@ export default function Input({
       }).start();
     }
   };
-  
+
   // Interpolate animation values
   const borderColor = animated 
     ? focusAnim.interpolate({
@@ -78,18 +78,18 @@ export default function Input({
         outputRange: [colors.border, colors.primary]
       })
     : isFocused ? colors.primary : colors.border;
-  
+
   const shadowOpacity = animated
     ? focusAnim.interpolate({
         inputRange: [0, 1],
         outputRange: [0, 0.1]
       })
     : isFocused ? 0.1 : 0;
-  
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={[styles.label, { color: colors.text }, labelStyle]}>{label}</Text>}
-      
+
       <Animated.View style={[
         styles.inputContainer, 
         { 
@@ -101,7 +101,7 @@ export default function Input({
         inputStyle
       ]}>
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
-        
+
         <TextInput
           style={[
             styles.input,
@@ -115,23 +115,23 @@ export default function Input({
           onBlur={handleBlur}
           {...rest}
         />
-        
+
         {isPassword ? (
           <TouchableOpacity 
             style={styles.iconRight} 
             onPress={togglePasswordVisibility}
           >
             {isPasswordVisible ? (
-              <EyeOff size={20} color={colors.textSecondary} />
+              <Ionicons name="eye" size={20} color={colors.textSecondary} />
             ) : (
-              <Eye size={20} color={colors.textSecondary} />
+              <Ionicons name="eye-off" size={20} color={colors.textSecondary} />
             )}
           </TouchableOpacity>
         ) : rightIcon ? (
           <View style={styles.iconRight}>{rightIcon}</View>
         ) : null}
       </Animated.View>
-      
+
       {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
     </View>
   );
