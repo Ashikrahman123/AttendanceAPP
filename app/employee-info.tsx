@@ -17,6 +17,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatTime } from "@/utils/date-formatter";
 import QRScanner from "@/components/QRScanner";
 
+// Function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000; // Earth's radius in meters
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLng = (lng2 - lng1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in meters
+}
+
 function EmployeeInfoScreen() {
   const params = useLocalSearchParams();
   const colors = useColors();
@@ -206,10 +221,18 @@ function EmployeeInfoScreen() {
     try {
       setLoading(true);
 
-      // Validate QR data format
-      const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
-      if (!qrData || !validAttendanceCodes.includes(qrData.toUpperCase())) {
-        Alert.alert("Error", "Invalid attendance QR code scanned");
+      // Parse QR data - expect format: {"action":"CHECK_IN","locationCode":"HO01","lat":10.757626,"lng":78.691711}
+      let qrInfo;
+      try {
+        qrInfo = JSON.parse(qrData);
+      } catch (parseError) {
+        Alert.alert("Error", "Invalid QR code format");
+        return;
+      }
+
+      // Validate QR data structure
+      if (!qrInfo.action || !qrInfo.locationCode || !qrInfo.lat || !qrInfo.lng) {
+        Alert.alert("Error", "Incomplete QR code data");
         return;
       }
 
@@ -221,9 +244,32 @@ function EmployeeInfoScreen() {
         'END_BREAK': 'EB'
       };
       
-      const expectedAction = qrActionMap[qrData.toUpperCase() as keyof typeof qrActionMap];
+      const expectedAction = qrActionMap[qrInfo.action.toUpperCase() as keyof typeof qrActionMap];
       if (expectedAction !== currentAction) {
-        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${qrData}`);
+        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${qrInfo.action}`);
+        return;
+      }
+
+      // Get user's current location and validate proximity
+      const { getCurrentLocation } = await import('@/utils/location-service');
+      const userLocation = await getCurrentLocation();
+      
+      // Calculate distance between user and QR location
+      const distance = calculateDistance(
+        userLocation.coords.latitude,
+        userLocation.coords.longitude,
+        qrInfo.lat,
+        qrInfo.lng
+      );
+      
+      console.log("[QR Scan] Distance from QR location:", distance, "meters");
+      
+      // Check if user is within 100 meters of the QR location
+      if (distance > 100) {
+        Alert.alert(
+          "Location Error", 
+          `You must be within 100 meters of the designated location to record attendance. You are ${Math.round(distance)} meters away.`
+        );
         return;
       }
 
@@ -253,8 +299,7 @@ function EmployeeInfoScreen() {
             second: "2-digit",
           }),
           ContactRecordId: parseInt(employeeData.contactRecordId),
-          QRData: qrData, // Include QR data
-          AttendanceMode: "QR", // Specify QR mode
+          LocationCode: qrInfo.locationCode, // Include location code from QR
         },
         BearerTokenValue: bearerToken,
       };

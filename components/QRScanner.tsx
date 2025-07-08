@@ -83,15 +83,34 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       return; // Don't show alert, just ignore silently
     }
 
-    // Only accept attendance-related QR codes
-    const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
-    const upperCaseData = data.trim().toUpperCase();
-    
-    if (!validAttendanceCodes.includes(upperCaseData)) {
-      console.log('[QR Scanner] Invalid attendance QR code:', data);
+    // Try to parse as JSON for location-based QR codes
+    let qrInfo;
+    try {
+      qrInfo = JSON.parse(data);
+      
+      // Validate QR structure for location-based attendance
+      if (!qrInfo.action || !qrInfo.locationCode || !qrInfo.lat || !qrInfo.lng) {
+        throw new Error('Invalid QR structure');
+      }
+      
+      // Validate action type
+      const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+      if (!validAttendanceCodes.includes(qrInfo.action.toUpperCase())) {
+        throw new Error('Invalid action');
+      }
+      
+      console.log('[QR Scanner] Valid location-based attendance QR code detected, processing...');
+      
+      // Use the original JSON data
+      const normalizedData = data;
+      setScanned(true);
+      setIsProcessing(true);
+      lastScannedData.current = normalizedData;
+    } catch (parseError) {
+      console.log('[QR Scanner] Invalid attendance QR code format:', data);
       Alert.alert(
         'Invalid QR Code',
-        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code.',
+        'This QR code is not recognized as a valid location-based attendance code. Please scan a valid attendance QR code.',
         [
           {
             text: 'Try Again',
@@ -109,14 +128,6 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       );
       return;
     }
-
-    console.log('[QR Scanner] Valid attendance QR code detected, processing...');
-    
-    // Immediately set flags and store the scanned data (use normalized data)
-    const normalizedData = upperCaseData;
-    setScanned(true);
-    setIsProcessing(true);
-    lastScannedData.current = normalizedData;
     
     // Use shorter timeout to reduce chance of wrong QR being processed
     scanTimeout.current = setTimeout(() => {
