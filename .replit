@@ -21,6 +21,7 @@ localPort = 8083
 externalPort = 3001
 
 [workflows]
+runButton = "Run Expo App"
 
 [[workflows.workflow]]
 name = "Web Dev"
@@ -30,3 +31,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run start-web"
+
+[[workflows.workflow]]
+name = "Run Expo App"
+author = 42226973
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bun run start"
