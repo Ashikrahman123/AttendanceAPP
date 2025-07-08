@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Animated, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { User, Clock, Calendar } from "lucide-react-native";
 import Colors from "@/constants/colors";
 import { router } from "expo-router";
 
