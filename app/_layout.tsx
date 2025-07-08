@@ -12,6 +12,9 @@ import CustomSplashScreen from "@/components/SplashScreen";
 import { useThemeStore } from "@/store/theme-store";
 import { router } from "expo-router";
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
+
 function RootLayoutNav() {
   const { baseUrl, isLoading } = useBaseUrl();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
@@ -61,22 +64,14 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
   if (!loaded) {
     return null;
-  }
-
-  // Initialize React DevTools
-  if (__DEV__ && typeof window !== 'undefined') {
-    try {
-      import('react-devtools-core').then(({ connectToDevTools }) => {
-        connectToDevTools({
-          host: 'localhost',
-          port: 8097,
-        });
-      });
-    } catch (err) {
-      console.warn('React DevTools connection failed:', err);
-    }
   }
 
   return (
