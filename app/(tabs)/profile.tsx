@@ -14,32 +14,7 @@ import {
   Image,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import {
-  User,
-  Mail,
-  Shield,
-  LogOut,
-  Clock,
-  Calendar,
-  Settings,
-  ChevronRight,
-  FileText,
-  Clock8,
-  X,
-  Bell,
-  Moon,
-  MapPin,
-  Camera,
-  Save,
-  Calendar1,
-  CalendarCheck,
-  CalendarDays,
-  CalendarRange,
-  FileCheck,
-  Download,
-  Share2,
-  RefreshCw,
-} from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";

@@ -481,10 +481,10 @@ export default function HomeScreen() {
                 style={styles.actionButton}
                 animated
                 icon={
-                  nextAction === 'check-in' ? <CheckCircle size={20} color="#FFFFFF" /> :
-                  nextAction === 'break-start' ? <Coffee size={20} color="#FFFFFF" /> :
-                  nextAction === 'break-end' ? <Timer size={20} color="#FFFFFF" /> :
-                  <XCircle size={20} color="#FFFFFF" />
+                  nextAction === 'check-in' ? <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" /> :
+                  nextAction === 'break-start' ? <Ionicons name="cafe" size={20} color="#FFFFFF" /> :
+                  nextAction === 'break-end' ? <Ionicons name="timer" size={20} color="#FFFFFF" /> :
+                  <Ionicons name="close-circle" size={20} color="#FFFFFF" />
                 }
               />
 
