@@ -18,6 +18,20 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { 
+  User, 
+  Mail, 
+  Shield, 
+  Settings, 
+  ChevronRight, 
+  LogOut, 
+  X, 
+  Save,
+  Moon,
+  Bell,
+  Camera,
+  MapPin
+} from "lucide-react-native";
 import UserAvatar from "@/components/UserAvatar";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
