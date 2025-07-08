@@ -1,31 +1,39 @@
-import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Redirect } from 'expo-router';
-import { useAuthStore } from '@/store/auth-store';
-import LoadingOverlay from '@/components/LoadingOverlay';
-import { useBaseUrl } from '@/context/BaseUrlContext';
 
-export default function Index() {
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const { baseUrl } = useBaseUrl();
+import { useEffect, useState } from "react";
+import { router } from "expo-router";
+import { useBaseUrl } from "@/context/BaseUrlContext";
+import { useAuthStore } from "@/store/auth-store";
+import CustomSplashScreen from "@/components/SplashScreen";
 
-  // If no base URL, redirect to baseurl screen
-  if (!baseUrl) {
-    return <Redirect href="/baseurl" />;
+export default function IndexScreen() {
+  const { baseUrl, isLoading } = useBaseUrl();
+  const [showSplash, setShowSplash] = useState(true);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!showSplash && !isLoading) {
+      if (!baseUrl) {
+        router.replace("/baseurl");
+      } else if (!isAuthenticated) {
+        router.replace("/(auth)/login");
+      } else {
+        router.replace("/(tabs)");
+      }
+    }
+  }, [showSplash, isLoading, baseUrl, isAuthenticated]);
+
+  // Show splash screen while loading
+  if (showSplash || isLoading) {
+    return <CustomSplashScreen onFinish={() => {}} />;
   }
 
-  // Redirect based on authentication
-  return isAuthenticated ? (
-    <Redirect href="/(tabs)" />
-  ) : (
-    <Redirect href="/(auth)" />
-  );
+  // This should never render as we redirect above
+  return null;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
