@@ -388,15 +388,6 @@ export default function FaceVerificationAttendanceScreen() {
             onCameraReady={() => setCameraReady(true)}
           />
           
-          {/* Camera overlay positioned absolutely */}
-          <View style={styles.cameraOverlay}>
-            <View style={styles.faceBoundary}>
-              <View style={styles.faceFrame} />
-            </View>
-          </View>
-          
-          
-          
           <SafeAreaView style={styles.overlay}>
             <Animated.View 
               style={[
@@ -427,6 +418,10 @@ export default function FaceVerificationAttendanceScreen() {
                 <RefreshCw size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </Animated.View>
+            
+            <View style={styles.faceBoundary}>
+              <View style={styles.faceFrame} />
+            </View>
             
             <Animated.View 
               style={[
@@ -569,18 +564,16 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  cameraOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
   faceBoundary: {
+    position: 'absolute',
+    top: '35%',
+    left: '50%',
+    marginLeft: -125,
     width: 250,
     height: 300,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   faceFrame: {
     width: 200,
@@ -597,18 +590,15 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     justifyContent: 'space-between',
-    zIndex: 1,
+    zIndex: 2,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
+    paddingTop: 60,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
   },
   closeButton: {
     width: 40,
@@ -646,10 +636,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingBottom: 50,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   captureButtonContainer: {
     width: 80,

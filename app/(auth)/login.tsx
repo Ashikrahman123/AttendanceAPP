@@ -194,53 +194,114 @@ export default function LoginScreen() {
             )}
 
             <View style={styles.attendanceModeContainer}>
-              <Text style={styles.attendanceModeLabel}>Attendance Mode</Text>
-              <View style={styles.radioContainer}>
+              <Text style={styles.attendanceModeLabel}>Choose Attendance Mode</Text>
+              <View style={styles.modeCardContainer}>
                 <TouchableOpacity
-                  style={styles.radioOption}
+                  style={[
+                    styles.modeCard,
+                    attendanceMode === "manual" && styles.modeCardSelected,
+                  ]}
                   onPress={() => setAttendanceMode("manual")}
                 >
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      attendanceMode === "manual" && styles.radioSelected,
-                    ]}
+                  <LinearGradient
+                    colors={attendanceMode === "manual" ? [Colors.primary, Colors.primaryLight] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                    style={styles.modeCardGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
+                    <View style={styles.modeIconContainer}>
+                      <User size={24} color={attendanceMode === "manual" ? "#FFFFFF" : Colors.textSecondary} />
+                    </View>
+                    <Text style={[
+                      styles.modeCardTitle,
+                      { color: attendanceMode === "manual" ? "#FFFFFF" : Colors.text }
+                    ]}>
+                      Manual
+                    </Text>
+                    <Text style={[
+                      styles.modeCardDescription,
+                      { color: attendanceMode === "manual" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
+                    ]}>
+                      Traditional check-in
+                    </Text>
                     {attendanceMode === "manual" && (
-                      <View style={styles.radioInner} />
+                      <View style={styles.selectedIndicator}>
+                        <CheckCircle size={16} color="#FFFFFF" />
+                      </View>
                     )}
-                  </View>
-                  <Text style={styles.radioText}>Manual</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.radioOption}
+                  style={[
+                    styles.modeCard,
+                    attendanceMode === "qr" && styles.modeCardSelected,
+                  ]}
                   onPress={() => setAttendanceMode("qr")}
                 >
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      attendanceMode === "qr" && styles.radioSelected,
-                    ]}
+                  <LinearGradient
+                    colors={attendanceMode === "qr" ? [Colors.secondary, Colors.secondaryLight] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                    style={styles.modeCardGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    {attendanceMode === "qr" && <View style={styles.radioInner} />}
-                  </View>
-                  <Text style={styles.radioText}>QR Scanner</Text>
+                    <View style={styles.modeIconContainer}>
+                      <Mail size={24} color={attendanceMode === "qr" ? "#FFFFFF" : Colors.textSecondary} />
+                    </View>
+                    <Text style={[
+                      styles.modeCardTitle,
+                      { color: attendanceMode === "qr" ? "#FFFFFF" : Colors.text }
+                    ]}>
+                      QR Code
+                    </Text>
+                    <Text style={[
+                      styles.modeCardDescription,
+                      { color: attendanceMode === "qr" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
+                    ]}>
+                      Scan QR codes
+                    </Text>
+                    {attendanceMode === "qr" && (
+                      <View style={styles.selectedIndicator}>
+                        <CheckCircle size={16} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.radioOption}
+                  style={[
+                    styles.modeCard,
+                    attendanceMode === "faceid" && styles.modeCardSelected,
+                  ]}
                   onPress={() => setAttendanceMode("faceid")}
                 >
-                  <View
-                    style={[
-                      styles.radioCircle,
-                      attendanceMode === "faceid" && styles.radioSelected,
-                    ]}
+                  <LinearGradient
+                    colors={attendanceMode === "faceid" ? ['#6366F1', '#8B5CF6'] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
+                    style={styles.modeCardGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    {attendanceMode === "faceid" && <View style={styles.radioInner} />}
-                  </View>
-                  <Text style={styles.radioText}>Face ID</Text>
+                    <View style={styles.modeIconContainer}>
+                      <User size={24} color={attendanceMode === "faceid" ? "#FFFFFF" : Colors.textSecondary} />
+                    </View>
+                    <Text style={[
+                      styles.modeCardTitle,
+                      { color: attendanceMode === "faceid" ? "#FFFFFF" : Colors.text }
+                    ]}>
+                      Face ID
+                    </Text>
+                    <Text style={[
+                      styles.modeCardDescription,
+                      { color: attendanceMode === "faceid" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
+                    ]}>
+                      Facial recognition
+                    </Text>
+                    {attendanceMode === "faceid" && (
+                      <View style={styles.selectedIndicator}>
+                        <CheckCircle size={16} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             </View>
@@ -441,51 +502,63 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   attendanceModeContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   attendanceModeLabel: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
     color: Colors.text,
-    marginBottom: 12,
+    marginBottom: 16,
+    textAlign: "center",
   },
-  radioContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
+  modeCardContainer: {
+    gap: 12,
   },
-  radioOption: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
+  modeCard: {
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: Colors.textSecondary,
-    marginRight: 8,
+  modeCardSelected: {
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modeCardGradient: {
+    padding: 20,
+    position: "relative",
+  },
+  modeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 12,
   },
-  radioSelected: {
-    borderColor: Colors.primary,
+  modeCardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 4,
   },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.primary,
-  },
-  radioText: {
+  modeCardDescription: {
     fontSize: 14,
-    color: Colors.text,
     fontWeight: "500",
+  },
+  selectedIndicator: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
