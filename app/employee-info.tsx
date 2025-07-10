@@ -200,17 +200,36 @@ function EmployeeInfoScreen() {
     lastProcessedQR.current = qrData;
     
     console.log("[QR Scan] Processing action:", currentAction, "with QR data:", qrData);
-    console.log("[QR Scan] QR Data:", qrData);
-    console.log("[QR Scan] Processing Action:", currentAction);
     
     try {
       setLoading(true);
 
-      // Validate QR data format
-      const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
-      if (!qrData || !validAttendanceCodes.includes(qrData.toUpperCase())) {
-        Alert.alert("Error", "Invalid attendance QR code scanned");
-        return;
+      // Parse QR data (could be JSON object from new format or simple string for backward compatibility)
+      let parsedQRData: any = {};
+      let actionType = '';
+      let branchCode = '';
+      let originalUrl = '';
+
+      try {
+        // Try to parse as JSON first (new format)
+        parsedQRData = JSON.parse(qrData);
+        actionType = parsedQRData.actionType;
+        branchCode = parsedQRData.branchCode || '';
+        originalUrl = parsedQRData.originalUrl || '';
+        console.log("[QR Scan] Parsed QR object:", parsedQRData);
+      } catch (parseError) {
+        // Fallback to simple string format (backward compatibility)
+        const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+        const upperCaseData = qrData.toUpperCase();
+        
+        if (validAttendanceCodes.includes(upperCaseData)) {
+          actionType = upperCaseData;
+          branchCode = '';
+          originalUrl = qrData;
+        } else {
+          Alert.alert("Error", "Invalid attendance QR code format");
+          return;
+        }
       }
 
       // Validate that QR action matches pending action
@@ -221,9 +240,9 @@ function EmployeeInfoScreen() {
         'END_BREAK': 'EB'
       };
       
-      const expectedAction = qrActionMap[qrData.toUpperCase() as keyof typeof qrActionMap];
+      const expectedAction = qrActionMap[actionType as keyof typeof qrActionMap];
       if (expectedAction !== currentAction) {
-        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${qrData}`);
+        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${actionType}`);
         return;
       }
 
@@ -239,7 +258,7 @@ function EmployeeInfoScreen() {
         return;
       }
 
-      // QR-based attendance request body
+      // QR-based attendance request body with branch location
       const requestBody = {
         DetailData: {
           OrgId: parseInt(orgId),
@@ -253,11 +272,16 @@ function EmployeeInfoScreen() {
             second: "2-digit",
           }),
           ContactRecordId: parseInt(employeeData.contactRecordId),
-          QRData: qrData, // Include QR data
+          QRData: originalUrl, // Include original QR URL
+          QRAction: actionType, // The action from QR
+          BranchCode: branchCode, // The branch location
           AttendanceMode: "QR", // Specify QR mode
+          QRTimestamp: parsedQRData.timestamp || Date.now(), // QR scan timestamp
         },
         BearerTokenValue: bearerToken,
       };
+
+      console.log("[QR Scan] Request body:", requestBody);
 
       const response = await fetch(
         `${await AsyncStorage.getItem("baseUrl")}MiddleWare/Employee_Attendance_Update`,
@@ -285,7 +309,11 @@ function EmployeeInfoScreen() {
         }
         if (currentAction === "EB") setIsOnBreak(false);
 
-        Alert.alert("Success", `QR attendance recorded: ${data.message}`);
+        const successMessage = branchCode 
+          ? `QR attendance recorded at ${branchCode}: ${data.message}`
+          : `QR attendance recorded: ${data.message}`;
+        
+        Alert.alert("Success", successMessage);
       } else {
         Alert.alert("Error", data.message || "Failed to record QR attendance");
       }

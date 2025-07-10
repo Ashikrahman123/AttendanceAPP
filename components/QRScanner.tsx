@@ -84,15 +84,52 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       return; // Don't show alert, just ignore silently
     }
 
-    // Only accept attendance-related QR codes
-    const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
-    const upperCaseData = data.trim().toUpperCase();
-    
-    if (!validAttendanceCodes.includes(upperCaseData)) {
+    // Parse URL-based QR codes (e.g., https://wageuat.digierp.net/CHECK_IN-HO01)
+    let actionType = '';
+    let branchCode = '';
+    let isValidQR = false;
+
+    try {
+      // Check if it's a URL format
+      if (data.includes('https://wageuat.digierp.net/')) {
+        const urlPath = data.replace('https://wageuat.digierp.net/', '');
+        console.log('[QR Scanner] URL path extracted:', urlPath);
+        
+        // Parse the action and branch from the path (e.g., CHECK_IN-HO01)
+        if (urlPath.includes('-')) {
+          const parts = urlPath.split('-');
+          actionType = parts[0].toUpperCase();
+          branchCode = parts.slice(1).join('-'); // Handle branch codes with multiple dashes
+          
+          console.log('[QR Scanner] Parsed action:', actionType, 'branch:', branchCode);
+          
+          // Validate action type
+          const validActions = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+          if (validActions.includes(actionType)) {
+            isValidQR = true;
+          }
+        }
+      } else {
+        // Fallback: Check for simple action codes (backward compatibility)
+        const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+        const upperCaseData = data.trim().toUpperCase();
+        
+        if (validAttendanceCodes.includes(upperCaseData)) {
+          actionType = upperCaseData;
+          branchCode = ''; // No branch code for simple format
+          isValidQR = true;
+        }
+      }
+    } catch (error) {
+      console.log('[QR Scanner] Error parsing QR code:', error);
+      isValidQR = false;
+    }
+
+    if (!isValidQR) {
       console.log('[QR Scanner] Invalid attendance QR code:', data);
       Alert.alert(
         'Invalid QR Code',
-        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code.',
+        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code with format: https://wageuat.digierp.net/ACTION-BRANCH',
         [
           {
             text: 'Try Again',
@@ -113,16 +150,23 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
 
     console.log('[QR Scanner] Valid attendance QR code detected, processing...');
     
-    // Immediately set flags and store the scanned data (use normalized data)
-    const normalizedData = upperCaseData;
+    // Create the QR data object with action and branch info
+    const qrDataObject = {
+      originalUrl: data,
+      actionType,
+      branchCode,
+      timestamp: Date.now()
+    };
+    
+    // Immediately set flags and store the scanned data
     setScanned(true);
     setIsProcessing(true);
-    lastScannedData.current = normalizedData;
+    lastScannedData.current = data;
     
     // Use shorter timeout to reduce chance of wrong QR being processed
     scanTimeout.current = setTimeout(() => {
-      console.log('[QR Scanner] Calling onScan with normalized data:', normalizedData);
-      onScan(normalizedData);
+      console.log('[QR Scanner] Calling onScan with QR data object:', qrDataObject);
+      onScan(JSON.stringify(qrDataObject));
       scanTimeout.current = null;
     }, 100);
   };
