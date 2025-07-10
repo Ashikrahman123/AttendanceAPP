@@ -388,7 +388,8 @@ export default function FaceVerificationAttendanceScreen() {
             onCameraReady={() => setCameraReady(true)}
           />
           
-          <SafeAreaView style={styles.overlay}>
+          {/* Header overlay */}
+          <SafeAreaView style={styles.headerOverlay}>
             <Animated.View 
               style={[
                 styles.header,
@@ -418,45 +419,47 @@ export default function FaceVerificationAttendanceScreen() {
                 <RefreshCw size={24} color="#FFFFFF" />
               </TouchableOpacity>
             </Animated.View>
-            
-            <View style={styles.cameraOverlayContent}>
-              <View style={styles.faceBoundary}>
-                <View style={styles.faceFrame} />
-              </View>
+          </SafeAreaView>
+          
+          {/* Face boundary overlay */}
+          <View style={styles.faceBoundaryOverlay}>
+            <View style={styles.faceFrame} />
+          </View>
+          
+          {/* Footer overlay */}
+          <SafeAreaView style={styles.footerOverlay}>
+            <Animated.View 
+              style={[
+                styles.footer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: -slideAnim }]
+                }
+              ]}
+            >
+              <Text style={styles.captureText}>
+                {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
+              </Text>
               
-              <Animated.View 
-                style={[
-                  styles.footer,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: -slideAnim }]
-                  }
-                ]}
+              <LinearGradient
+                colors={getActionColor()}
+                style={styles.captureButtonContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                <Text style={styles.captureText}>
-                  {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
-                </Text>
-                
-                <LinearGradient
-                  colors={getActionColor()}
-                  style={styles.captureButtonContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <TouchableOpacity 
+                  style={styles.captureButton}
+                  onPress={handleCapture}
+                  disabled={isCapturing || !cameraReady}
                 >
-                  <TouchableOpacity 
-                    style={styles.captureButton}
-                    onPress={handleCapture}
-                    disabled={isCapturing || !cameraReady}
-                  >
-                    {isCapturing ? (
-                      <ActivityIndicator color="#FFFFFF" size="large" />
-                    ) : (
-                      getActionIcon()
-                    )}
-                  </TouchableOpacity>
-                </LinearGradient>
-              </Animated.View>
-            </View>
+                  {isCapturing ? (
+                    <ActivityIndicator color="#FFFFFF" size="large" />
+                  ) : (
+                    getActionIcon()
+                  )}
+                </TouchableOpacity>
+              </LinearGradient>
+            </Animated.View>
           </SafeAreaView>
         </>
       ) : (
@@ -566,35 +569,34 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  overlay: {
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  footerOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+  },
+  faceBoundaryOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'space-between',
-    zIndex: 2,
-  },
-  cameraOverlayContent: {
-    flex: 1,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  faceBoundary: {
-    position: 'absolute',
-    top: '40%',
-    left: '50%',
-    marginLeft: -100,
-    width: 200,
-    height: 250,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    zIndex: 5,
   },
   faceFrame: {
-    width: 200,
-    height: 250,
-    borderRadius: 100,
+    width: 280,
+    height: 350,
+    borderRadius: 140,
     borderWidth: 3,
     borderColor: '#FFFFFF',
     borderStyle: 'dashed',
@@ -605,8 +607,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingTop: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    paddingTop: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   closeButton: {
     width: 40,
@@ -641,29 +643,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     alignItems: 'center',
     padding: 30,
-    paddingBottom: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    paddingBottom: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   captureText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
-    marginBottom: 20,
+    marginBottom: 24,
     fontWeight: '600',
+    textAlign: 'center',
   },
   captureButtonContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    padding: 3,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    padding: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -672,12 +671,12 @@ const styles = StyleSheet.create({
   },
   captureButton: {
     flex: 1,
-    borderRadius: 40,
+    borderRadius: 45,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   permissionContainer: {
     flex: 1,
