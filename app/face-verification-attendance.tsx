@@ -71,36 +71,38 @@ export default function FaceVerificationAttendanceScreen() {
       requestPermission();
     }
     
-    // Start animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Start pulse animation for capture button
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
+    // Start animations only if permission is granted
+    if (permission?.granted) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 500,
           useNativeDriver: true,
         }),
-        Animated.timing(pulseAnim, {
+        Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 1000,
+          duration: 500,
           useNativeDriver: true,
         }),
-      ])
-    ).start();
-  }, []);
+      ]).start();
+
+      // Start pulse animation for capture button
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [permission]);
   
   useEffect(() => {
     // If permission is denied, show alert and go back
@@ -131,6 +133,7 @@ export default function FaceVerificationAttendanceScreen() {
   const handleCapture = async () => {
     if (!cameraReady || !cameraRef.current) {
       console.log('[Camera] Camera not ready or ref not available');
+      Alert.alert('Camera Error', 'Camera is not ready. Please wait and try again.');
       return;
     }
     
@@ -144,12 +147,18 @@ export default function FaceVerificationAttendanceScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
       
-      // Capture the image with different options for web vs native
-      const captureOptions = Platform.OS === 'web' 
-        ? { quality: 0.7 }
-        : { quality: 0.7, base64: true, exif: false };
-        
-      const photo = await cameraRef.current.takePictureAsync(captureOptions);
+      // Add timeout for capture
+      const capturePromise = cameraRef.current.takePictureAsync({
+        quality: 0.7,
+        base64: true,
+        exif: false,
+      });
+      
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Camera capture timeout')), 10000);
+      });
+      
+      const photo = await Promise.race([capturePromise, timeoutPromise]);
       
       console.log('[Camera] Photo captured:', photo ? 'Success' : 'Failed');
       
@@ -266,6 +275,20 @@ export default function FaceVerificationAttendanceScreen() {
         
         // Set verification complete to trigger redirect
         setVerificationComplete(true);
+        
+        // Navigate back with success data to update employee info
+        setTimeout(() => {
+          router.replace({
+            pathname: '/employee-info',
+            params: {
+              name: employeeName,
+              id: employeeId,
+              contactRecordId: contactRecordId,
+              attendanceSuccess: 'true',
+              attendanceAction: type,
+            },
+          });
+        }, 2000);
       } else {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -402,7 +425,15 @@ export default function FaceVerificationAttendanceScreen() {
             style={styles.camera} 
             facing={facing}
             ref={cameraRef}
-            onCameraReady={() => setCameraReady(true)}
+            onCameraReady={() => {
+              console.log('[Camera] Camera ready');
+              setCameraReady(true);
+            }}
+            onMountError={(error) => {
+              console.error('[Camera] Mount error:', error);
+              Alert.alert('Camera Error', 'Failed to initialize camera. Please try again.');
+              router.back();
+            }}
           />
           
           {/* Header overlay */}
@@ -466,8 +497,11 @@ export default function FaceVerificationAttendanceScreen() {
                   <View style={styles.captureInfo}>
                     <Text style={styles.captureStatusText}>
                       {isCapturing ? 'Capturing...' : 
-                       cameraReady ? 'Ready to capture' : 'Preparing camera...'}
+                       cameraReady ? 'Ready to capture' : 'Initializing camera...'}
                     </Text>
+                    {!cameraReady && (
+                      <ActivityIndicator size="small" color="#FFFFFF" style={{ marginTop: 4 }} />
+                    )}
                   </View>
                   
                   <Animated.View 

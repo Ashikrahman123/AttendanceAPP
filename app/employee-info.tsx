@@ -65,6 +65,34 @@ function EmployeeInfoScreen() {
   });
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
 
+  // Check for attendance success from face verification
+  useEffect(() => {
+    if (params.attendanceSuccess === 'true' && params.attendanceAction) {
+      const action = params.attendanceAction as "CI" | "CO" | "SB" | "EB";
+      console.log('[EmployeeInfo] Processing successful face ID attendance:', action);
+      
+      // Update UI state based on the successful action
+      if (action === "CI") {
+        setIsCheckedIn(true);
+        setClockInTime(new Date());
+      }
+      if (action === "CO") {
+        setIsCheckedIn(false);
+        setShowWelcomeMessage(true);
+        setClockInTime(null);
+        setBreakStartTime(null);
+        setIsOnBreak(false);
+      }
+      if (action === "SB") {
+        setIsOnBreak(true);
+        setBreakStartTime(new Date());
+      }
+      if (action === "EB") {
+        setIsOnBreak(false);
+      }
+    }
+  }, [params.attendanceSuccess, params.attendanceAction]);
+
   const handleAttendanceAction = async (action: "CI" | "CO" | "SB" | "EB") => {
     console.log("[AttendanceAction] Starting attendance action:", action);
     
