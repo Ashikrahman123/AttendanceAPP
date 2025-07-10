@@ -14,7 +14,14 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Mail, Lock, User, CheckCircle, Camera, QrCode } from "lucide-react-native";
+import {
+  Mail,
+  Lock,
+  User,
+  CheckCircle,
+  Camera,
+  QrCode,
+} from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import Input from "@/components/Input";
@@ -31,7 +38,9 @@ export default function LoginScreen() {
   const [userNameError, setUserNameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr" | "faceid">("manual");
+  const [attendanceMode, setAttendanceMode] = useState<
+    "manual" | "qr" | "faceid"
+  >("manual");
 
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
 
@@ -238,74 +247,111 @@ export default function LoginScreen() {
             />
 
             <View style={styles.attendanceModeContainer}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {/* <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Attendance Mode
-              </Text>
+              </Text> */}
 
               <View style={styles.toggleContainer}>
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleOption}>
                     <User size={20} color={colors.text} />
-                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Manual</Text>
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>
+                      Manual
+                    </Text>
                   </View>
                   <TouchableOpacity
                     style={[
                       styles.toggle,
-                      { backgroundColor: attendanceMode === 'manual' ? colors.primary : colors.border }
-                    ]}
-                    onPress={() => setAttendanceMode('manual')}
-                  >
-                    <View style={[
-                      styles.toggleThumb,
                       {
-                        backgroundColor: '#FFFFFF',
-                        transform: [{ translateX: attendanceMode === 'manual' ? 22 : 2 }]
-                      }
-                    ]} />
+                        backgroundColor:
+                          attendanceMode === "manual"
+                            ? colors.primary
+                            : colors.border,
+                      },
+                    ]}
+                    onPress={() => setAttendanceMode("manual")}
+                  >
+                    <View
+                      style={[
+                        styles.toggleThumb,
+                        {
+                          backgroundColor: "#FFFFFF",
+                          transform: [
+                            {
+                              translateX: attendanceMode === "manual" ? 22 : 2,
+                            },
+                          ],
+                        },
+                      ]}
+                    />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleOption}>
                     <QrCode size={20} color={colors.text} />
-                    <Text style={[styles.toggleLabel, { color: colors.text }]}>QR Code</Text>
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>
+                      QR Code
+                    </Text>
                   </View>
                   <TouchableOpacity
                     style={[
                       styles.toggle,
-                      { backgroundColor: attendanceMode === 'qr' ? colors.primary : colors.border }
-                    ]}
-                    onPress={() => setAttendanceMode('qr')}
-                  >
-                    <View style={[
-                      styles.toggleThumb,
                       {
-                        backgroundColor: '#FFFFFF',
-                        transform: [{ translateX: attendanceMode === 'qr' ? 22 : 2 }]
-                      }
-                    ]} />
+                        backgroundColor:
+                          attendanceMode === "qr"
+                            ? colors.primary
+                            : colors.border,
+                      },
+                    ]}
+                    onPress={() => setAttendanceMode("qr")}
+                  >
+                    <View
+                      style={[
+                        styles.toggleThumb,
+                        {
+                          backgroundColor: "#FFFFFF",
+                          transform: [
+                            { translateX: attendanceMode === "qr" ? 22 : 2 },
+                          ],
+                        },
+                      ]}
+                    />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleOption}>
                     <Camera size={20} color={colors.text} />
-                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Face ID</Text>
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>
+                      Face ID
+                    </Text>
                   </View>
                   <TouchableOpacity
                     style={[
                       styles.toggle,
-                      { backgroundColor: attendanceMode === 'faceid' ? colors.primary : colors.border }
-                    ]}
-                    onPress={() => setAttendanceMode('faceid')}
-                  >
-                    <View style={[
-                      styles.toggleThumb,
                       {
-                        backgroundColor: '#FFFFFF',
-                        transform: [{ translateX: attendanceMode === 'faceid' ? 22 : 2 }]
-                      }
-                    ]} />
+                        backgroundColor:
+                          attendanceMode === "faceid"
+                            ? colors.primary
+                            : colors.border,
+                      },
+                    ]}
+                    onPress={() => setAttendanceMode("faceid")}
+                  >
+                    <View
+                      style={[
+                        styles.toggleThumb,
+                        {
+                          backgroundColor: "#FFFFFF",
+                          transform: [
+                            {
+                              translateX: attendanceMode === "faceid" ? 22 : 2,
+                            },
+                          ],
+                        },
+                      ]}
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -479,42 +525,42 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   toggleContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 16,
     padding: 20,
     gap: 16,
   },
   toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   toggleOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   toggleLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   toggle: {
     width: 48,
     height: 28,
     borderRadius: 14,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 2,
   },
   toggleThumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
