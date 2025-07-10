@@ -426,41 +426,43 @@ export default function FaceVerificationAttendanceScreen() {
             <View style={styles.faceFrame} />
           </View>
           
-          {/* Footer overlay */}
-          <SafeAreaView style={styles.footerOverlay}>
-            <Animated.View 
-              style={[
-                styles.footer,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: -slideAnim }]
-                }
-              ]}
-            >
-              <Text style={styles.captureText}>
-                {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
-              </Text>
-              
-              <LinearGradient
-                colors={getActionColor()}
-                style={styles.captureButtonContainer}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+          {/* Footer overlay with capture button */}
+          <View style={styles.footerOverlay}>
+            <SafeAreaView style={styles.footerSafeArea}>
+              <Animated.View 
+                style={[
+                  styles.footer,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: -slideAnim }]
+                  }
+                ]}
               >
-                <TouchableOpacity 
-                  style={styles.captureButton}
-                  onPress={handleCapture}
-                  disabled={isCapturing || !cameraReady}
+                <Text style={styles.captureText}>
+                  {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
+                </Text>
+                
+                <LinearGradient
+                  colors={getActionColor()}
+                  style={styles.captureButtonContainer}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                 >
-                  {isCapturing ? (
-                    <ActivityIndicator color="#FFFFFF" size="large" />
-                  ) : (
-                    getActionIcon()
-                  )}
-                </TouchableOpacity>
-              </LinearGradient>
-            </Animated.View>
-          </SafeAreaView>
+                  <TouchableOpacity 
+                    style={styles.captureButton}
+                    onPress={handleCapture}
+                    disabled={isCapturing || !cameraReady}
+                  >
+                    {isCapturing ? (
+                      <ActivityIndicator color="#FFFFFF" size="large" />
+                    ) : (
+                      getActionIcon()
+                    )}
+                  </TouchableOpacity>
+                </LinearGradient>
+              </Animated.View>
+            </SafeAreaView>
+          </View>
         </>
       ) : (
         <View style={styles.resultContainer}>
@@ -582,6 +584,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  footerSafeArea: {
+    backgroundColor: 'transparent',
   },
   faceBoundaryOverlay: {
     position: 'absolute',
@@ -644,39 +650,42 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: 'center',
-    padding: 30,
-    paddingBottom: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
+    paddingBottom: 30,
+    backgroundColor: 'transparent',
+    minHeight: 120,
+    justifyContent: 'center',
   },
   captureText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#FFFFFF',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
-    marginBottom: 24,
+    marginBottom: 10,
     fontWeight: '600',
     textAlign: 'center',
   },
   captureButtonContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    padding: 4,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    padding: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    marginTop: 10,
   },
   captureButton: {
     flex: 1,
-    borderRadius: 45,
+    borderRadius: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   permissionContainer: {
     flex: 1,
