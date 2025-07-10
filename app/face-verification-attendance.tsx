@@ -61,6 +61,7 @@ export default function FaceVerificationAttendanceScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const successAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0)).current;
   
   const cameraRef = useRef<any>(null);
   
@@ -83,6 +84,22 @@ export default function FaceVerificationAttendanceScreen() {
         useNativeDriver: true,
       }),
     ]).start();
+
+    // Start pulse animation for capture button
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
   }, []);
   
   useEffect(() => {
@@ -318,30 +335,30 @@ export default function FaceVerificationAttendanceScreen() {
   const getActionIcon = () => {
     switch (type) {
       case 'CI':
-        return <CheckCircle size={24} color="#FFFFFF" />;
+        return <CheckCircle size={32} color="#FFFFFF" />;
       case 'SB':
-        return <Coffee size={24} color="#FFFFFF" />;
+        return <Coffee size={32} color="#FFFFFF" />;
       case 'EB':
-        return <Timer size={24} color="#FFFFFF" />;
+        return <Timer size={32} color="#FFFFFF" />;
       case 'CO':
-        return <XCircle size={24} color="#FFFFFF" />;
+        return <XCircle size={32} color="#FFFFFF" />;
       default:
-        return <Camera size={24} color="#FFFFFF" />;
+        return <Camera size={32} color="#FFFFFF" />;
     }
   };
   
   const getActionColor = (): [string, string] => {
     switch (type) {
       case 'CI':
-        return [colors.primaryGradientStart, colors.primaryGradientEnd];
+        return ['#4CAF50', '#45A049'];
       case 'SB':
-        return [colors.warning, colors.warning];
+        return ['#FF9800', '#F57C00'];
       case 'EB':
-        return [colors.secondary, colors.secondaryLight];
+        return ['#2196F3', '#1976D2'];
       case 'CO':
-        return [colors.success, colors.success];
+        return ['#F44336', '#D32F2F'];
       default:
-        return [colors.primaryGradientStart, colors.primaryGradientEnd];
+        return ['#4CAF50', '#45A049'];
     }
   };
   
@@ -389,77 +406,110 @@ export default function FaceVerificationAttendanceScreen() {
           />
           
           {/* Header overlay */}
-          <SafeAreaView style={styles.headerOverlay}>
-            <Animated.View 
-              style={[
-                styles.header,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }]
-                }
-              ]}
-            >
-              <TouchableOpacity 
-                style={styles.closeButton}
-                onPress={handleCancel}
-              >
-                <X size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              
-              <View style={styles.headerContent}>
-                <Text style={styles.title}>{getActionTitle()}</Text>
-                <Text style={styles.subtitle}>{employeeName}</Text>
-                <Text style={styles.subtitle}>Position your face in the frame</Text>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.flipButton}
-                onPress={toggleCameraFacing}
-              >
-                <RefreshCw size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-            </Animated.View>
-          </SafeAreaView>
-          
-          {/* Face boundary overlay */}
-          <View style={styles.faceBoundaryOverlay}>
-            <View style={styles.faceFrame} />
-          </View>
-          
-          {/* Footer overlay with capture button */}
-          <View style={styles.footerOverlay}>
-            <SafeAreaView style={styles.footerSafeArea}>
+          <View style={styles.headerOverlay}>
+            <SafeAreaView>
               <Animated.View 
                 style={[
-                  styles.footer,
+                  styles.header,
                   {
                     opacity: fadeAnim,
-                    transform: [{ translateY: -slideAnim }]
+                    transform: [{ translateY: slideAnim }]
                   }
                 ]}
               >
-                <Text style={styles.captureText}>
-                  {isCapturing ? 'Capturing...' : cameraReady ? 'Tap to capture' : 'Preparing camera...'}
-                </Text>
-                
-                <LinearGradient
-                  colors={getActionColor()}
-                  style={styles.captureButtonContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
+                <TouchableOpacity 
+                  style={styles.headerButton}
+                  onPress={handleCancel}
                 >
-                  <TouchableOpacity 
-                    style={styles.captureButton}
-                    onPress={handleCapture}
-                    disabled={isCapturing || !cameraReady}
+                  <X size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                
+                <View style={styles.headerContent}>
+                  <Text style={styles.headerTitle}>{getActionTitle()}</Text>
+                  <Text style={styles.headerSubtitle}>{employeeName}</Text>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.headerButton}
+                  onPress={toggleCameraFacing}
+                >
+                  <RefreshCw size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </Animated.View>
+            </SafeAreaView>
+          </View>
+          
+          {/* Face boundary overlay */}
+          <View style={styles.faceBoundaryOverlay}>
+            <View style={styles.faceFrame}>
+              <View style={styles.faceGuideCorner} style={[styles.faceGuideCorner, styles.topLeft]} />
+              <View style={[styles.faceGuideCorner, styles.topRight]} />
+              <View style={[styles.faceGuideCorner, styles.bottomLeft]} />
+              <View style={[styles.faceGuideCorner, styles.bottomRight]} />
+            </View>
+            <Text style={styles.instructionText}>Position your face in the frame</Text>
+          </View>
+          
+          {/* Bottom controls overlay */}
+          <View style={styles.bottomOverlay}>
+            <SafeAreaView style={styles.bottomSafeArea}>
+              <Animated.View 
+                style={[
+                  styles.bottomControls,
+                  {
+                    opacity: fadeAnim,
+                    transform: [{ translateY: slideAnim }]
+                  }
+                ]}
+              >
+                <View style={styles.captureRow}>
+                  <View style={styles.captureInfo}>
+                    <Text style={styles.captureStatusText}>
+                      {isCapturing ? 'Capturing...' : 
+                       cameraReady ? 'Ready to capture' : 'Preparing camera...'}
+                    </Text>
+                  </View>
+                  
+                  <Animated.View 
+                    style={[
+                      styles.captureButtonContainer,
+                      {
+                        transform: [
+                          { scale: pulseAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [1, 1.1]
+                          })}
+                        ]
+                      }
+                    ]}
                   >
-                    {isCapturing ? (
-                      <ActivityIndicator color="#FFFFFF" size="large" />
-                    ) : (
-                      getActionIcon()
-                    )}
-                  </TouchableOpacity>
-                </LinearGradient>
+                    <LinearGradient
+                      colors={getActionColor()}
+                      style={styles.captureButtonGradient}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <TouchableOpacity 
+                        style={styles.captureButton}
+                        onPress={handleCapture}
+                        disabled={isCapturing || !cameraReady}
+                        activeOpacity={0.8}
+                      >
+                        {isCapturing ? (
+                          <ActivityIndicator color="#FFFFFF" size="large" />
+                        ) : (
+                          getActionIcon()
+                        )}
+                      </TouchableOpacity>
+                    </LinearGradient>
+                  </Animated.View>
+                  
+                  <View style={styles.captureInfo}>
+                    <Text style={styles.captureHintText}>
+                      {cameraReady ? 'Tap to capture' : 'Loading...'}
+                    </Text>
+                  </View>
+                </View>
               </Animated.View>
             </SafeAreaView>
           </View>
@@ -577,17 +627,46 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
-  footerOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
-  footerSafeArea: {
-    backgroundColor: 'transparent',
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  headerContent: {
+    alignItems: 'center',
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   faceBoundaryOverlay: {
     position: 'absolute',
@@ -600,92 +679,130 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   faceFrame: {
-    width: 280,
-    height: 350,
-    borderRadius: 140,
+    width: 300,
+    height: 380,
+    borderRadius: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
     borderStyle: 'dashed',
-    opacity: 0.8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  closeButton: {
+  faceGuideCorner: {
+    position: 'absolute',
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderWidth: 4,
+    borderColor: '#4CAF50',
   },
-  headerContent: {
-    alignItems: 'center',
+  topLeft: {
+    top: 20,
+    left: 20,
+    borderBottomWidth: 0,
+    borderRightWidth: 0,
+    borderTopLeftRadius: 20,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+  topRight: {
+    top: 20,
+    right: 20,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderTopRightRadius: 20,
   },
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+  bottomLeft: {
+    bottom: 20,
+    left: 20,
+    borderTopWidth: 0,
+    borderRightWidth: 0,
+    borderBottomLeftRadius: 20,
   },
-  flipButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  bottomRight: {
+    bottom: 20,
+    right: 20,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+    borderBottomRightRadius: 20,
   },
-  footer: {
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 30,
-    backgroundColor: 'transparent',
-    minHeight: 120,
-    justifyContent: 'center',
-  },
-  captureText: {
+  instructionText: {
     fontSize: 16,
     color: '#FFFFFF',
+    marginTop: 30,
+    textAlign: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    overflow: 'hidden',
     textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    marginBottom: 10,
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  bottomSafeArea: {
+    backgroundColor: 'transparent',
+  },
+  bottomControls: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    paddingTop: 20,
+  },
+  captureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  captureInfo: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  captureStatusText: {
+    fontSize: 16,
+    color: '#FFFFFF',
     fontWeight: '600',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  captureHintText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   captureButtonContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    marginHorizontal: 20,
+  },
+  captureButtonGradient: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     padding: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    marginTop: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
   captureButton: {
     flex: 1,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 45,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
   },
   permissionContainer: {
     flex: 1,
