@@ -31,7 +31,7 @@ export default function LoginScreen() {
   const [userNameError, setUserNameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr" | "faceid">("manual");
 
   const { login, isLoading, error, isAuthenticated } = useAuthStore();
 
@@ -226,6 +226,21 @@ export default function LoginScreen() {
                     {attendanceMode === "qr" && <View style={styles.radioInner} />}
                   </View>
                   <Text style={styles.radioText}>QR Scanner</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => setAttendanceMode("faceid")}
+                >
+                  <View
+                    style={[
+                      styles.radioCircle,
+                      attendanceMode === "faceid" && styles.radioSelected,
+                    ]}
+                  >
+                    {attendanceMode === "faceid" && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.radioText}>Face ID</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -437,13 +452,13 @@ const styles = StyleSheet.create({
   radioContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
+    gap: 8,
   },
   radioOption: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    padding: 10,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 8,
     borderWidth: 1,

@@ -28,7 +28,7 @@ function EmployeeInfoScreen() {
   const [clockInTime, setClockInTime] = useState<Date | null>(null);
   const [breakStartTime, setBreakStartTime] = useState<Date | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr" | "faceid">("manual");
   const [pendingAction, setPendingAction] = useState<"CI" | "CO" | "SB" | "EB" | null>(null);
   const lastProcessedQR = useRef<string | null>(null);
   const processingTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -47,7 +47,7 @@ function EmployeeInfoScreen() {
     const loadAttendanceMode = async () => {
       try {
         const mode = await AsyncStorage.getItem("attendanceMode");
-        if (mode === "qr" || mode === "manual") {
+        if (mode === "qr" || mode === "manual" || mode === "faceid") {
           setAttendanceMode(mode);
         }
       } catch (error) {
@@ -79,6 +79,21 @@ function EmployeeInfoScreen() {
       setPendingAction(action);
       setShowQRScanner(true);
       console.log("[AttendanceAction] Opening QR scanner for employee:", employeeData.name);
+      return;
+    }
+
+    // If FaceID mode, navigate to face verification screen
+    if (attendanceMode === "faceid") {
+      console.log("[AttendanceAction] Opening Face ID verification for employee:", employeeData.name);
+      router.push({
+        pathname: "/face-verification-attendance",
+        params: {
+          type: action,
+          employeeName: employeeData.name,
+          employeeId: employeeData.id,
+          contactRecordId: employeeData.contactRecordId,
+        },
+      });
       return;
     }
     
