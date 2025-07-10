@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
@@ -39,13 +38,13 @@ export default function FaceVerificationAttendanceScreen() {
     employeeId: string;
     contactRecordId: string;
   }>();
-  
+
   const { type, employeeName, employeeId, contactRecordId } = params;
-  
+
   const { user } = useAuthStore();
   const colors = useColors();
   const isDarkMode = useThemeStore(state => state.isDarkMode);
-  
+
   const [facing, setFacing] = useState<CameraType>('front');
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -53,24 +52,24 @@ export default function FaceVerificationAttendanceScreen() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
-  
+
   // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const successAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(0)).current;
-  
+
   const cameraRef = useRef<any>(null);
-  
+
   useEffect(() => {
     // Request camera permission if needed
     if (!permission?.granted) {
       requestPermission();
     }
-    
+
     // Start animations only if permission is granted
     if (permission?.granted) {
       Animated.parallel([
@@ -103,7 +102,7 @@ export default function FaceVerificationAttendanceScreen() {
       ).start();
     }
   }, [permission]);
-  
+
   useEffect(() => {
     // If permission is denied, show alert and go back
     if (permission && !permission.granted && !permission.canAskAgain) {
@@ -121,62 +120,62 @@ export default function FaceVerificationAttendanceScreen() {
       const timer = setTimeout(() => {
         router.back();
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [verificationComplete]);
-  
+
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'front' ? 'back' : 'front'));
   };
-  
+
   const handleCapture = async () => {
     if (!cameraReady || !cameraRef.current) {
       console.log('[Camera] Camera not ready or ref not available');
       Alert.alert('Camera Error', 'Camera is not ready. Please wait and try again.');
       return;
     }
-    
+
     setIsCapturing(true);
-    
+
     try {
       console.log('[Camera] Starting image capture...');
-      
+
       // Provide haptic feedback
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
-      
+
       // Add timeout for capture
       const capturePromise = cameraRef.current.takePictureAsync({
         quality: 0.7,
         base64: true,
         exif: false,
       });
-      
+
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Camera capture timeout')), 10000);
       });
-      
+
       const photo = await Promise.race([capturePromise, timeoutPromise]);
-      
+
       console.log('[Camera] Photo captured:', photo ? 'Success' : 'Failed');
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      
+
       // Set the captured image
       const imageUri = photo.uri;
       setCapturedImage(imageUri);
-      
+
       // Move to processing state
       setIsCapturing(false);
       setIsProcessing(true);
-      
+
       // Get base64 data
       let base64Image = photo.base64;
-      
+
       // If base64 wasn't included in the photo, read it from the file
       if (!base64Image && Platform.OS !== 'web') {
         try {
@@ -191,16 +190,16 @@ export default function FaceVerificationAttendanceScreen() {
           return;
         }
       }
-      
+
       // Prepare the image data for API
       const imageData = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
       console.log('[Camera] Image data prepared, length:', imageData.length);
-      
+
       console.log('[FaceID Attendance] Starting face verification attendance');
       console.log('[FaceID Attendance] Employee:', employeeName, 'ID:', employeeId);
       console.log('[FaceID Attendance] Action:', type);
       console.log('[FaceID Attendance] Contact Record ID:', contactRecordId);
-      
+
       // Get required data from storage
       const [orgId, modifyUser, bearerToken] = await Promise.all([
         AsyncStorage.getItem('orgId'), 
@@ -260,22 +259,22 @@ export default function FaceVerificationAttendanceScreen() {
 
       // Update state based on API response
       setIsVerified(data.success || false);
-      
+
       if (data.success) {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
-        
+
         // Animate success
         Animated.timing(successAnim, {
           toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }).start();
-        
+
         // Set verification complete to trigger redirect
         setVerificationComplete(true);
-        
+
         // Navigate back with success data to update employee info
         setTimeout(() => {
           router.replace({
@@ -293,7 +292,7 @@ export default function FaceVerificationAttendanceScreen() {
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
-        
+
         Alert.alert(
           'Attendance Failed',
           data.message || 'Face ID attendance failed. Please try again.',
@@ -314,11 +313,11 @@ export default function FaceVerificationAttendanceScreen() {
       }
     } catch (error) {
       console.error('Error in FaceID attendance:', error);
-      
+
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
-      
+
       Alert.alert(
         'Error',
         'Failed to process Face ID attendance. Please try again.',
@@ -335,11 +334,11 @@ export default function FaceVerificationAttendanceScreen() {
       setIsProcessing(false);
     }
   };
-  
+
   const handleCancel = () => {
     router.back();
   };
-  
+
   const getActionTitle = (): string => {
     switch (type) {
       case 'CI':
@@ -354,7 +353,7 @@ export default function FaceVerificationAttendanceScreen() {
         return 'Face ID Attendance';
     }
   };
-  
+
   const getActionIcon = () => {
     switch (type) {
       case 'CI':
@@ -369,7 +368,7 @@ export default function FaceVerificationAttendanceScreen() {
         return <Camera size={32} color="#FFFFFF" />;
     }
   };
-  
+
   const getActionColor = (): [string, string] => {
     switch (type) {
       case 'CI':
@@ -384,7 +383,7 @@ export default function FaceVerificationAttendanceScreen() {
         return ['#4CAF50', '#45A049'];
     }
   };
-  
+
   if (!permission) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -392,7 +391,7 @@ export default function FaceVerificationAttendanceScreen() {
       </SafeAreaView>
     );
   }
-  
+
   if (!permission.granted) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -414,11 +413,11 @@ export default function FaceVerificationAttendanceScreen() {
       </SafeAreaView>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
+
       {!capturedImage ? (
         <>
           <CameraView 
@@ -435,7 +434,7 @@ export default function FaceVerificationAttendanceScreen() {
               router.back();
             }}
           />
-          
+
           {/* Header overlay */}
           <View style={styles.headerOverlay}>
             <SafeAreaView>
@@ -454,12 +453,12 @@ export default function FaceVerificationAttendanceScreen() {
                 >
                   <X size={24} color="#FFFFFF" />
                 </TouchableOpacity>
-                
+
                 <View style={styles.headerContent}>
                   <Text style={styles.headerTitle}>{getActionTitle()}</Text>
                   <Text style={styles.headerSubtitle}>{employeeName}</Text>
                 </View>
-                
+
                 <TouchableOpacity 
                   style={styles.headerButton}
                   onPress={toggleCameraFacing}
@@ -469,7 +468,7 @@ export default function FaceVerificationAttendanceScreen() {
               </Animated.View>
             </SafeAreaView>
           </View>
-          
+
           {/* Face boundary overlay */}
           <View style={styles.faceBoundaryOverlay}>
             <View style={styles.faceFrame}>
@@ -480,7 +479,7 @@ export default function FaceVerificationAttendanceScreen() {
             </View>
             <Text style={styles.instructionText}>Position your face in the frame</Text>
           </View>
-          
+
           {/* Bottom controls overlay */}
           <View style={styles.bottomOverlay}>
             <SafeAreaView style={styles.bottomSafeArea}>
@@ -503,7 +502,7 @@ export default function FaceVerificationAttendanceScreen() {
                       <ActivityIndicator size="small" color="#FFFFFF" style={{ marginTop: 4 }} />
                     )}
                   </View>
-                  
+
                   <Animated.View 
                     style={[
                       styles.captureButtonContainer,
@@ -537,7 +536,7 @@ export default function FaceVerificationAttendanceScreen() {
                       </TouchableOpacity>
                     </LinearGradient>
                   </Animated.View>
-                  
+
                   <View style={styles.captureInfo}>
                     <Text style={styles.captureHintText}>
                       {cameraReady ? 'Tap to capture' : 'Loading...'}
@@ -555,7 +554,7 @@ export default function FaceVerificationAttendanceScreen() {
             style={styles.capturedImage} 
             resizeMode="cover"
           />
-          
+
           <View style={styles.resultOverlay}>
             <SafeAreaView style={styles.resultContent}>
               <Animated.View 
@@ -572,7 +571,7 @@ export default function FaceVerificationAttendanceScreen() {
                    isVerified ? 'Attendance Successful!' : 'Attendance Failed'}
                 </Text>
               </Animated.View>
-              
+
               {isProcessing ? (
                 <View style={styles.processingContainer}>
                   <ActivityIndicator size="large" color="#FFFFFF" />
@@ -641,7 +640,7 @@ export default function FaceVerificationAttendanceScreen() {
           </View>
         </View>
       )}
-      
+
       <LoadingOverlay visible={isProcessing && !capturedImage} message="Processing Face ID..." transparent={true} />
     </View>
   );
