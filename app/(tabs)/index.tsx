@@ -51,7 +51,7 @@ export default function HomeScreen() {
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr">("manual");
+  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr" | "faceid">("manual");
 
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -250,7 +250,7 @@ export default function HomeScreen() {
     const loadAttendanceMode = async () => {
       try {
         const mode = await AsyncStorage.getItem("attendanceMode");
-        if (mode === "qr" || mode === "manual") {
+        if (mode === "qr" || mode === "manual" || mode === "faceid") {
           setAttendanceMode(mode);
         }
       } catch (error) {
@@ -290,7 +290,7 @@ export default function HomeScreen() {
                 {user.role === "admin" ? "Administrator" : "Employee"}
               </Text>
               <Text style={styles.attendanceModeText}>
-                Attendance Mode: {attendanceMode === "qr" ? "QR Code" : "Manual"}
+                Attendance Mode: {attendanceMode === "qr" ? "QR Code" : attendanceMode === "manual" ? "Manual" : "Face ID"}
               </Text>
             </View>
           </View>

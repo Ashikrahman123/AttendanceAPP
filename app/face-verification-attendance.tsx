@@ -112,22 +112,29 @@ export default function FaceVerificationAttendanceScreen() {
   };
   
   const handleCapture = async () => {
-    if (!user || !cameraReady || !cameraRef.current) return;
+    if (!cameraReady || !cameraRef.current) {
+      console.log('[Camera] Camera not ready or ref not available');
+      return;
+    }
     
     setIsCapturing(true);
     
     try {
+      console.log('[Camera] Starting image capture...');
+      
       // Provide haptic feedback
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
       
-      // Capture the image
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.7,
-        base64: true,
-        exif: false,
-      });
+      // Capture the image with different options for web vs native
+      const captureOptions = Platform.OS === 'web' 
+        ? { quality: 0.7 }
+        : { quality: 0.7, base64: true, exif: false };
+        
+      const photo = await cameraRef.current.takePictureAsync(captureOptions);
+      
+      console.log('[Camera] Photo captured:', photo ? 'Success' : 'Failed');
       
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -147,20 +154,26 @@ export default function FaceVerificationAttendanceScreen() {
       // If base64 wasn't included in the photo, read it from the file
       if (!base64Image && Platform.OS !== 'web') {
         try {
+          console.log('[Camera] Reading image as base64 from file...');
           base64Image = await FileSystem.readAsStringAsync(imageUri, {
             encoding: FileSystem.EncodingType.Base64,
           });
+          console.log('[Camera] Base64 conversion successful');
         } catch (error) {
-          console.error('Error reading image as base64:', error);
+          console.error('[Camera] Error reading image as base64:', error);
+          Alert.alert('Error', 'Failed to process captured image');
+          return;
         }
       }
       
-      // Prepare the image data for API (hardcoded for now as requested)
+      // Prepare the image data for API
       const imageData = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
+      console.log('[Camera] Image data prepared, length:', imageData.length);
       
       console.log('[FaceID Attendance] Starting face verification attendance');
       console.log('[FaceID Attendance] Employee:', employeeName, 'ID:', employeeId);
       console.log('[FaceID Attendance] Action:', type);
+      console.log('[FaceID Attendance] Contact Record ID:', contactRecordId);
       
       // Get required data from storage
       const [orgId, modifyUser, bearerToken] = await Promise.all([
@@ -168,6 +181,8 @@ export default function FaceVerificationAttendanceScreen() {
         AsyncStorage.getItem('userId'),
         AsyncStorage.getItem('bearerToken')
       ]);
+
+      console.log('[FaceID Attendance] Auth data - OrgId:', orgId, 'ModifyUser:', modifyUser, 'Token:', bearerToken ? 'Present' : 'Missing');
 
       if (!orgId || !modifyUser || !bearerToken) {
         throw new Error('Required authentication data missing');
@@ -371,13 +386,14 @@ export default function FaceVerificationAttendanceScreen() {
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
-          >
-            <View style={styles.cameraOverlay}>
-              <View style={styles.faceBoundary}>
-                <View style={styles.faceFrame} />
-              </View>
+          />
+          
+          {/* Camera overlay positioned absolutely */}
+          <View style={styles.cameraOverlay}>
+            <View style={styles.faceBoundary}>
+              <View style={styles.faceFrame} />
             </View>
-          </CameraView>
+          </View>
           
           
           
@@ -554,10 +570,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cameraOverlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
   },
   faceBoundary: {
     width: 250,
