@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Mail, Lock, User, CheckCircle } from "lucide-react-native";
+import { Mail, Lock, User, CheckCircle, Camera, QrCode } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import Input from "@/components/Input";
@@ -144,6 +144,17 @@ export default function LoginScreen() {
     }
   };
 
+  const colors = {
+    text: Colors.text,
+    textSecondary: Colors.textSecondary,
+    primary: Colors.primary,
+    primaryLight: Colors.primaryLight,
+    secondary: Colors.secondary,
+    secondaryLight: Colors.secondaryLight,
+    card: "rgba(255, 255, 255, 0.1)",
+    border: "rgba(255, 255, 255, 0.2)",
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -194,115 +205,76 @@ export default function LoginScreen() {
             )}
 
             <View style={styles.attendanceModeContainer}>
-              <Text style={styles.attendanceModeLabel}>Choose Attendance Mode</Text>
-              <View style={styles.modeCardContainer}>
-                <TouchableOpacity
-                  style={[
-                    styles.modeCard,
-                    attendanceMode === "manual" && styles.modeCardSelected,
-                  ]}
-                  onPress={() => setAttendanceMode("manual")}
-                >
-                  <LinearGradient
-                    colors={attendanceMode === "manual" ? [Colors.primary, Colors.primaryLight] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                    style={styles.modeCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  >
-                    <View style={styles.modeIconContainer}>
-                      <User size={24} color={attendanceMode === "manual" ? "#FFFFFF" : Colors.textSecondary} />
-                    </View>
-                    <Text style={[
-                      styles.modeCardTitle,
-                      { color: attendanceMode === "manual" ? "#FFFFFF" : Colors.text }
-                    ]}>
-                      Manual
-                    </Text>
-                    <Text style={[
-                      styles.modeCardDescription,
-                      { color: attendanceMode === "manual" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
-                    ]}>
-                      Traditional check-in
-                    </Text>
-                    {attendanceMode === "manual" && (
-                      <View style={styles.selectedIndicator}>
-                        <CheckCircle size={16} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Attendance Mode
+              </Text>
 
-                <TouchableOpacity
-                  style={[
-                    styles.modeCard,
-                    attendanceMode === "qr" && styles.modeCardSelected,
-                  ]}
-                  onPress={() => setAttendanceMode("qr")}
-                >
-                  <LinearGradient
-                    colors={attendanceMode === "qr" ? [Colors.secondary, Colors.secondaryLight] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                    style={styles.modeCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+              <View style={styles.toggleContainer}>
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleOption}>
+                    <User size={20} color={colors.text} />
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Manual</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.toggle,
+                      { backgroundColor: attendanceMode === 'manual' ? colors.primary : colors.border }
+                    ]}
+                    onPress={() => setAttendanceMode('manual')}
                   >
-                    <View style={styles.modeIconContainer}>
-                      <Mail size={24} color={attendanceMode === "qr" ? "#FFFFFF" : Colors.textSecondary} />
-                    </View>
-                    <Text style={[
-                      styles.modeCardTitle,
-                      { color: attendanceMode === "qr" ? "#FFFFFF" : Colors.text }
-                    ]}>
-                      QR Code
-                    </Text>
-                    <Text style={[
-                      styles.modeCardDescription,
-                      { color: attendanceMode === "qr" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
-                    ]}>
-                      Scan QR codes
-                    </Text>
-                    {attendanceMode === "qr" && (
-                      <View style={styles.selectedIndicator}>
-                        <CheckCircle size={16} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <View style={[
+                      styles.toggleThumb,
+                      {
+                        backgroundColor: '#FFFFFF',
+                        transform: [{ translateX: attendanceMode === 'manual' ? 22 : 2 }]
+                      }
+                    ]} />
+                  </TouchableOpacity>
+                </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.modeCard,
-                    attendanceMode === "faceid" && styles.modeCardSelected,
-                  ]}
-                  onPress={() => setAttendanceMode("faceid")}
-                >
-                  <LinearGradient
-                    colors={attendanceMode === "faceid" ? ['#6366F1', '#8B5CF6'] : ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.05)']}
-                    style={styles.modeCardGradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleOption}>
+                    <QrCode size={20} color={colors.text} />
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>QR Code</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.toggle,
+                      { backgroundColor: attendanceMode === 'qr' ? colors.primary : colors.border }
+                    ]}
+                    onPress={() => setAttendanceMode('qr')}
                   >
-                    <View style={styles.modeIconContainer}>
-                      <User size={24} color={attendanceMode === "faceid" ? "#FFFFFF" : Colors.textSecondary} />
-                    </View>
-                    <Text style={[
-                      styles.modeCardTitle,
-                      { color: attendanceMode === "faceid" ? "#FFFFFF" : Colors.text }
-                    ]}>
-                      Face ID
-                    </Text>
-                    <Text style={[
-                      styles.modeCardDescription,
-                      { color: attendanceMode === "faceid" ? "rgba(255,255,255,0.8)" : Colors.textSecondary }
-                    ]}>
-                      Facial recognition
-                    </Text>
-                    {attendanceMode === "faceid" && (
-                      <View style={styles.selectedIndicator}>
-                        <CheckCircle size={16} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <View style={[
+                      styles.toggleThumb,
+                      {
+                        backgroundColor: '#FFFFFF',
+                        transform: [{ translateX: attendanceMode === 'qr' ? 22 : 2 }]
+                      }
+                    ]} />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleOption}>
+                    <Camera size={20} color={colors.text} />
+                    <Text style={[styles.toggleLabel, { color: colors.text }]}>Face ID</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.toggle,
+                      { backgroundColor: attendanceMode === 'faceid' ? colors.primary : colors.border }
+                    ]}
+                    onPress={() => setAttendanceMode('faceid')}
+                  >
+                    <View style={[
+                      styles.toggleThumb,
+                      {
+                        backgroundColor: '#FFFFFF',
+                        transform: [{ translateX: attendanceMode === 'faceid' ? 22 : 2 }]
+                      }
+                    ]} />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
 
@@ -502,63 +474,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   attendanceModeContainer: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
-  attendanceModeLabel: {
+  sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 16,
-    textAlign: "center",
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  modeCardContainer: {
+  toggleContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    gap: 16,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
-  modeCard: {
-    borderRadius: 16,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  modeCardSelected: {
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  modeCardGradient: {
-    padding: 20,
-    position: "relative",
-  },
-  modeIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  modeCardTitle: {
+  toggleLabel: {
     fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 4,
+    fontWeight: '500',
   },
-  modeCardDescription: {
-    fontSize: 14,
-    fontWeight: "500",
+  toggle: {
+    width: 48,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    padding: 2,
   },
-  selectedIndicator: {
-    position: "absolute",
-    top: 16,
-    right: 16,
+  toggleThumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "center",
-    alignItems: "center",
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
   },
 });
