@@ -45,6 +45,8 @@ import { useThemeStore } from "@/store/theme-store";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { registerFace, getRegisteredFace } from "@/utils/face-recognition";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import QRGenerator from '@/components/QRGenerator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
   const colors = useColors();
@@ -103,10 +105,15 @@ export default function ProfileScreen() {
     type: "vacation" as "vacation" | "sick" | "personal" | "other",
   });
 
+  const [isCheckingFace, setIsCheckingFace] = useState(true);
+  const [baseUrl, setBaseUrl] = useState<string>('');
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+
   useEffect(() => {
     if (user) {
       loadLeaveData();
       checkRegisteredFace();
+      loadBaseUrl();
     }
   }, [user]);
 
@@ -150,6 +157,17 @@ export default function ProfileScreen() {
       setRegisteredFace(faceData);
     } catch (error) {
       console.error("Error checking registered face:", error);
+    }
+  };
+
+  const loadBaseUrl = async () => {
+    try {
+      const url = await AsyncStorage.getItem('baseUrl');
+      if (url) {
+        setBaseUrl(url);
+      }
+    } catch (error) {
+      console.error('Error loading base URL:', error);
     }
   };
 
@@ -711,6 +729,34 @@ export default function ProfileScreen() {
             icon={<LogOut size={20} color={colors.primary} />}
           />
         </View>
+
+        <View style={styles.actionButtons}>
+            <Button
+              title={registeredFace ? "Update Face ID" : "Register Face ID"}
+              onPress={() => router.push("/register-face")}
+              style={styles.actionButton}
+            />
+
+            <Button
+              title="View Stored Faces"
+              variant="outline"
+              onPress={() => router.push("/stored-faces")}
+              style={styles.actionButton}
+            />
+
+            {user.role === 'admin' && (
+              <Button
+                title={showQRGenerator ? "Hide QR Codes" : "Show QR Codes"}
+                variant="outline"
+                onPress={() => setShowQRGenerator(!showQRGenerator)}
+                style={styles.actionButton}
+              />
+            )}
+          </View>
+
+          {user.role === 'admin' && showQRGenerator && baseUrl && (
+            <QRGenerator baseUrl={baseUrl} branchCode="HO01" />
+          )}
       </ScrollView>
 
       {/* Working Hours Modal */}
@@ -1110,7 +1156,8 @@ export default function ProfileScreen() {
 
               <View
                 style={[
-                  styles.newLeaveRequestContainer,
+                  styles.newLeaveRequestContainer```text
+,
                   {
                     backgroundColor: colors.card,
                     borderColor: colors.border,
@@ -1554,335 +1601,7 @@ export default function ProfileScreen() {
       </Modal> */}
 
       {/* App Settings Modal */}
-      <Modal
-        visible={showSettingsModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowSettingsModal(false)}
-      >
-        <View
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-          ]}
-        >
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: colors.background },
-            ]}
-          >
-            <View
-              style={[styles.modalHeader, { borderBottomColor: colors.border }]}
-            >
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                App Settings
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.closeButton,
-                  { backgroundColor: colors.cardAlt },
-                ]}
-                onPress={() => setShowSettingsModal(false)}
-              >
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody}>
-              <View
-                style={[
-                  styles.settingGroup,
-                  {
-                    backgroundColor: colors.card,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <View style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <Moon size={20} color={colors.text} />
-                    <Text style={[styles.settingLabel, { color: colors.text }]}>
-                      Dark Mode
-                    </Text>
-                  </View>
-                  <Switch
-                    value={isDarkMode}
-                    onValueChange={(value) => {
-                      toggleTheme();
-                      setAppSettings({
-                        ...appSettings,
-                        theme: value ? "dark" : "light",
-                      });
-                    }}
-                    trackColor={{ false: "#D1D5DB", true: colors.primaryLight }}
-                    thumbColor={isDarkMode ? colors.primary : "#FFFFFF"}
-                  />
-                </View>
-
-                <View
-                  style={[styles.divider, { backgroundColor: colors.border }]}
-                />
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <Bell size={20} color={colors.text} />
-                    <Text style={[styles.settingLabel, { color: colors.text }]}>
-                      Notifications
-                    </Text>
-                  </View>
-                  <Switch
-                    value={appSettings.notifications}
-                    onValueChange={(value) =>
-                      setAppSettings({ ...appSettings, notifications: value })
-                    }
-                    trackColor={{ false: "#D1D5DB", true: colors.primaryLight }}
-                    thumbColor={
-                      appSettings.notifications ? colors.primary : "#FFFFFF"
-                    }
-                  />
-                </View>
-
-                <View
-                  style={[styles.divider, { backgroundColor: colors.border }]}
-                />
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <Camera size={20} color={colors.text} />
-                    <Text style={[styles.settingLabel, { color: colors.text }]}>
-                      Face Verification
-                    </Text>
-                  </View>
-                  <Switch
-                    value={appSettings.faceVerificationRequired}
-                    onValueChange={(value) =>
-                      setAppSettings({
-                        ...appSettings,
-                        faceVerificationRequired: value,
-                      })
-                    }
-                    trackColor={{ false: "#D1D5DB", true: colors.primaryLight }}
-                    thumbColor={
-                      appSettings.faceVerificationRequired
-                        ? colors.primary
-                        : "#FFFFFF"
-                    }
-                  />
-                </View>
-
-                <View
-                  style={[styles.divider, { backgroundColor: colors.border }]}
-                />
-
-                <View style={styles.settingItem}>
-                  <View style={styles.settingLeft}>
-                    <MapPin size={20} color={colors.text} />
-                    <Text style={[styles.settingLabel, { color: colors.text }]}>
-                      Location Tracking
-                    </Text>
-                  </View>
-                  <Switch
-                    value={appSettings.locationTracking}
-                    onValueChange={(value) =>
-                      setAppSettings({
-                        ...appSettings,
-                        locationTracking: value,
-                      })
-                    }
-                    trackColor={{ false: "#D1D5DB", true: colors.primaryLight }}
-                    thumbColor={
-                      appSettings.locationTracking ? colors.primary : "#FFFFFF"
-                    }
-                  />
-                </View>
-              </View>
-
-              <View
-                style={[
-                  styles.modalNote,
-                  { backgroundColor: colors.cardAlt, marginTop: 20 },
-                ]}
-              >
-                <Text
-                  style={[styles.noteText, { color: colors.textSecondary }]}
-                >
-                  Note: Some settings may require app restart to take effect.
-                </Text>
-              </View>
-            </ScrollView>
-
-            <View
-              style={[styles.modalFooter, { borderTopColor: colors.border }]}
-            >
-              <Button
-                title="Save Settings"
-                onPress={handleSaveAppSettings}
-                icon={<Save size={20} color="#FFFFFF" />}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       {/* Face Registration Modal */}
-      {/* <Modal
-        visible={showFaceRegistrationModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowFaceRegistrationModal(false)}
-      >
-        <View
-          style={[
-            styles.modalOverlay,
-            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
-          ]}
-        >
-          <View
-            style={[
-              styles.modalContent,
-              {
-                backgroundColor: colors.background,
-                height: capturedImage ? "70%" : "80%",
-                width: "90%",
-              },
-            ]}
-          >
-            <View
-              style={[styles.modalHeader, { borderBottomColor: colors.border }]}
-            >
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                {registeredFace ? "Update Face ID" : "Register Face ID"}
-              </Text>
-              <TouchableOpacity
-                style={[
-                  styles.closeButton,
-                  { backgroundColor: colors.cardAlt },
-                ]}
-                onPress={() => {
-                  setCapturedImage(null);
-                  setShowFaceRegistrationModal(false);
-                }}
-              >
-                <X size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.faceRegistrationContainer}>
-              {!capturedImage ? (
-                <>
-                  {cameraPermission?.granted ? (
-                    <View style={styles.cameraContainer}>
-                      <CameraView
-                        style={styles.faceCamera}
-                        facing={cameraFacing}
-                        ref={cameraRef}
-                        onCameraReady={() => setCameraReady(true)}
-                      >
-                        <View style={styles.faceCameraOverlay}>
-                          <View style={styles.faceGuide}>
-                            <View style={styles.faceGuideInner} />
-                          </View>
-                        </View>
-                      </CameraView>
-
-                      <View style={styles.cameraControls}>
-                        <TouchableOpacity
-                          style={[
-                            styles.flipCameraButton,
-                            { backgroundColor: colors.cardAlt },
-                          ]}
-                          onPress={() =>
-                            setCameraFacing((current) =>
-                              current === "front" ? "back" : "front",
-                            )
-                          }
-                        >
-                          <RefreshCw size={20} color={colors.text} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={[
-                            styles.captureFaceButton,
-                            {
-                              backgroundColor: colors.primary,
-                              opacity: cameraReady ? 1 : 0.5,
-                            },
-                          ]}
-                          onPress={handleCaptureFace}
-                          disabled={!cameraReady}
-                        >
-                          <Camera size={24} color="#FFFFFF" />
-                        </TouchableOpacity>
-                      </View>
-
-                      <Text
-                        style={[
-                          styles.cameraInstructions,
-                          { color: colors.text },
-                        ]}
-                      >
-                        Position your face within the frame and ensure good
-                        lighting
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.cameraPermissionContainer}>
-                      <Camera size={64} color={colors.textSecondary} />
-                      <Text
-                        style={[
-                          styles.cameraPermissionTitle,
-                          { color: colors.text },
-                        ]}
-                      >
-                        Camera Access Required
-                      </Text>
-                      <Text
-                        style={[
-                          styles.cameraPermissionText,
-                          { color: colors.textSecondary },
-                        ]}
-                      >
-                        We need camera permission to register your face for
-                        verification.
-                      </Text>
-                      <Button
-                        title="Grant Permission"
-                        onPress={requestCameraPermission}
-                        style={styles.cameraPermissionButton}
-                      />
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View style={styles.capturedFaceContainer}>
-                  <Image
-                    source={{ uri: capturedImage }}
-                    style={styles.capturedFaceImage}
-                    resizeMode="cover"
-                  />
-
-                  <View style={styles.capturedFaceControls}>
-                    <Button
-                      title="Use This Photo"
-                      onPress={handleCaptureFace}
-                      style={styles.useFaceButton}
-                    />
-
-                    <Button
-                      title="Retake"
-                      variant="outline"
-                      onPress={handleRetakeFace}
-                      style={styles.retakeFaceButton}
-                    />
-                  </View>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal> */}
-
       <LoadingOverlay visible={isLoading} message="Please wait..." />
     </SafeAreaView>
   );
@@ -1902,6 +1621,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  actionButtons: {
+    marginTop: 20,
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'column',
+    gap: 12,
   },
   header: {
     padding: 20,

@@ -121,30 +121,33 @@ export default function HomeScreen() {
     setIsLoading(true);
 
     try {
-      await addAttendanceRecord({
+      // Get current location for location code
+      const location = await getCurrentLocation();
+      const { latitude, longitude } = location.coords;
+
+      const newRecord = await addAttendanceRecord({
         userId: user.id,
         userName: user.name,
         type: nextAction,
-        verified: false,
+        verified: false, // Manual attendance is not verified by face
+        locationCode: `HO01_{${latitude},${longitude}}`,
+        locationName: "HO01 - Head Office 01",
       });
 
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
+      Alert.alert(
+        'Success',
+        `${nextAction.charAt(0).toUpperCase() + nextAction.slice(1).replace('-', ' ')} recorded successfully!`,
+        [{ text: 'OK' }]
+      );
 
-      Alert.alert("Success", getActionSuccessMessage(nextAction), [
-        { text: "OK" },
-      ]);
+      console.log('Attendance recorded:', newRecord);
     } catch (error) {
-      console.error("Error recording attendance:", error);
-
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-
-      Alert.alert("Error", "Failed to record attendance. Please try again.", [
-        { text: "OK" },
-      ]);
+      console.error('Failed to record attendance:', error);
+      Alert.alert(
+        'Error',
+        'Failed to record attendance. Please try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsLoading(false);
     }

@@ -24,10 +24,11 @@ export interface AttendanceRecord {
   userName: string;
   type: AttendanceType;
   timestamp: number;
-  location?: {
+  location: {
     latitude: number;
     longitude: number;
     address?: string;
+    locationCode?: string;
   };
   verified: boolean;
   imageData?: string; // Base64 encoded image data

@@ -26,6 +26,7 @@ import * as FileSystem from 'expo-file-system';
 import { useThemeStore } from '@/store/theme-store';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCurrentLocation } from '@/utils/location-service';
 
 const { width, height } = Dimensions.get('window');
 
@@ -191,10 +192,6 @@ export default function FaceVerificationAttendanceScreen() {
         }
       }
 
-      // Prepare the image data for API
-      const imageData = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
-      console.log('[Camera] Image data prepared, length:', imageData.length);
-
       console.log('[FaceID Attendance] Starting face verification attendance');
       console.log('[FaceID Attendance] Employee:', employeeName, 'ID:', employeeId);
       console.log('[FaceID Attendance] Action:', type);
@@ -219,6 +216,11 @@ export default function FaceVerificationAttendanceScreen() {
         throw new Error('Base URL not configured');
       }
 
+      // Get current location for location code
+      const location = await getCurrentLocation();
+      const { latitude, longitude } = location.coords;
+      const locationCode = `HO01_{${latitude},${longitude}}`;
+
       // Prepare request body for FaceID attendance
       const requestBody = {
         DetailData: {
@@ -234,7 +236,8 @@ export default function FaceVerificationAttendanceScreen() {
           }),
           ContactRecordId: parseInt(contactRecordId),
           AttendanceMode: "FACEID",
-          Image: imageData, // Hardcoded image for now as requested
+          LocationCode: locationCode,
+          LocationName: "HO01 - Head Office 01",
           FaceIDTimestamp: Date.now(),
         },
         BearerTokenValue: bearerToken,

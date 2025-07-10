@@ -12,7 +12,7 @@ interface AttendanceState {
   isLoading: boolean;
   error: string | null;
   fetchAttendance: (userId?: string) => Promise<AttendanceRecord[]>;
-  addAttendanceRecord: (record: Omit<AttendanceRecord, 'id' | 'timestamp' | 'location' | 'verified'> & { verified?: boolean, imageData?: string }) => Promise<AttendanceRecord>;
+  addAttendanceRecord: (record: Omit<AttendanceRecord, 'id' | 'timestamp' | 'location' | 'verified'> & { verified?: boolean, imageData?: string, locationCode?: string, locationName?: string }) => Promise<AttendanceRecord>;
   getLastAttendanceRecord: (userId: string) => AttendanceRecord | undefined;
   getTodayRecords: (userId: string) => AttendanceRecord[];
   getDailyAttendanceSummaries: (userId: string, month?: number, year?: number) => DailyAttendanceSummary[];
@@ -70,7 +70,8 @@ export const useAttendanceStore = create<AttendanceState>()(
             location: {
               latitude,
               longitude,
-              address: address || undefined,
+              address: recordData.locationName || address || undefined,
+              locationCode: recordData.locationCode,
             },
             verified: recordData.verified !== undefined ? recordData.verified : false,
             imageData: recordData.imageData,

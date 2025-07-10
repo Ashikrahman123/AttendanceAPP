@@ -13,8 +13,9 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useColors } from "@/hooks/useColors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { formatTime } from "@/utils/date-formatter";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCurrentLocation } from '@/utils/location-service';
 import QRScanner from "@/components/QRScanner";
 
 function EmployeeInfoScreen() {
@@ -70,7 +71,7 @@ function EmployeeInfoScreen() {
     if (params.attendanceSuccess === 'true' && params.attendanceAction) {
       const action = params.attendanceAction as "CI" | "CO" | "SB" | "EB";
       console.log('[EmployeeInfo] Processing successful face ID attendance:', action);
-      
+
       // Update UI state based on the successful action
       if (action === "CI") {
         setIsCheckedIn(true);
@@ -95,7 +96,7 @@ function EmployeeInfoScreen() {
 
   const handleAttendanceAction = async (action: "CI" | "CO" | "SB" | "EB") => {
     console.log("[AttendanceAction] Starting attendance action:", action);
-    
+
     // If QR mode, show scanner instead of direct action
     if (attendanceMode === "qr") {
       // Reset processing state for new employee session
@@ -124,7 +125,7 @@ function EmployeeInfoScreen() {
       });
       return;
     }
-    
+
     try {
       setLoading(true);
 
@@ -210,40 +211,40 @@ function EmployeeInfoScreen() {
     console.log("[QR Scan] Employee:", employeeData.name, "ID:", employeeData.contactRecordId);
     console.log("[QR Scan] Current pending action:", pendingAction);
     console.log("[QR Scan] Current loading state:", loading);
-    
+
     // Prevent duplicate processing
     if (loading) {
       console.log("[QR Scan] Already processing, ignoring duplicate");
       return;
     }
-    
+
     // Check if this is the same QR data we just processed for THIS employee in THIS session
     // This prevents rapid duplicate scans but allows the same QR for different employees
     if (lastProcessedQR.current === qrData) {
       console.log("[QR Scan] Same QR data already processed in this session, ignoring");
       return;
     }
-    
+
     // Clear any existing timeout
     if (processingTimeout.current) {
       clearTimeout(processingTimeout.current);
       processingTimeout.current = null;
     }
-    
+
     if (!pendingAction) {
       console.log("[QR Scan] No pending action found");
       Alert.alert("Error", "No pending action found");
       return;
     }
-    
+
     // Store the current pending action and clear it immediately to prevent duplicates
     const currentAction = pendingAction;
     setPendingAction(null);
     setShowQRScanner(false);
     lastProcessedQR.current = qrData;
-    
+
     console.log("[QR Scan] Processing action:", currentAction, "with QR data:", qrData);
-    
+
     try {
       setLoading(true);
 
@@ -264,7 +265,7 @@ function EmployeeInfoScreen() {
         // Fallback to simple string format (backward compatibility)
         const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
         const upperCaseData = qrData.toUpperCase();
-        
+
         if (validAttendanceCodes.includes(upperCaseData)) {
           actionType = upperCaseData;
           branchCode = '';
@@ -282,7 +283,7 @@ function EmployeeInfoScreen() {
         'START_BREAK': 'SB',
         'END_BREAK': 'EB'
       };
-      
+
       const expectedAction = qrActionMap[actionType as keyof typeof qrActionMap];
       if (expectedAction !== currentAction) {
         Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${actionType}`);
@@ -301,7 +302,12 @@ function EmployeeInfoScreen() {
         return;
       }
 
-      // QR-based attendance request body with branch location
+      // Get current location for location code
+      const location = await getCurrentLocation();
+      const { latitude, longitude } = location.coords;
+      const locationCode = `HO01_{${latitude},${longitude}}`;
+
+      // Prepare request body for QR attendance
       const requestBody = {
         DetailData: {
           OrgId: parseInt(orgId),
@@ -320,6 +326,8 @@ function EmployeeInfoScreen() {
           BranchCode: branchCode, // The branch location
           AttendanceMode: "QR", // Specify QR mode
           QRTimestamp: parsedQRData.timestamp || Date.now(), // QR scan timestamp
+          LocationCode: locationCode,
+          LocationName: "HO01 - Head Office 01",
         },
         BearerTokenValue: bearerToken,
       };
@@ -355,7 +363,7 @@ function EmployeeInfoScreen() {
         const successMessage = branchCode 
           ? `QR attendance recorded at ${branchCode}: ${data.message}`
           : `QR attendance recorded: ${data.message}`;
-        
+
         Alert.alert("Success", successMessage);
       } else {
         Alert.alert("Error", data.message || "Failed to record QR attendance");
@@ -366,12 +374,12 @@ function EmployeeInfoScreen() {
     } finally {
       setLoading(false);
       setPendingAction(null);
-      
+
       // Clear the processed QR after a delay to allow for potential duplicates to be filtered
       processingTimeout.current = setTimeout(() => {
         lastProcessedQR.current = null;
       }, 2000);
-      
+
       // Show welcome message on checkout
       if (currentAction === "CO") {
         setShowWelcomeMessage(true);
