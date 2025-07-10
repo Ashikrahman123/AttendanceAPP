@@ -103,8 +103,8 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
           
           console.log('[QR Scanner] Parsed action:', actionType, 'branch:', branchCode);
           
-          // Validate action type
-          const validActions = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+          // Validate action type (accept both long and short forms)
+          const validActions = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK', 'CI', 'CO', 'SB', 'EB'];
           if (validActions.includes(actionType)) {
             isValidQR = true;
           }
@@ -137,11 +137,26 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
               setScanned(false);
               setIsProcessing(false);
               lastScannedData.current = null;
+              // Clear any pending timeout
+              if (scanTimeout.current) {
+                clearTimeout(scanTimeout.current);
+                scanTimeout.current = null;
+              }
             }
           },
           {
             text: 'Cancel',
-            onPress: onClose
+            onPress: () => {
+              setScanned(false);
+              setIsProcessing(false);
+              lastScannedData.current = null;
+              // Clear any pending timeout
+              if (scanTimeout.current) {
+                clearTimeout(scanTimeout.current);
+                scanTimeout.current = null;
+              }
+              onClose();
+            }
           }
         ]
       );
