@@ -204,6 +204,39 @@ export default function LoginScreen() {
               </View>
             )}
 
+            <Input
+              label="Username"
+              placeholder="Enter your username"
+              value={userName}
+              onChangeText={setUserName}
+              autoCapitalize="none"
+              error={userNameError}
+              leftIcon={<User size={20} color={Colors.textSecondary} />}
+            />
+
+            <Input
+              label="Password"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              error={passwordError}
+              isPassword
+              leftIcon={<Lock size={20} color={Colors.textSecondary} />}
+            />
+
+            <Button
+              title={loginSuccess ? "Signed In!" : "Sign In"}
+              onPress={handleLogin}
+              isLoading={isLoading}
+              style={styles.button}
+              icon={
+                loginSuccess ? (
+                  <CheckCircle size={20} color="#FFFFFF" />
+                ) : undefined
+              }
+              iconPosition={loginSuccess ? "left" : undefined}
+            />
+
             <View style={styles.attendanceModeContainer}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Attendance Mode
@@ -277,39 +310,6 @@ export default function LoginScreen() {
                 </View>
               </View>
             </View>
-
-            <Input
-              label="Username"
-              placeholder="Enter your username"
-              value={userName}
-              onChangeText={setUserName}
-              autoCapitalize="none"
-              error={userNameError}
-              leftIcon={<User size={20} color={Colors.textSecondary} />}
-            />
-
-            <Input
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              error={passwordError}
-              isPassword
-              leftIcon={<Lock size={20} color={Colors.textSecondary} />}
-            />
-
-            <Button
-              title={loginSuccess ? "Signed In!" : "Sign In"}
-              onPress={handleLogin}
-              isLoading={isLoading}
-              style={styles.button}
-              icon={
-                loginSuccess ? (
-                  <CheckCircle size={20} color="#FFFFFF" />
-                ) : undefined
-              }
-              iconPosition={loginSuccess ? "left" : undefined}
-            />
 
             {/* <View style={styles.demoContainer}>
               <Text style={styles.demoText}>Quick Access:</Text>
@@ -474,7 +474,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   attendanceModeContainer: {
-    marginBottom: 32,
+    marginTop: 24,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
