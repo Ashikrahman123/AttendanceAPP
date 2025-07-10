@@ -12,11 +12,11 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  attendanceMode: "manual" | "qr";
+  attendanceMode: "manual" | "qr" | "faceid";
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
-  setAttendanceMode: (mode: "manual" | "qr") => Promise<void>;
+  setAttendanceMode: (mode: "manual" | "qr" | "faceid") => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -165,7 +165,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      setAttendanceMode: async (mode: "manual" | "qr") => {
+      setAttendanceMode: async (mode: "manual" | "qr" | "faceid") => {
         try {
           await AsyncStorage.setItem("attendanceMode", mode);
           set({ attendanceMode: mode });

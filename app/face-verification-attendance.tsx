@@ -20,7 +20,6 @@ import * as Haptics from 'expo-haptics';
 import { Camera, X, CheckCircle, XCircle, Coffee, Timer, RefreshCw } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Button from '@/components/Button';
-import FaceDetectionOverlay from '@/components/FaceDetectionOverlay';
 import { useColors } from '@/hooks/useColors';
 import { useAuthStore } from '@/store/auth-store';
 import { getBase64FromUri } from '@/utils/face-recognition';
@@ -372,9 +371,15 @@ export default function FaceVerificationAttendanceScreen() {
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => setCameraReady(true)}
-          />
+          >
+            <View style={styles.cameraOverlay}>
+              <View style={styles.faceBoundary}>
+                <View style={styles.faceFrame} />
+              </View>
+            </View>
+          </CameraView>
           
-          <FaceDetectionOverlay isDetecting={isCapturing} />
+          
           
           <SafeAreaView style={styles.overlay}>
             <Animated.View 
@@ -547,6 +552,26 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+  },
+  cameraOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  faceBoundary: {
+    width: 250,
+    height: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  faceFrame: {
+    width: 200,
+    height: 250,
+    borderRadius: 125,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    borderStyle: 'dashed',
   },
   overlay: {
     position: 'absolute',

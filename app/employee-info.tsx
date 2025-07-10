@@ -48,7 +48,7 @@ function EmployeeInfoScreen() {
       try {
         const mode = await AsyncStorage.getItem("attendanceMode");
         if (mode === "qr" || mode === "manual" || mode === "faceid") {
-          setAttendanceMode(mode);
+          setAttendanceMode(mode as "manual" | "qr" | "faceid");
         }
       } catch (error) {
         console.error("Error loading attendance mode:", error);
@@ -418,9 +418,9 @@ function EmployeeInfoScreen() {
                 day: "numeric",
               })}
             </Text>
-            <View style={[styles.modeIndicator, { backgroundColor: attendanceMode === "qr" ? "#4CAF50" : "#FF9500" }]}>
+            <View style={[styles.modeIndicator, { backgroundColor: attendanceMode === "qr" ? "#4CAF50" : attendanceMode === "faceid" ? "#2196F3" : "#FF9500" }]}>
               <Text style={styles.modeText}>
-                {attendanceMode === "qr" ? "QR Mode" : "Manual Mode"}
+                {attendanceMode === "qr" ? "QR Mode" : attendanceMode === "faceid" ? "FaceID Mode" : "Manual Mode"}
               </Text>
             </View>
           </View>

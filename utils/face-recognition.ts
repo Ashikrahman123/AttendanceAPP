@@ -166,7 +166,7 @@ export async function registerFace(imageUri: string, contactRecordId: string | n
   }
 }
 
-// Function to get registered face
+// Function to get registered faces
 export async function getRegisteredFaces(contactRecordId: string): Promise<string[]> {
   try {
     console.log('[Face Retrieval] Getting registered faces for contact:', contactRecordId);
