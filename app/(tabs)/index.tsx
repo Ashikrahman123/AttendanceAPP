@@ -31,6 +31,7 @@ import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import UserAvatar from '@/components/UserAvatar';
 import { useAuthStore } from '@/store/auth-store';
+import { useAttendanceStore } from '@/store/attendance-store';
 import { formatTime, formatHours, formatDate } from '@/utils/date-formatter';
 import { getCurrentLocation, getAddressFromCoordinates } from '@/utils/location-service';
 import { AttendanceType } from '@/types/user';
@@ -38,7 +39,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
-  
+  const {
+    getLastAttendanceRecord,
+    addAttendanceRecord,
+    getNextExpectedAction,
+    getTodayAttendanceSummary,
+    getTodayRecords,
+  } = useAttendanceStore();
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
@@ -50,7 +57,10 @@ export default function HomeScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
 
-  
+  const lastRecord = user ? getLastAttendanceRecord(user.id) : undefined;
+  const nextAction = user ? getNextExpectedAction(user.id) : null;
+  const todaySummary = user ? getTodayAttendanceSummary(user.id) : undefined;
+  const todayRecords = user ? getTodayRecords(user.id) : [];
 
   useEffect(() => {
     // Start animations
@@ -90,7 +100,7 @@ export default function HomeScreen() {
   };
 
   const handleAttendance = async () => {
-    if (!user) return;
+    if (!user || !nextAction) return;
 
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -100,13 +110,13 @@ export default function HomeScreen() {
     router.push({
       pathname: "/face-verification",
       params: {
-        
+        type: nextAction,
       },
     });
   };
 
   const handleManualAttendance = async () => {
-    if (!user) return;
+    if (!user || !nextAction) return;
 
     setIsLoading(true);
 
@@ -115,15 +125,22 @@ export default function HomeScreen() {
       const location = await getCurrentLocation();
       const { latitude, longitude } = location.coords;
 
-      
+      const newRecord = await addAttendanceRecord({
+        userId: user.id,
+        userName: user.name,
+        type: nextAction,
+        verified: false, // Manual attendance is not verified by face
+        locationCode: `HO01_{${latitude},${longitude}}`,
+        locationName: "HO01 - Head Office 01",
+      });
 
       Alert.alert(
         'Success',
-        ` recorded successfully!`,
+        `${nextAction.charAt(0).toUpperCase() + nextAction.slice(1).replace('-', ' ')} recorded successfully!`,
         [{ text: 'OK' }]
       );
 
-      
+      console.log('Attendance recorded:', newRecord);
     } catch (error) {
       console.error('Failed to record attendance:', error);
       Alert.alert(
@@ -182,15 +199,54 @@ export default function HomeScreen() {
   };
 
   const getStatusText = (): string => {
-    return "Not checked in";
+    if (!lastRecord) return "Not checked in";
+
+    switch (lastRecord.type) {
+      case "check-in":
+        return "Checked In";
+      case "break-start":
+        return "On Break";
+      case "break-end":
+        return "Returned from Break";
+      case "check-out":
+        return "Checked Out";
+      default:
+        return "Unknown Status";
+    }
   };
 
   const getStatusColor = (): string => {
-    return Colors.textSecondary;
+    if (!lastRecord) return Colors.textSecondary;
+
+    switch (lastRecord.type) {
+      case "check-in":
+        return Colors.primary;
+      case "break-start":
+        return Colors.warning;
+      case "break-end":
+        return Colors.secondary;
+      case "check-out":
+        return Colors.success;
+      default:
+        return Colors.textSecondary;
+    }
   };
 
   const getStatusIcon = () => {
-    return <Clock size={16} color={Colors.textSecondary} />;
+    if (!lastRecord) return <Clock size={16} color={Colors.textSecondary} />;
+
+    switch (lastRecord.type) {
+      case "check-in":
+        return <CheckCircle size={16} color={Colors.primary} />;
+      case "break-start":
+        return <Coffee size={16} color={Colors.warning} />;
+      case "break-end":
+        return <Timer size={16} color={Colors.secondary} />;
+      case "check-out":
+        return <XCircle size={16} color={Colors.success} />;
+      default:
+        return <Clock size={16} color={Colors.textSecondary} />;
+    }
   };
 
   useEffect(() => {
@@ -276,7 +332,194 @@ export default function HomeScreen() {
           </LinearGradient>
         </Animated.View>
 
-        
+        {/* <Animated.View 
+          style={[
+            styles.statusCard,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.statusHeader}>
+            <Text style={styles.statusTitle}>Attendance Status</Text>
+            <View style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor() + '40' } // 40% opacity
+            ]}>
+              <Text style={[
+                styles.statusBadgeText,
+                { color: getStatusColor() }
+              ]}>
+                {getStatusText()}
+              </Text>
+            </View>
+          </View>
+
+          {lastRecord ? (
+            <View style={styles.lastRecordContainer}>
+              <View style={styles.lastRecordInfo}>
+                {getStatusIcon()}
+                <Text style={styles.lastRecordText}>
+                  {getStatusText()} at {formatTime(lastRecord.timestamp)}
+                </Text>
+              </View>
+
+              {lastRecord.verified && (
+                <View style={styles.verificationStatus}>
+                  <CheckCircle size={16} color={Colors.success} />
+                  <Text style={[styles.verificationText, { color: Colors.success }]}>
+                    Face Verified
+                  </Text>
+                </View>
+              )}
+
+              {!lastRecord.verified && (
+                <View style={styles.verificationStatus}>
+                  <XCircle size={16} color={Colors.warning} />
+                  <Text style={[styles.verificationText, { color: Colors.warning }]}>
+                    Manual Entry
+                  </Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.noRecordContainer}>
+              <Calendar size={32} color={Colors.textLight} />
+              <Text style={styles.noRecordText}>No attendance records today</Text>
+            </View>
+          )}
+
+          {todaySummary && (
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryTitle}>Today's Summary</Text>
+
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Session 1</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatHours(todaySummary.sessionOneHours)}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Session 2</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatHours(todaySummary.sessionTwoHours)}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryItem}>
+                  <Text style={styles.summaryLabel}>Total</Text>
+                  <Text style={[styles.summaryValue, styles.totalHours]}>
+                    {formatHours(todaySummary.totalHours)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </Animated.View>
+
+        <Animated.View 
+          style={[
+            styles.timelineContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <Text style={styles.timelineTitle}>Today's Timeline</Text>
+
+          {todayRecords.length > 0 ? (
+            <View style={styles.timeline}>
+              {todayRecords.map((record, index) => (
+                <View key={record.id} style={styles.timelineItem}>
+                  <View style={styles.timelineDot}>
+                    {record.type === 'check-in' && <CheckCircle size={16} color={Colors.primary} />}
+                    {record.type === 'break-start' && <Coffee size={16} color={Colors.warning} />}
+                    {record.type === 'break-end' && <Timer size={16} color={Colors.secondary} />}
+                    {record.type === 'check-out' && <XCircle size={16} color={Colors.success} />}
+                  </View>
+
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTime}>{formatTime(record.timestamp)}</Text>
+                    <Text style={styles.timelineAction}>
+                      {record.type === 'check-in' && 'Checked In'}
+                      {record.type === 'break-start' && 'Started Break'}
+                      {record.type === 'break-end' && 'Ended Break'}
+                      {record.type === 'check-out' && 'Checked Out'}
+                    </Text>
+                  </View>
+
+                  {index < todayRecords.length - 1 && (
+                    <View style={styles.timelineConnector} />
+                  )}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.noTimelineContainer}>
+              <Text style={styles.noTimelineText}>No activities recorded today</Text>
+            </View>
+          )}
+        </Animated.View>
+
+        <Animated.View 
+          style={[
+            styles.actionContainer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          {nextAction ? (
+            <>
+              <Button
+                title={getActionButtonText(nextAction)}
+                onPress={handleAttendance}
+                variant="gradient"
+                size="large"
+                style={styles.actionButton}
+                animated
+                icon={
+                  nextAction === 'check-in' ? <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" /> :
+                  nextAction === 'break-start' ? <Ionicons name="cafe" size={20} color="#FFFFFF" /> :
+                  nextAction === 'break-end' ? <Ionicons name="timer" size={20} color="#FFFFFF" /> :
+                  <Ionicons name="close-circle" size={20} color="#FFFFFF" />
+                }
+              />
+
+              <TouchableOpacity 
+                style={styles.manualButton}
+                onPress={handleManualAttendance}
+                disabled={isLoading}
+              >
+                <Text style={styles.manualButtonText}>
+                  {getManualActionButtonText(nextAction)}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.dayCompleteContainer}>
+              <CheckCircle size={32} color={Colors.success} />
+              <Text style={styles.dayCompleteText}>Day Complete</Text>
+              <Text style={styles.dayCompleteSubtext}>
+                You've completed all attendance actions for today
+              </Text>
+            </View>
+          )}
+
+          {user?.role === 'admin' && (
+            <Button
+              title="View Stored Face Data"
+              onPress={() => router.push('/stored-faces')}
+              variant="secondary"
+              style={styles.storedFacesButton}
+            />
+          )}
+        </Animated.View> */}
       </ScrollView>
     </SafeAreaView>
   );
