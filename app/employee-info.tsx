@@ -346,7 +346,31 @@ function EmployeeInfoScreen() {
         }
       );
 
-      const data = await response.json();
+      console.log("[QR Attendance] Response status:", response.status);
+      console.log("[QR Attendance] Response headers:", response.headers);
+
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Get response text first to check if it's empty
+      const responseText = await response.text();
+      console.log("[QR Attendance] Response text:", responseText);
+
+      // Check if response is empty
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Empty response from server');
+      }
+
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("[QR Attendance] JSON parse error:", parseError);
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
 
       if (data.success) {
         if (currentAction === "CI") {
@@ -370,7 +394,23 @@ function EmployeeInfoScreen() {
       }
     } catch (error) {
       console.error("[QR Attendance] Error:", error);
-      Alert.alert("Error", "Failed to record QR attendance");
+      let errorMessage = "Failed to record QR attendance";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Empty response')) {
+          errorMessage = "Server returned empty response. Please try again.";
+        } else if (error.message.includes('HTTP error')) {
+          errorMessage = `Server error: ${error.message}`;
+        } else if (error.message.includes('Invalid JSON')) {
+          errorMessage = "Invalid response from server. Please try again.";
+        } else if (error.message.includes('Network request failed')) {
+          errorMessage = "Network error. Please check your connection.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
       setPendingAction(null);
