@@ -19,8 +19,6 @@ import {
   Lock,
   User,
   CheckCircle,
-  Camera,
-  QrCode,
 } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";

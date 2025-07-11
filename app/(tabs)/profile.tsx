@@ -123,7 +123,7 @@ export default function ProfileScreen() {
     }
   };
 
-  
+
 
   if (!user) return null;
 
@@ -255,7 +255,7 @@ export default function ProfileScreen() {
     }
   };
 
-  
+
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -613,7 +613,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        
+
       </ScrollView>
 
       {/* Working Hours Modal */}
@@ -1186,6 +1186,8 @@ export default function ProfileScreen() {
               { backgroundColor: colors.background },
             ]}
           >
+            ```text
+
             <View
               style={[styles.modalHeader, { borderBottomColor: colors.border }]}
             >
@@ -1683,7 +1685,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
+
   header: {
     padding: 20,
     paddingBottom: 10,
