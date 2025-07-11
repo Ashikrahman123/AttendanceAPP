@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -11,30 +11,37 @@ import {
   Animated,
   Image,
   Dimensions,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import * as Haptics from 'expo-haptics';
-import { Camera, X, CheckCircle, XCircle, Coffee, Timer, RefreshCw } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import Button from '@/components/Button';
-import { useColors } from '@/hooks/useColors';
-import { useAuthStore } from '@/store/auth-store';
-import { getBase64FromUri } from '@/utils/face-recognition';
-import * as FileSystem from 'expo-file-system';
-import { useThemeStore } from '@/store/theme-store';
-import LoadingOverlay from '@/components/LoadingOverlay';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getCurrentLocation } from '@/utils/location-service';
-import { getBase64FromUri } from '@/utils/face-recognition';
+} from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import * as Haptics from "expo-haptics";
+import {
+  Camera,
+  X,
+  CheckCircle,
+  XCircle,
+  Coffee,
+  Timer,
+  RefreshCw,
+} from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import Button from "@/components/Button";
+import { useColors } from "@/hooks/useColors";
+import { useAuthStore } from "@/store/auth-store";
+import * as FileSystem from "expo-file-system";
+import { useThemeStore } from "@/store/theme-store";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getCurrentLocation } from "@/utils/location-service";
+import { getBase64FromUri } from "@/utils/face-recognition";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 type AttendanceAction = "CI" | "CO" | "SB" | "EB";
 
 export default function FaceVerificationAttendanceScreen() {
-  const params = useLocalSearchParams<{ 
+  const params = useLocalSearchParams<{
     type: AttendanceAction;
     employeeName: string;
     employeeId: string;
@@ -45,9 +52,9 @@ export default function FaceVerificationAttendanceScreen() {
 
   const { user } = useAuthStore();
   const colors = useColors();
-  const isDarkMode = useThemeStore(state => state.isDarkMode);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
-  const [facing, setFacing] = useState<CameraType>('front');
+  const [facing, setFacing] = useState<CameraType>("front");
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -100,7 +107,7 @@ export default function FaceVerificationAttendanceScreen() {
             duration: 1000,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       ).start();
     }
   }, [permission]);
@@ -109,9 +116,9 @@ export default function FaceVerificationAttendanceScreen() {
     // If permission is denied, show alert and go back
     if (permission && !permission.granted && !permission.canAskAgain) {
       Alert.alert(
-        'Camera Permission Required',
-        'We need camera permission to verify face for attendance. Please enable it in settings.',
-        [{ text: 'OK', onPress: () => router.back() }]
+        "Camera Permission Required",
+        "We need camera permission to verify face for attendance. Please enable it in settings.",
+        [{ text: "OK", onPress: () => router.back() }],
       );
     }
   }, [permission]);
@@ -128,23 +135,26 @@ export default function FaceVerificationAttendanceScreen() {
   }, [verificationComplete]);
 
   const toggleCameraFacing = () => {
-    setFacing(current => (current === 'front' ? 'back' : 'front'));
+    setFacing((current) => (current === "front" ? "back" : "front"));
   };
 
   const handleCapture = async () => {
     if (!cameraReady || !cameraRef.current) {
-      console.log('[Camera] Camera not ready or ref not available');
-      Alert.alert('Camera Error', 'Camera is not ready. Please wait and try again.');
+      console.log("[Camera] Camera not ready or ref not available");
+      Alert.alert(
+        "Camera Error",
+        "Camera is not ready. Please wait and try again.",
+      );
       return;
     }
 
     setIsCapturing(true);
 
     try {
-      console.log('[Camera] Starting image capture...');
+      console.log("[Camera] Starting image capture...");
 
       // Provide haptic feedback
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
 
@@ -156,14 +166,14 @@ export default function FaceVerificationAttendanceScreen() {
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Camera capture timeout')), 10000);
+        setTimeout(() => reject(new Error("Camera capture timeout")), 10000);
       });
 
       const photo = await Promise.race([capturePromise, timeoutPromise]);
 
-      console.log('[Camera] Photo captured:', photo ? 'Success' : 'Failed');
+      console.log("[Camera] Photo captured:", photo ? "Success" : "Failed");
 
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
@@ -179,42 +189,54 @@ export default function FaceVerificationAttendanceScreen() {
       let base64Image = photo.base64;
 
       // If base64 wasn't included in the photo, read it from the file
-      if (!base64Image && Platform.OS !== 'web') {
+      if (!base64Image && Platform.OS !== "web") {
         try {
-          console.log('[Camera] Reading image as base64 from file...');
+          console.log("[Camera] Reading image as base64 from file...");
           base64Image = await FileSystem.readAsStringAsync(imageUri, {
             encoding: FileSystem.EncodingType.Base64,
           });
-          console.log('[Camera] Base64 conversion successful');
+          console.log("[Camera] Base64 conversion successful");
         } catch (error) {
-          console.error('[Camera] Error reading image as base64:', error);
-          Alert.alert('Error', 'Failed to process captured image');
+          console.error("[Camera] Error reading image as base64:", error);
+          Alert.alert("Error", "Failed to process captured image");
           return;
         }
       }
 
-      console.log('[FaceID Attendance] Starting face verification attendance');
-      console.log('[FaceID Attendance] Employee:', employeeName, 'ID:', employeeId);
-      console.log('[FaceID Attendance] Action:', type);
-      console.log('[FaceID Attendance] Contact Record ID:', contactRecordId);
+      console.log("[FaceID Attendance] Starting face verification attendance");
+      console.log(
+        "[FaceID Attendance] Employee:",
+        employeeName,
+        "ID:",
+        employeeId,
+      );
+      console.log("[FaceID Attendance] Action:", type);
+      console.log("[FaceID Attendance] Contact Record ID:", contactRecordId);
 
       // Get required data from storage
       const [orgId, modifyUser, bearerToken] = await Promise.all([
-        AsyncStorage.getItem('orgId'), 
-        AsyncStorage.getItem('userId'),
-        AsyncStorage.getItem('bearerToken')
+        AsyncStorage.getItem("orgId"),
+        AsyncStorage.getItem("userId"),
+        AsyncStorage.getItem("bearerToken"),
       ]);
 
-      console.log('[FaceID Attendance] Auth data - OrgId:', orgId, 'ModifyUser:', modifyUser, 'Token:', bearerToken ? 'Present' : 'Missing');
+      console.log(
+        "[FaceID Attendance] Auth data - OrgId:",
+        orgId,
+        "ModifyUser:",
+        modifyUser,
+        "Token:",
+        bearerToken ? "Present" : "Missing",
+      );
 
       if (!orgId || !modifyUser || !bearerToken) {
-        throw new Error('Required authentication data missing');
+        throw new Error("Required authentication data missing");
       }
 
       // Get base URL from storage
-      const baseUrl = await AsyncStorage.getItem('baseUrl');
+      const baseUrl = await AsyncStorage.getItem("baseUrl");
       if (!baseUrl) {
-        throw new Error('Base URL not configured');
+        throw new Error("Base URL not configured");
       }
 
       // Get current location for location code
@@ -244,28 +266,28 @@ export default function FaceVerificationAttendanceScreen() {
         BearerTokenValue: bearerToken,
       };
 
-      console.log('[FaceID Attendance] Request body:', requestBody);
+      console.log("[FaceID Attendance] Request body:", requestBody);
 
       const response = await fetch(
-        baseUrl + 'MiddleWare/Employee_Attendance_Update',
+        baseUrl + "MiddleWare/Employee_Attendance_Update",
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${bearerToken}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${bearerToken}`,
           },
-          body: JSON.stringify(requestBody)
-        }
+          body: JSON.stringify(requestBody),
+        },
       );
 
       const data = await response.json();
-      console.log('[FaceID Attendance] API Response:', data);
+      console.log("[FaceID Attendance] API Response:", data);
 
       // Update state based on API response
       setIsVerified(data.success || false);
 
       if (data.success) {
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== "web") {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
 
@@ -282,57 +304,61 @@ export default function FaceVerificationAttendanceScreen() {
         // Navigate back with success data to update employee info
         setTimeout(() => {
           router.replace({
-            pathname: '/employee-info',
+            pathname: "/employee-info",
             params: {
               name: employeeName,
               id: employeeId,
               contactRecordId: contactRecordId,
-              attendanceSuccess: 'true',
+              attendanceSuccess: "true",
               attendanceAction: type,
             },
           });
         }, 2000);
       } else {
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== "web") {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
 
         Alert.alert(
-          'Attendance Failed',
-          data.message || 'Face ID attendance failed. Please try again.',
+          "Attendance Failed",
+          data.message || "Face ID attendance failed. Please try again.",
           [
-            { 
-              text: 'Try Again', 
+            {
+              text: "Try Again",
               onPress: () => {
                 setCapturedImage(null);
                 setIsProcessing(false);
-              } 
+              },
             },
-            { 
-              text: 'Cancel', 
-              onPress: () => router.back()
-            }
-          ]
+            {
+              text: "Cancel",
+              onPress: () => router.back(),
+            },
+          ],
         );
       }
     } catch (error) {
-      console.error('Error in FaceID attendance:', error);
+      console.error("Error in FaceID attendance:", error);
 
-      if (Platform.OS !== 'web') {
+      if (Platform.OS !== "web") {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
       Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to process Face ID attendance. Please try again.',
-        [{ 
-          text: 'OK', 
-          onPress: () => {
-            setCapturedImage(null);
-            setIsCapturing(false);
-            setIsProcessing(false);
-          } 
-        }]
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to process Face ID attendance. Please try again.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setCapturedImage(null);
+              setIsCapturing(false);
+              setIsProcessing(false);
+            },
+          },
+        ],
       );
     } finally {
       setIsCapturing(false);
@@ -346,28 +372,28 @@ export default function FaceVerificationAttendanceScreen() {
 
   const getActionTitle = (): string => {
     switch (type) {
-      case 'CI':
-        return 'Check In';
-      case 'SB':
-        return 'Start Break';
-      case 'EB':
-        return 'End Break';
-      case 'CO':
-        return 'Check Out';
+      case "CI":
+        return "Check In";
+      case "SB":
+        return "Start Break";
+      case "EB":
+        return "End Break";
+      case "CO":
+        return "Check Out";
       default:
-        return 'Face ID Attendance';
+        return "Face ID Attendance";
     }
   };
 
   const getActionIcon = () => {
     switch (type) {
-      case 'CI':
+      case "CI":
         return <CheckCircle size={32} color="#FFFFFF" />;
-      case 'SB':
+      case "SB":
         return <Coffee size={32} color="#FFFFFF" />;
-      case 'EB':
+      case "EB":
         return <Timer size={32} color="#FFFFFF" />;
-      case 'CO':
+      case "CO":
         return <XCircle size={32} color="#FFFFFF" />;
       default:
         return <Camera size={32} color="#FFFFFF" />;
@@ -376,22 +402,24 @@ export default function FaceVerificationAttendanceScreen() {
 
   const getActionColor = (): [string, string] => {
     switch (type) {
-      case 'CI':
-        return ['#4CAF50', '#45A049'];
-      case 'SB':
-        return ['#FF9800', '#F57C00'];
-      case 'EB':
-        return ['#2196F3', '#1976D2'];
-      case 'CO':
-        return ['#F44336', '#D32F2F'];
+      case "CI":
+        return ["#4CAF50", "#45A049"];
+      case "SB":
+        return ["#FF9800", "#F57C00"];
+      case "EB":
+        return ["#2196F3", "#1976D2"];
+      case "CO":
+        return ["#F44336", "#D32F2F"];
       default:
-        return ['#4CAF50', '#45A049'];
+        return ["#4CAF50", "#45A049"];
     }
   };
 
   if (!permission) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <LoadingOverlay visible={true} message="Loading camera..." />
       </SafeAreaView>
     );
@@ -399,20 +427,28 @@ export default function FaceVerificationAttendanceScreen() {
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.permissionContainer}>
           <Camera size={64} color={colors.textSecondary} />
-          <Text style={[styles.permissionTitle, { color: colors.text }]}>Camera Access Required</Text>
-          <Text style={[styles.permissionText, { color: colors.textSecondary }]}>
+          <Text style={[styles.permissionTitle, { color: colors.text }]}>
+            Camera Access Required
+          </Text>
+          <Text
+            style={[styles.permissionText, { color: colors.textSecondary }]}
+          >
             We need camera permission to verify face for attendance.
           </Text>
-          <Button 
-            title="Grant Permission" 
-            onPress={requestPermission} 
+          <Button
+            title="Grant Permission"
+            onPress={requestPermission}
             style={styles.permissionButton}
           />
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancel</Text>
+            <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
+              Cancel
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -425,17 +461,20 @@ export default function FaceVerificationAttendanceScreen() {
 
       {!capturedImage ? (
         <>
-          <CameraView 
-            style={styles.camera} 
+          <CameraView
+            style={styles.camera}
             facing={facing}
             ref={cameraRef}
             onCameraReady={() => {
-              console.log('[Camera] Camera ready');
+              console.log("[Camera] Camera ready");
               setTimeout(() => setCameraReady(true), 500);
             }}
             onMountError={(error) => {
-              console.error('[Camera] Mount error:', error);
-              Alert.alert('Camera Error', 'Failed to initialize camera. Please check permissions and try again.');
+              console.error("[Camera] Mount error:", error);
+              Alert.alert(
+                "Camera Error",
+                "Failed to initialize camera. Please check permissions and try again.",
+              );
               router.back();
             }}
           />
@@ -443,16 +482,16 @@ export default function FaceVerificationAttendanceScreen() {
           {/* Header overlay */}
           <View style={styles.headerOverlay}>
             <SafeAreaView>
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.header,
                   {
                     opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
+                    transform: [{ translateY: slideAnim }],
+                  },
                 ]}
               >
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerButton}
                   onPress={handleCancel}
                 >
@@ -464,7 +503,7 @@ export default function FaceVerificationAttendanceScreen() {
                   <Text style={styles.headerSubtitle}>{employeeName}</Text>
                 </View>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.headerButton}
                   onPress={toggleCameraFacing}
                 >
@@ -482,43 +521,54 @@ export default function FaceVerificationAttendanceScreen() {
               <View style={[styles.faceGuideCorner, styles.bottomLeft]} />
               <View style={[styles.faceGuideCorner, styles.bottomRight]} />
             </View>
-            <Text style={styles.instructionText}>Position your face in the frame</Text>
+            <Text style={styles.instructionText}>
+              Position your face in the frame
+            </Text>
           </View>
 
           {/* Bottom controls overlay */}
           <View style={styles.bottomOverlay}>
             <SafeAreaView style={styles.bottomSafeArea}>
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.bottomControls,
                   {
                     opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
+                    transform: [{ translateY: slideAnim }],
+                  },
                 ]}
               >
                 <View style={styles.captureRow}>
                   <View style={styles.captureInfo}>
                     <Text style={styles.captureStatusText}>
-                      {isCapturing ? 'Capturing...' : 
-                       cameraReady ? 'Ready to capture' : 'Initializing camera...'}
+                      {isCapturing
+                        ? "Capturing..."
+                        : cameraReady
+                          ? "Ready to capture"
+                          : "Initializing camera..."}
                     </Text>
                     {!cameraReady && (
-                      <ActivityIndicator size="small" color="#FFFFFF" style={{ marginTop: 4 }} />
+                      <ActivityIndicator
+                        size="small"
+                        color="#FFFFFF"
+                        style={{ marginTop: 4 }}
+                      />
                     )}
                   </View>
 
-                  <Animated.View 
+                  <Animated.View
                     style={[
                       styles.captureButtonContainer,
                       {
                         transform: [
-                          { scale: pulseAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [1, 1.1]
-                          })}
-                        ]
-                      }
+                          {
+                            scale: pulseAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [1, 1.1],
+                            }),
+                          },
+                        ],
+                      },
                     ]}
                   >
                     <LinearGradient
@@ -527,7 +577,7 @@ export default function FaceVerificationAttendanceScreen() {
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                     >
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.captureButton}
                         onPress={handleCapture}
                         disabled={isCapturing || !cameraReady}
@@ -544,7 +594,7 @@ export default function FaceVerificationAttendanceScreen() {
 
                   <View style={styles.captureInfo}>
                     <Text style={styles.captureHintText}>
-                      {cameraReady ? 'Tap to capture' : 'Loading...'}
+                      {cameraReady ? "Tap to capture" : "Loading..."}
                     </Text>
                   </View>
                 </View>
@@ -554,47 +604,54 @@ export default function FaceVerificationAttendanceScreen() {
         </>
       ) : (
         <View style={styles.resultContainer}>
-          <Image 
-            source={{ uri: capturedImage }} 
-            style={styles.capturedImage} 
+          <Image
+            source={{ uri: capturedImage }}
+            style={styles.capturedImage}
             resizeMode="cover"
           />
 
           <View style={styles.resultOverlay}>
             <SafeAreaView style={styles.resultContent}>
-              <Animated.View 
+              <Animated.View
                 style={[
                   styles.resultHeader,
                   {
                     opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }]
-                  }
+                    transform: [{ translateY: slideAnim }],
+                  },
                 ]}
               >
                 <Text style={styles.resultTitle}>
-                  {isProcessing ? 'Processing Face ID...' : 
-                   isVerified ? 'Attendance Successful!' : 'Attendance Failed'}
+                  {isProcessing
+                    ? "Processing Face ID..."
+                    : isVerified
+                      ? "Attendance Successful!"
+                      : "Attendance Failed"}
                 </Text>
               </Animated.View>
 
               {isProcessing ? (
                 <View style={styles.processingContainer}>
                   <ActivityIndicator size="large" color="#FFFFFF" />
-                  <Text style={styles.processingText}>Processing your Face ID attendance...</Text>
+                  <Text style={styles.processingText}>
+                    Processing your Face ID attendance...
+                  </Text>
                 </View>
               ) : isVerified ? (
-                <Animated.View 
+                <Animated.View
                   style={[
                     styles.successContainer,
                     {
                       opacity: successAnim,
                       transform: [
-                        { scale: successAnim.interpolate({
-                          inputRange: [0, 0.5, 1],
-                          outputRange: [0.8, 1.2, 1]
-                        })}
-                      ]
-                    }
+                        {
+                          scale: successAnim.interpolate({
+                            inputRange: [0, 0.5, 1],
+                            outputRange: [0.8, 1.2, 1],
+                          }),
+                        },
+                      ],
+                    },
                   ]}
                 >
                   <LinearGradient
@@ -606,10 +663,13 @@ export default function FaceVerificationAttendanceScreen() {
                     <CheckCircle size={64} color="#FFFFFF" />
                   </LinearGradient>
                   <Text style={styles.successText}>
-                    {type === 'CI' ? 'Checked In Successfully!' :
-                     type === 'SB' ? 'Break Started Successfully!' :
-                     type === 'EB' ? 'Break Ended Successfully!' :
-                     'Checked Out Successfully!'}
+                    {type === "CI"
+                      ? "Checked In Successfully!"
+                      : type === "SB"
+                        ? "Break Started Successfully!"
+                        : type === "EB"
+                          ? "Break Ended Successfully!"
+                          : "Checked Out Successfully!"}
                   </Text>
                   <Text style={styles.redirectText}>
                     Going back to employee info...
@@ -646,7 +706,11 @@ export default function FaceVerificationAttendanceScreen() {
         </View>
       )}
 
-      <LoadingOverlay visible={isProcessing && !capturedImage} message="Processing Face ID..." transparent={true} />
+      <LoadingOverlay
+        visible={isProcessing && !capturedImage}
+        message="Processing Face ID..."
+        transparent={true}
+      />
     </View>
   );
 }
@@ -654,23 +718,23 @@ export default function FaceVerificationAttendanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
   },
   camera: {
     flex: 1,
   },
   headerOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
@@ -679,61 +743,61 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   headerContent: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
     paddingHorizontal: 20,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    color: "rgba(255, 255, 255, 0.9)",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   faceBoundaryOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 5,
   },
   faceFrame: {
     width: 300,
     height: 380,
     borderRadius: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
     borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-    borderStyle: 'dashed',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: "rgba(255, 255, 255, 0.6)",
+    borderStyle: "dashed",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
   },
   faceGuideCorner: {
-    position: 'absolute',
+    position: "absolute",
     width: 40,
     height: 40,
     borderWidth: 4,
-    borderColor: '#4CAF50',
+    borderColor: "#4CAF50",
   },
   topLeft: {
     top: 20,
@@ -765,28 +829,28 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginTop: 30,
-    textAlign: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
-    overflow: 'hidden',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    overflow: "hidden",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   bottomOverlay: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   bottomSafeArea: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   bottomControls: {
     paddingHorizontal: 20,
@@ -794,28 +858,28 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   captureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   captureInfo: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   captureStatusText: {
     fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    color: "#FFFFFF",
+    fontWeight: "600",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   captureHintText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
@@ -827,7 +891,7 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     padding: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
@@ -836,31 +900,31 @@ const styles = StyleSheet.create({
   captureButton: {
     flex: 1,
     borderRadius: 45,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.9)',
+    borderColor: "rgba(255, 255, 255, 0.9)",
   },
   permissionContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   permissionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 16,
     marginBottom: 8,
   },
   permissionText: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
   },
   permissionButton: {
-    width: '80%',
+    width: "80%",
     marginBottom: 12,
   },
   cancelButton: {
@@ -868,7 +932,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 16,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   resultContainer: {
     flex: 1,
@@ -878,46 +942,46 @@ const styles = StyleSheet.create({
   },
   resultOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
   },
   resultContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   resultHeader: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 40,
   },
   resultTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   processingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   processingText: {
     fontSize: 16,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     marginTop: 16,
   },
   successContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   successIconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -925,41 +989,41 @@ const styles = StyleSheet.create({
   },
   successText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    textAlign: "center",
     marginBottom: 12,
   },
   redirectText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: "rgba(255, 255, 255, 0.8)",
   },
   failureContainer: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   failureIconContainer: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(239, 68, 68, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 24,
   },
   failureText: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 24,
   },
   failureButtons: {
-    width: '100%',
+    width: "100%",
     gap: 12,
   },
   tryAgainButton: {
     marginBottom: 8,
   },
   cancelRegisterButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
 });
