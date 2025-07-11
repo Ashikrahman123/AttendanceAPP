@@ -39,6 +39,23 @@ const { width, height } = Dimensions.get("window");
 
 type AttendanceAction = "CI" | "CO" | "SB" | "EB";
 
+const getBase64FromImageUri = async (uri: string): Promise<string | null> => {
+  try {
+    if (Platform.OS === "web") {
+      return uri;
+    }
+    
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    return `data:image/jpeg;base64,${base64}`;
+  } catch (error) {
+    console.error("[Base64] Error converting image:", error);
+    return null;
+  }
+};
+
 export default function FaceVerificationAttendanceScreen() {
   const params = useLocalSearchParams<{
     type: AttendanceAction;
