@@ -27,6 +27,7 @@ import { useThemeStore } from '@/store/theme-store';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCurrentLocation } from '@/utils/location-service';
+import { getBase64FromUri } from '@/utils/face-recognition';
 
 const { width, height } = Dimensions.get('window');
 
@@ -48,7 +49,7 @@ export default function FaceVerificationAttendanceScreen() {
 
   const [facing, setFacing] = useState<CameraType>('front');
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(isProcessing);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verificationComplete, setVerificationComplete] = useState(false);
@@ -109,7 +110,7 @@ export default function FaceVerificationAttendanceScreen() {
     if (permission && !permission.granted && !permission.canAskAgain) {
       Alert.alert(
         'Camera Permission Required',
-        'We need camera permission to verify face for attendance.',
+        'We need camera permission to verify face for attendance. Please enable it in settings.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     }
@@ -323,7 +324,7 @@ export default function FaceVerificationAttendanceScreen() {
 
       Alert.alert(
         'Error',
-        'Failed to process Face ID attendance. Please try again.',
+        error instanceof Error ? error.message : 'Failed to process Face ID attendance. Please try again.',
         [{ 
           text: 'OK', 
           onPress: () => {
@@ -334,6 +335,7 @@ export default function FaceVerificationAttendanceScreen() {
         }]
       );
     } finally {
+      setIsCapturing(false);
       setIsProcessing(false);
     }
   };
@@ -429,11 +431,11 @@ export default function FaceVerificationAttendanceScreen() {
             ref={cameraRef}
             onCameraReady={() => {
               console.log('[Camera] Camera ready');
-              setCameraReady(true);
+              setTimeout(() => setCameraReady(true), 500);
             }}
             onMountError={(error) => {
               console.error('[Camera] Mount error:', error);
-              Alert.alert('Camera Error', 'Failed to initialize camera. Please try again.');
+              Alert.alert('Camera Error', 'Failed to initialize camera. Please check permissions and try again.');
               router.back();
             }}
           />
@@ -475,7 +477,7 @@ export default function FaceVerificationAttendanceScreen() {
           {/* Face boundary overlay */}
           <View style={styles.faceBoundaryOverlay}>
             <View style={styles.faceFrame}>
-              <View style={styles.faceGuideCorner} style={[styles.faceGuideCorner, styles.topLeft]} />
+              <View style={[styles.faceGuideCorner, styles.topLeft]} />
               <View style={[styles.faceGuideCorner, styles.topRight]} />
               <View style={[styles.faceGuideCorner, styles.bottomLeft]} />
               <View style={[styles.faceGuideCorner, styles.bottomRight]} />
