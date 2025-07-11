@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -30,7 +31,6 @@ import Button from "@/components/Button";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/auth-store";
 import * as FileSystem from "expo-file-system";
-import { useThemeStore } from "@/store/theme-store";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentLocation } from "@/utils/location-service";
@@ -38,24 +38,6 @@ import { getCurrentLocation } from "@/utils/location-service";
 const { width, height } = Dimensions.get("window");
 
 type AttendanceAction = "CI" | "CO" | "SB" | "EB";
-
-// Local helper function for base64 conversion
-const getBase64FromImageUri = async (uri: string): Promise<string | null> => {
-  try {
-    if (Platform.OS === "web") {
-      return uri;
-    }
-    
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    
-    return `data:image/jpeg;base64,${base64}`;
-  } catch (error) {
-    console.error("[Base64] Error converting image:", error);
-    return null;
-  }
-};
 
 export default function FaceVerificationAttendanceScreen() {
   const params = useLocalSearchParams<{
@@ -69,7 +51,6 @@ export default function FaceVerificationAttendanceScreen() {
 
   const { user } = useAuthStore();
   const colors = useColors();
-  const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
   const [facing, setFacing] = useState<CameraType>("front");
   const [isCapturing, setIsCapturing] = useState(false);
@@ -79,10 +60,8 @@ export default function FaceVerificationAttendanceScreen() {
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
 
-  // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
 
-  // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const successAnim = useRef(new Animated.Value(0)).current;
@@ -91,12 +70,10 @@ export default function FaceVerificationAttendanceScreen() {
   const cameraRef = useRef<any>(null);
 
   useEffect(() => {
-    // Request camera permission if needed
     if (!permission?.granted) {
       requestPermission();
     }
 
-    // Start animations only if permission is granted
     if (permission?.granted) {
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -111,7 +88,6 @@ export default function FaceVerificationAttendanceScreen() {
         }),
       ]).start();
 
-      // Start pulse animation for capture button
       Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
@@ -130,7 +106,6 @@ export default function FaceVerificationAttendanceScreen() {
   }, [permission]);
 
   useEffect(() => {
-    // If permission is denied, show alert and go back
     if (permission && !permission.granted && !permission.canAskAgain) {
       Alert.alert(
         "Camera Permission Required",
@@ -141,7 +116,6 @@ export default function FaceVerificationAttendanceScreen() {
   }, [permission]);
 
   useEffect(() => {
-    // If verification is complete, redirect back after a delay
     if (verificationComplete) {
       const timer = setTimeout(() => {
         router.back();
@@ -151,16 +125,13 @@ export default function FaceVerificationAttendanceScreen() {
     }
   }, [verificationComplete]);
 
-  // Cleanup function to prevent memory leaks
   useEffect(() => {
     return () => {
-      // Stop any ongoing animations
       fadeAnim.stopAnimation();
       slideAnim.stopAnimation();
       successAnim.stopAnimation();
       pulseAnim.stopAnimation();
       
-      // Reset camera state
       setCameraReady(false);
       setIsCapturing(false);
       setIsProcessing(false);
@@ -186,12 +157,10 @@ export default function FaceVerificationAttendanceScreen() {
     try {
       console.log("[Camera] Starting image capture...");
 
-      // Provide haptic feedback
       if (Platform.OS !== "web") {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
 
-      // Add timeout for capture with better error handling
       const capturePromise = cameraRef.current.takePictureAsync({
         quality: 0.7,
         base64: true,
@@ -214,18 +183,14 @@ export default function FaceVerificationAttendanceScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
 
-      // Set the captured image
       const imageUri = photo.uri;
       setCapturedImage(imageUri);
 
-      // Move to processing state
       setIsCapturing(false);
       setIsProcessing(true);
 
-      // Get base64 data
       let base64Image = photo.base64;
 
-      // If base64 wasn't included in the photo, read it from the file
       if (!base64Image && Platform.OS !== "web") {
         try {
           console.log("[Camera] Reading image as base64 from file...");
@@ -250,7 +215,6 @@ export default function FaceVerificationAttendanceScreen() {
       console.log("[FaceID Attendance] Action:", type);
       console.log("[FaceID Attendance] Contact Record ID:", contactRecordId);
 
-      // Get required data from storage
       const [orgId, modifyUser, bearerToken] = await Promise.all([
         AsyncStorage.getItem("orgId"),
         AsyncStorage.getItem("userId"),
@@ -270,18 +234,15 @@ export default function FaceVerificationAttendanceScreen() {
         throw new Error("Required authentication data missing");
       }
 
-      // Get base URL from storage
       const baseUrl = await AsyncStorage.getItem("baseUrl");
       if (!baseUrl) {
         throw new Error("Base URL not configured");
       }
 
-      // Get current location for location code
       const location = await getCurrentLocation();
       const { latitude, longitude } = location.coords;
       const locationCode = `HO01_{${latitude},${longitude}}`;
 
-      // Prepare request body for FaceID attendance
       const requestBody = {
         DetailData: {
           OrgId: parseInt(orgId),
@@ -320,7 +281,6 @@ export default function FaceVerificationAttendanceScreen() {
       const data = await response.json();
       console.log("[FaceID Attendance] API Response:", data);
 
-      // Update state based on API response
       setIsVerified(data.success || false);
 
       if (data.success) {
@@ -328,17 +288,14 @@ export default function FaceVerificationAttendanceScreen() {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
 
-        // Animate success
         Animated.timing(successAnim, {
           toValue: 1,
           duration: 800,
           useNativeDriver: true,
         }).start();
 
-        // Set verification complete to trigger redirect
         setVerificationComplete(true);
 
-        // Navigate back with success data to update employee info
         setTimeout(() => {
           router.replace({
             pathname: "/employee-info",
@@ -516,7 +473,6 @@ export default function FaceVerificationAttendanceScreen() {
             }}
           />
 
-          {/* Header overlay */}
           <View style={styles.headerOverlay}>
             <SafeAreaView>
               <Animated.View
@@ -550,7 +506,6 @@ export default function FaceVerificationAttendanceScreen() {
             </SafeAreaView>
           </View>
 
-          {/* Face boundary overlay */}
           <View style={styles.faceBoundaryOverlay}>
             <View style={styles.faceFrame}>
               <View style={[styles.faceGuideCorner, styles.topLeft]} />
@@ -563,7 +518,6 @@ export default function FaceVerificationAttendanceScreen() {
             </Text>
           </View>
 
-          {/* Bottom controls overlay */}
           <View style={styles.bottomOverlay}>
             <SafeAreaView style={styles.bottomSafeArea}>
               <Animated.View
