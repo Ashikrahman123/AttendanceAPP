@@ -34,11 +34,28 @@ import { useThemeStore } from "@/store/theme-store";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentLocation } from "@/utils/location-service";
-import { getBase64FromUri } from "@/utils/face-recognition";
 
 const { width, height } = Dimensions.get("window");
 
 type AttendanceAction = "CI" | "CO" | "SB" | "EB";
+
+// Local helper function for base64 conversion
+const getBase64FromImageUri = async (uri: string): Promise<string | null> => {
+  try {
+    if (Platform.OS === "web") {
+      return uri;
+    }
+    
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    return `data:image/jpeg;base64,${base64}`;
+  } catch (error) {
+    console.error("[Base64] Error converting image:", error);
+    return null;
+  }
+};
 
 export default function FaceVerificationAttendanceScreen() {
   const params = useLocalSearchParams<{
@@ -134,6 +151,22 @@ export default function FaceVerificationAttendanceScreen() {
     }
   }, [verificationComplete]);
 
+  // Cleanup function to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Stop any ongoing animations
+      fadeAnim.stopAnimation();
+      slideAnim.stopAnimation();
+      successAnim.stopAnimation();
+      pulseAnim.stopAnimation();
+      
+      // Reset camera state
+      setCameraReady(false);
+      setIsCapturing(false);
+      setIsProcessing(false);
+    };
+  }, []);
+
   const toggleCameraFacing = () => {
     setFacing((current) => (current === "front" ? "back" : "front"));
   };
@@ -158,7 +191,7 @@ export default function FaceVerificationAttendanceScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
 
-      // Add timeout for capture
+      // Add timeout for capture with better error handling
       const capturePromise = cameraRef.current.takePictureAsync({
         quality: 0.7,
         base64: true,
@@ -166,10 +199,14 @@ export default function FaceVerificationAttendanceScreen() {
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Camera capture timeout")), 10000);
+        setTimeout(() => reject(new Error("Camera capture timeout")), 15000);
       });
 
       const photo = await Promise.race([capturePromise, timeoutPromise]);
+
+      if (!photo || !photo.uri) {
+        throw new Error("Failed to capture image");
+      }
 
       console.log("[Camera] Photo captured:", photo ? "Success" : "Failed");
 
@@ -467,15 +504,15 @@ export default function FaceVerificationAttendanceScreen() {
             ref={cameraRef}
             onCameraReady={() => {
               console.log("[Camera] Camera ready");
-              setTimeout(() => setCameraReady(true), 500);
+              setTimeout(() => setCameraReady(true), 1000);
             }}
             onMountError={(error) => {
               console.error("[Camera] Mount error:", error);
               Alert.alert(
                 "Camera Error",
                 "Failed to initialize camera. Please check permissions and try again.",
+                [{ text: "OK", onPress: () => router.back() }]
               );
-              router.back();
             }}
           />
 
