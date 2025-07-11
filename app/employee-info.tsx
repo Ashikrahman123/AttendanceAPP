@@ -248,45 +248,36 @@ function EmployeeInfoScreen() {
     try {
       setLoading(true);
 
-      // Parse QR data (could be JSON object from new format or simple string for backward compatibility)
-      let parsedQRData: any = {};
+      // Parse QR data - expecting URL format like https://wageuat.digierp.net/CI-HO01
       let actionType = '';
-      let branchCode = '';
-      let originalUrl = '';
+      let locationCode = '';
+      let originalUrl = qrData;
 
       try {
-        // Try to parse as JSON first (new format)
-        parsedQRData = JSON.parse(qrData);
+        // Try to parse as JSON first (from QRScanner component)
+        const parsedQRData = JSON.parse(qrData);
         actionType = parsedQRData.actionType;
-        branchCode = parsedQRData.branchCode || '';
+        locationCode = parsedQRData.branchCode || '';
         originalUrl = parsedQRData.originalUrl || '';
         console.log("[QR Scan] Parsed QR object:", parsedQRData);
       } catch (parseError) {
-        // Fallback to simple string format (backward compatibility)
-        const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
-        const upperCaseData = qrData.toUpperCase();
-
-        if (validAttendanceCodes.includes(upperCaseData)) {
-          actionType = upperCaseData;
-          branchCode = '';
-          originalUrl = qrData;
+        // Fallback: Parse URL directly (https://wageuat.digierp.net/CI-HO01)
+        if (qrData.includes('https://wageuat.digierp.net/')) {
+          const urlPath = qrData.replace('https://wageuat.digierp.net/', '');
+          if (urlPath.includes('-')) {
+            const parts = urlPath.split('-');
+            actionType = parts[0]; // CI, CO, SB, EB
+            locationCode = parts.slice(1).join('-'); // HO01 (or handle multiple dashes)
+          }
         } else {
-          Alert.alert("Error", "Invalid attendance QR code format");
+          Alert.alert("Error", "Invalid QR code format. Expected: https://wageuat.digierp.net/ACTION-LOCATION");
           return;
         }
       }
 
       // Validate that QR action matches pending action
-      const qrActionMap = {
-        'CHECK_IN': 'CI',
-        'CHECK_OUT': 'CO', 
-        'START_BREAK': 'SB',
-        'END_BREAK': 'EB'
-      };
-
-      const expectedAction = qrActionMap[actionType as keyof typeof qrActionMap];
-      if (expectedAction !== currentAction) {
-        Alert.alert("Error", `Wrong QR code. Expected ${currentAction === 'CI' ? 'CHECK_IN' : currentAction === 'CO' ? 'CHECK_OUT' : currentAction === 'SB' ? 'START_BREAK' : 'END_BREAK'} but scanned ${actionType}`);
+      if (actionType !== currentAction) {
+        Alert.alert("Error", `Wrong QR code. Expected ${currentAction} but scanned ${actionType}`);
         return;
       }
 
@@ -302,16 +293,11 @@ function EmployeeInfoScreen() {
         return;
       }
 
-      // Get current location for location code
-      const location = await getCurrentLocation();
-      const { latitude, longitude } = location.coords;
-      const locationCode = `HO01_{${latitude},${longitude}}`;
-
       // Prepare request body for QR attendance
       const requestBody = {
         DetailData: {
           OrgId: parseInt(orgId),
-          Module: currentAction,
+          Module: currentAction, // CI, CO, SB, EB
           ModifyUser: parseInt(modifyUser),
           CreateUser: parseInt(modifyUser),
           Time: new Date().toLocaleTimeString("en-US", {
@@ -321,13 +307,7 @@ function EmployeeInfoScreen() {
             second: "2-digit",
           }),
           ContactRecordId: parseInt(employeeData.contactRecordId),
-          QRData: originalUrl, // Include original QR URL
-          QRAction: actionType, // The action from QR
-          BranchCode: branchCode, // The branch location
-          AttendanceMode: "QR", // Specify QR mode
-          QRTimestamp: parsedQRData.timestamp || Date.now(), // QR scan timestamp
-          LocationCode: locationCode,
-          LocationName: "HO01 - Head Office 01",
+          LocationCode: locationCode, // HO01 from QR code
         },
         BearerTokenValue: bearerToken,
       };
@@ -384,8 +364,8 @@ function EmployeeInfoScreen() {
         }
         if (currentAction === "EB") setIsOnBreak(false);
 
-        const successMessage = branchCode 
-          ? `QR attendance recorded at ${branchCode}: ${data.message}`
+        const successMessage = locationCode 
+          ? `QR attendance recorded at ${locationCode}: ${data.message}`
           : `QR attendance recorded: ${data.message}`;
 
         Alert.alert("Success", successMessage);

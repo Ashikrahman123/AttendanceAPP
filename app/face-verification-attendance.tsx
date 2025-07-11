@@ -48,7 +48,7 @@ export default function FaceVerificationAttendanceScreen() {
 
   const [facing, setFacing] = useState<CameraType>('front');
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(isProcessing);
   const [isVerified, setIsVerified] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verificationComplete, setVerificationComplete] = useState(false);

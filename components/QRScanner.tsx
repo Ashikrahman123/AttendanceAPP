@@ -84,7 +84,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       return; // Don't show alert, just ignore silently
     }
 
-    // Parse URL-based QR codes (e.g., https://wageuat.digierp.net/CHECK_IN-HO01)
+    // Parse URL-based QR codes (e.g., https://wageuat.digierp.net/CI-HO01 or https://wageuat.digierp.net/CO-HO01)
     let actionType = '';
     let branchCode = '';
     let isValidQR = false;
@@ -95,7 +95,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
         const urlPath = data.replace('https://wageuat.digierp.net/', '');
         console.log('[QR Scanner] URL path extracted:', urlPath);
         
-        // Parse the action and branch from the path (e.g., CHECK_IN-HO01)
+        // Parse the action and branch from the path (e.g., CI-HO01, CO-HO01)
         if (urlPath.includes('-')) {
           const parts = urlPath.split('-');
           actionType = parts[0].toUpperCase();
@@ -103,15 +103,15 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
           
           console.log('[QR Scanner] Parsed action:', actionType, 'branch:', branchCode);
           
-          // Validate action type (accept both long and short forms)
-          const validActions = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK', 'CI', 'CO', 'SB', 'EB'];
+          // Validate action type (CI, CO, SB, EB format)
+          const validActions = ['CI', 'CO', 'SB', 'EB'];
           if (validActions.includes(actionType)) {
             isValidQR = true;
           }
         }
       } else {
         // Fallback: Check for simple action codes (backward compatibility)
-        const validAttendanceCodes = ['CHECK_IN', 'CHECK_OUT', 'START_BREAK', 'END_BREAK'];
+        const validAttendanceCodes = ['CI', 'CO', 'SB', 'EB'];
         const upperCaseData = data.trim().toUpperCase();
         
         if (validAttendanceCodes.includes(upperCaseData)) {
@@ -129,7 +129,7 @@ export default function QRScanner({ onScan, onClose, isVisible }: QRScannerProps
       console.log('[QR Scanner] Invalid attendance QR code:', data);
       Alert.alert(
         'Invalid QR Code',
-        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code with format: https://wageuat.digierp.net/ACTION-BRANCH',
+        'This QR code is not recognized as a valid attendance code. Please scan a valid attendance QR code with format: https://wageuat.digierp.net/CI-HO01 or https://wageuat.digierp.net/CO-HO01',
         [
           {
             text: 'Try Again',
