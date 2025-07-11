@@ -30,7 +30,9 @@ import {
   Moon,
   Bell,
   Camera,
-  MapPin
+  MapPin,
+  Calendar1,
+  FileCheck
 } from "lucide-react-native";
 import UserAvatar from "@/components/UserAvatar";
 import Button from "@/components/Button";
@@ -152,11 +154,12 @@ export default function ProfileScreen() {
     if (!user) return;
 
     try {
-      const faces = await getRegisteredFaces(user.id);
-      const faceData = faces.length > 0 ? faces[0] : null;
+      const faceData = await getRegisteredFace(user.contactRecordId.toString());
       setRegisteredFace(faceData);
     } catch (error) {
       console.error("Error checking registered face:", error);
+    } finally {
+      setIsCheckingFace(false);
     }
   };
 
@@ -1601,6 +1604,210 @@ export default function ProfileScreen() {
       </Modal> */}
 
       {/* App Settings Modal */}
+      <Modal
+        visible={showSettingsModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSettingsModal(false)}
+      >
+        <View
+          style={[
+            styles.modalOverlay,
+            { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+          ]}
+        >
+          <View
+            style={[
+              styles.modalContent,
+              { backgroundColor: colors.background },
+            ]}
+          >
+            <View
+              style={[styles.modalHeader, { borderBottomColor: colors.border }]}
+            >
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                App Settings
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.closeButton,
+                  { backgroundColor: colors.cardAlt },
+                ]}
+                onPress={() => setShowSettingsModal(false)}
+              >
+                <X size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View
+                style={[
+                  styles.settingGroup,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <View style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <Moon size={20} color={colors.text} />
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>
+                      Dark Mode
+                    </Text>
+                  </View>
+                  <Switch
+                    value={isDarkMode}
+                    onValueChange={toggleTheme}
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primary + "40",
+                    }}
+                    thumbColor={isDarkMode ? colors.primary : colors.textSecondary}
+                  />
+                </View>
+
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+
+                <View style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <Bell size={20} color={colors.text} />
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>
+                      Notifications
+                    </Text>
+                  </View>
+                  <Switch
+                    value={appSettings.notifications}
+                    onValueChange={(value) =>
+                      setAppSettings({ ...appSettings, notifications: value })
+                    }
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primary + "40",
+                    }}
+                    thumbColor={
+                      appSettings.notifications ? colors.primary : colors.textSecondary
+                    }
+                  />
+                </View>
+
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+
+                <View style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <Camera size={20} color={colors.text} />
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>
+                      Face Verification Required
+                    </Text>
+                  </View>
+                  <Switch
+                    value={appSettings.faceVerificationRequired}
+                    onValueChange={(value) =>
+                      setAppSettings({
+                        ...appSettings,
+                        faceVerificationRequired: value,
+                      })
+                    }
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primary + "40",
+                    }}
+                    thumbColor={
+                      appSettings.faceVerificationRequired
+                        ? colors.primary
+                        : colors.textSecondary
+                    }
+                  />
+                </View>
+
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+
+                <View style={styles.settingItem}>
+                  <View style={styles.settingLeft}>
+                    <MapPin size={20} color={colors.text} />
+                    <Text style={[styles.settingLabel, { color: colors.text }]}>
+                      Location Tracking
+                    </Text>
+                  </View>
+                  <Switch
+                    value={appSettings.locationTracking}
+                    onValueChange={(value) =>
+                      setAppSettings({ ...appSettings, locationTracking: value })
+                    }
+                    trackColor={{
+                      false: colors.border,
+                      true: colors.primary + "40",
+                    }}
+                    thumbColor={
+                      appSettings.locationTracking ? colors.primary : colors.textSecondary
+                    }
+                  />
+                </View>
+
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+
+                <TouchableOpacity
+                  style={styles.settingItem}
+                  onPress={() => {
+                    Alert.alert(
+                      "Clear Base URL",
+                      "Are you sure you want to clear Base URL? This will log you out and you'll need to enter a new Base URL.",
+                      [
+                        {
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                        {
+                          text: "Yes",
+                          style: "destructive",
+                          onPress: async () => {
+                            try {
+                              await AsyncStorage.removeItem('baseUrl');
+                              await logout();
+                              router.replace('/baseurl');
+                              setShowSettingsModal(false);
+                            } catch (error) {
+                              console.error('Error clearing base URL:', error);
+                              Alert.alert('Error', 'Failed to clear base URL. Please try again.');
+                            }
+                          },
+                        },
+                      ]
+                    );
+                  }}
+                >
+                  <View style={styles.settingLeft}>
+                    <Settings size={20} color={colors.error} />
+                    <Text style={[styles.settingLabel, { color: colors.error }]}>
+                      Clear Base URL
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+
+            <View
+              style={[styles.modalFooter, { borderTopColor: colors.border }]}
+            >
+              <Button
+                title="Save Settings"
+                onPress={handleSaveAppSettings}
+                icon={<Save size={20} color="#FFFFFF" />}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Face Registration Modal */}
       <LoadingOverlay visible={isLoading} message="Please wait..." />
     </SafeAreaView>
