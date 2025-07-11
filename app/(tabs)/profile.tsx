@@ -11,12 +11,9 @@ import {
   Switch,
   TextInput,
   Platform,
-  Image,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { 
   User, 
@@ -31,12 +28,9 @@ import {
   Bell,
   Camera,
   MapPin,
-  Calendar1,
-  FileCheck
 } from "lucide-react-native";
 import UserAvatar from "@/components/UserAvatar";
 import Button from "@/components/Button";
-import Input from "@/components/Input";
 import { useColors } from "@/hooks/useColors";
 import { useAuthStore } from "@/store/auth-store";
 import { useAttendanceStore } from "@/store/attendance-store";
@@ -45,9 +39,6 @@ import { formatHours } from "@/utils/date-formatter";
 import { AppSettings, WorkingHoursSettings, LeaveRequest } from "@/types/user";
 import { useThemeStore } from "@/store/theme-store";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import { registerFace, getRegisteredFace } from "@/utils/face-recognition";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
-import QRGenerator from '@/components/QRGenerator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
@@ -63,8 +54,6 @@ export default function ProfileScreen() {
     useState(false);
   const [showReportsModal, setShowReportsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showFaceRegistrationModal, setShowFaceRegistrationModal] =
-    useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [leaveBalance, setLeaveBalance] = useState({
     annual: 0,
@@ -72,16 +61,6 @@ export default function ProfileScreen() {
     personal: 0,
   });
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-  const [registeredFace, setRegisteredFace] = useState<string | null>(null);
-
-  // Camera state
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [cameraReady, setCameraReady] = useState(false);
-  const [cameraFacing, setCameraFacing] = useState<CameraType>("front");
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-
-  // Camera ref
-  const cameraRef = React.useRef<any>(null);
 
   // Working hours settings
   const [workingHours, setWorkingHours] = useState<WorkingHoursSettings>({
@@ -107,15 +86,9 @@ export default function ProfileScreen() {
     type: "vacation" as "vacation" | "sick" | "personal" | "other",
   });
 
-  const [isCheckingFace, setIsCheckingFace] = useState(true);
-  const [baseUrl, setBaseUrl] = useState<string>('');
-  const [showQRGenerator, setShowQRGenerator] = useState(false);
-
   useEffect(() => {
     if (user) {
       loadLeaveData();
-      checkRegisteredFace();
-      loadBaseUrl();
     }
   }, [user]);
 
@@ -150,29 +123,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const checkRegisteredFace = async () => {
-    if (!user) return;
-
-    try {
-      const faceData = await getRegisteredFace(user.contactRecordId.toString());
-      setRegisteredFace(faceData);
-    } catch (error) {
-      console.error("Error checking registered face:", error);
-    } finally {
-      setIsCheckingFace(false);
-    }
-  };
-
-  const loadBaseUrl = async () => {
-    try {
-      const url = await AsyncStorage.getItem('baseUrl');
-      if (url) {
-        setBaseUrl(url);
-      }
-    } catch (error) {
-      console.error('Error loading base URL:', error);
-    }
-  };
+  
 
   if (!user) return null;
 
@@ -304,78 +255,7 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleCaptureFace = async () => {
-    if (!cameraRef.current || !cameraReady) {
-      Alert.alert("Error", "Camera is not ready. Please try again.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      if (Platform.OS !== "web") {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      }
-
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: true,
-      });
-
-      setCapturedImage(photo.uri);
-
-      // Register the face
-      const success = await registerFace(
-        photo.uri,
-        user.contactRecordId.toString(),
-      );
-
-      if (success) {
-        if (Platform.OS !== "web") {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }
-
-        Alert.alert(
-          "Face Registered",
-          "Your face has been successfully registered for verification.",
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setShowFaceRegistrationModal(false);
-                checkRegisteredFace();
-              },
-            },
-          ],
-        );
-      } else {
-        throw new Error("Failed to register face");
-      }
-    } catch (error) {
-      console.error("Error capturing face:", error);
-
-      if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      }
-
-      Alert.alert(
-        "Registration Failed",
-        "Failed to register your face. Please try again.",
-        [
-          {
-            text: "OK",
-            onPress: () => setCapturedImage(null),
-          },
-        ],
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRetakeFace = () => {
-    setCapturedImage(null);
-  };
+  
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -733,33 +613,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <View style={styles.actionButtons}>
-            <Button
-              title={registeredFace ? "Update Face ID" : "Register Face ID"}
-              onPress={() => router.push("/register-face")}
-              style={styles.actionButton}
-            />
-
-            <Button
-              title="View Stored Faces"
-              variant="outline"
-              onPress={() => router.push("/stored-faces")}
-              style={styles.actionButton}
-            />
-
-            {user.role === 'admin' && (
-              <Button
-                title={showQRGenerator ? "Hide QR Codes" : "Show QR Codes"}
-                variant="outline"
-                onPress={() => setShowQRGenerator(!showQRGenerator)}
-                style={styles.actionButton}
-              />
-            )}
-          </View>
-
-          {user.role === 'admin' && showQRGenerator && baseUrl && (
-            <QRGenerator baseUrl={baseUrl} branchCode="HO01" />
-          )}
+        
       </ScrollView>
 
       {/* Working Hours Modal */}
@@ -1829,13 +1683,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  actionButtons: {
-    marginTop: 20,
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'column',
-    gap: 12,
-  },
+  
   header: {
     padding: 20,
     paddingBottom: 10,

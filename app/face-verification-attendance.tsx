@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import {
   View,
@@ -44,11 +43,11 @@ const getBase64FromImageUri = async (uri: string): Promise<string | null> => {
     if (Platform.OS === "web") {
       return uri;
     }
-    
+
     const base64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    
+
     return `data:image/jpeg;base64,${base64}`;
   } catch (error) {
     console.error("[Base64] Error converting image:", error);
@@ -148,7 +147,7 @@ export default function FaceVerificationAttendanceScreen() {
       slideAnim.stopAnimation();
       successAnim.stopAnimation();
       pulseAnim.stopAnimation();
-      
+
       setCameraReady(false);
       setIsCapturing(false);
       setIsProcessing(false);
@@ -471,145 +470,98 @@ export default function FaceVerificationAttendanceScreen() {
       <StatusBar style="light" />
 
       {!capturedImage ? (
-        <>
-          <CameraView
-            style={styles.camera}
-            facing={facing}
-            ref={cameraRef}
-            onCameraReady={() => {
-              console.log("[Camera] Camera ready");
-              setTimeout(() => setCameraReady(true), 1000);
-            }}
-            onMountError={(error) => {
-              console.error("[Camera] Mount error:", error);
-              Alert.alert(
-                "Camera Error",
-                "Failed to initialize camera. Please check permissions and try again.",
-                [{ text: "OK", onPress: () => router.back() }]
-              );
-            }}
-          />
+        
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={styles.camera}
+          facing={facing}
+          ref={cameraRef}
+          onCameraReady={() => setCameraReady(true)}
+        />
 
-          <View style={styles.headerOverlay}>
-            <SafeAreaView>
-              <Animated.View
-                style={[
-                  styles.header,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                  },
-                ]}
+        <View style={styles.overlay}>
+          <SafeAreaView style={styles.safeArea}>
+            <Animated.View
+              style={[
+                styles.header,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={handleCancel}
               >
-                <TouchableOpacity
-                  style={styles.headerButton}
-                  onPress={handleCancel}
-                >
-                  <X size={24} color="#FFFFFF" />
-                </TouchableOpacity>
+                <X size={24} color="#FFFFFF" />
+              </TouchableOpacity>
 
-                <View style={styles.headerContent}>
-                  <Text style={styles.headerTitle}>{getActionTitle()}</Text>
-                  <Text style={styles.headerSubtitle}>{employeeName}</Text>
-                </View>
+              <View style={styles.headerContent}>
+                <Text style={styles.title}>Face Verification</Text>
+                <Text style={styles.subtitle}>
+                  Position your face in the frame
+                </Text>
+              </View>
 
-                <TouchableOpacity
-                  style={styles.headerButton}
-                  onPress={toggleCameraFacing}
-                >
-                  <RefreshCw size={24} color="#FFFFFF" />
-                </TouchableOpacity>
-              </Animated.View>
-            </SafeAreaView>
-          </View>
+              <TouchableOpacity
+                style={styles.flipButton}
+                onPress={toggleCameraFacing}
+              >
+                <RefreshCw size={24} color="#FFFFFF" />
+              </TouchableOpacity>
+            </Animated.View>
 
-          <View style={styles.faceBoundaryOverlay}>
-            <View style={styles.faceFrame}>
-              <View style={[styles.faceGuideCorner, styles.topLeft]} />
-              <View style={[styles.faceGuideCorner, styles.topRight]} />
-              <View style={[styles.faceGuideCorner, styles.bottomLeft]} />
-              <View style={[styles.faceGuideCorner, styles.bottomRight]} />
+            <View style={styles.scanArea}>
+              <View style={[styles.corner, styles.topLeft]} />
+              <View style={[styles.corner, styles.topRight]} />
+              <View style={[styles.corner, styles.bottomLeft]} />
+              <View style={[styles.corner, styles.bottomRight]} />
             </View>
-            <Text style={styles.instructionText}>
-              Position your face in the frame
-            </Text>
-          </View>
 
-          <View style={styles.bottomOverlay}>
-            <SafeAreaView style={styles.bottomSafeArea}>
-              <Animated.View
-                style={[
-                  styles.bottomControls,
-                  {
-                    opacity: fadeAnim,
-                    transform: [{ translateY: slideAnim }],
-                  },
+            <Animated.View
+              style={[
+                styles.footer,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: -slideAnim }],
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={[
+                  colors.primaryGradientStart,
+                  colors.primaryGradientEnd,
                 ]}
+                style={styles.captureButtonContainer}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
               >
-                <View style={styles.captureRow}>
-                  <View style={styles.captureInfo}>
-                    <Text style={styles.captureStatusText}>
-                      {isCapturing
-                        ? "Capturing..."
-                        : cameraReady
-                          ? "Ready to capture"
-                          : "Initializing camera..."}
-                    </Text>
-                    {!cameraReady && (
-                      <ActivityIndicator
-                        size="small"
-                        color="#FFFFFF"
-                        style={{ marginTop: 4 }}
-                      />
-                    )}
-                  </View>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={handleCapture}
+                  disabled={isCapturing || !cameraReady}
+                >
+                  {isCapturing ? (
+                    <ActivityIndicator color="#FFFFFF" size="large" />
+                  ) : (
+                    <Camera size={24} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </LinearGradient>
 
-                  <Animated.View
-                    style={[
-                      styles.captureButtonContainer,
-                      {
-                        transform: [
-                          {
-                            scale: pulseAnim.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [1, 1.1],
-                            }),
-                          },
-                        ],
-                      },
-                    ]}
-                  >
-                    <LinearGradient
-                      colors={getActionColor()}
-                      style={styles.captureButtonGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <TouchableOpacity
-                        style={styles.captureButton}
-                        onPress={handleCapture}
-                        disabled={isCapturing || !cameraReady}
-                        activeOpacity={0.8}
-                      >
-                        {isCapturing ? (
-                          <ActivityIndicator color="#FFFFFF" size="large" />
-                        ) : (
-                          getActionIcon()
-                        )}
-                      </TouchableOpacity>
-                    </LinearGradient>
-                  </Animated.View>
-
-                  <View style={styles.captureInfo}>
-                    <Text style={styles.captureHintText}>
-                      {cameraReady ? "Tap to capture" : "Loading..."}
-                    </Text>
-                  </View>
-                </View>
-              </Animated.View>
-            </SafeAreaView>
-          </View>
-        </>
+              <Text style={styles.captureText}>
+                {isCapturing
+                  ? "Capturing..."
+                  : cameraReady
+                    ? "Tap to capture"
+                    : "Preparing camera..."}
+              </Text>
+            </Animated.View>
+          </SafeAreaView>
+        </View>
+      </View>
+        
       ) : (
         <View style={styles.resultContainer}>
           <Image
@@ -728,8 +680,60 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
+  cameraContainer: {
+    flex: 1,
+    position: "relative",
+  },
   camera: {
     flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  safeArea: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  scanArea: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: 250,
+    height: 250,
+    marginLeft: -125,
+    marginTop: -125,
+  },
+  corner: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderBottomWidth: 0,
+    borderRightWidth: 0,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderTopWidth: 0,
+    borderRightWidth: 0,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
   },
   headerOverlay: {
     position: "absolute",
