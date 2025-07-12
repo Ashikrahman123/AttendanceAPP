@@ -16,21 +16,9 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutNav() {
   const { baseUrl, isLoading } = useBaseUrl();
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
-  const [showSplash, setShowSplash] = useState(true);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!showSplash && baseUrl && !isAuthenticated) {
-      router.replace("/(auth)/login");
-    }
-  }, [showSplash, baseUrl, isAuthenticated]);
+  // Removed redirect logic as it's handled in index.tsx
 
   return (
     <Stack
