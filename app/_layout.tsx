@@ -6,9 +6,7 @@ import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useBaseUrl } from "@/context/BaseUrlContext";
 import { BaseUrlProvider } from "@/context/BaseUrlContext";
-import ThemeProvider from "@/components/ThemeProvider";
 import { useAuthStore } from "@/store/auth-store";
-import CustomSplashScreen from "@/components/SplashScreen";
 import { useThemeStore } from "@/store/theme-store";
 import { router } from "expo-router";
 
@@ -33,11 +31,6 @@ function RootLayoutNav() {
       router.replace("/(auth)/login");
     }
   }, [showSplash, baseUrl, isAuthenticated]);
-
-  // 🔐 Render ONLY the splash screen if splash is active or baseUrl is loading
-  if (showSplash || isLoading) {
-    return <CustomSplashScreen onFinish={() => {}} />;
-  }
 
   return (
     <Stack
@@ -76,9 +69,7 @@ export default function RootLayout() {
 
   return (
     <BaseUrlProvider>
-      <ThemeProvider>
-        <RootLayoutNav />
-      </ThemeProvider>
+      <RootLayoutNav />
     </BaseUrlProvider>
   );
 }

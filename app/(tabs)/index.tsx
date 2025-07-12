@@ -1,41 +1,44 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  TouchableOpacity, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
   ScrollView,
   Animated,
   Alert,
   Platform,
   RefreshControl,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Coffee, 
-  Timer, 
-  MapPin, 
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import {
+  CheckCircle,
+  XCircle,
+  Coffee,
+  Timer,
+  MapPin,
   Calendar,
   Clock,
   BarChart3,
   User,
-  Scan
-} from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import Colors from '@/constants/colors';
-import Button from '@/components/Button';
-import UserAvatar from '@/components/UserAvatar';
-import { useAuthStore } from '@/store/auth-store';
-import { useAttendanceStore } from '@/store/attendance-store';
-import { formatTime, formatHours, formatDate } from '@/utils/date-formatter';
-import { getCurrentLocation, getAddressFromCoordinates } from '@/utils/location-service';
-import { AttendanceType } from '@/types/user';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  Scan,
+} from "lucide-react-native";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import Colors from "@/constants/colors";
+import Button from "@/components/Button";
+import UserAvatar from "@/components/UserAvatar";
+import { useAuthStore } from "@/store/auth-store";
+import { useAttendanceStore } from "@/store/attendance-store";
+import { formatTime, formatHours, formatDate } from "@/utils/date-formatter";
+import {
+  getCurrentLocation,
+  getAddressFromCoordinates,
+} from "@/utils/location-service";
+import { AttendanceType } from "@/types/user";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
@@ -51,7 +54,9 @@ export default function HomeScreen() {
   const [currentAddress, setCurrentAddress] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [attendanceMode, setAttendanceMode] = useState<"manual" | "qr" | "faceid">("manual");
+  const [attendanceMode, setAttendanceMode] = useState<
+    "manual" | "qr" | "faceid"
+  >("manual");
 
   // Animation values
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -99,22 +104,6 @@ export default function HomeScreen() {
     }
   };
 
-  const handleAttendance = async () => {
-    if (!user || !nextAction) return;
-
-    if (Platform.OS !== "web") {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-
-    // Navigate to face verification screen
-    router.push({
-      pathname: "/face-verification",
-      params: {
-        type: nextAction,
-      },
-    });
-  };
-
   const handleManualAttendance = async () => {
     if (!user || !nextAction) return;
 
@@ -135,19 +124,17 @@ export default function HomeScreen() {
       });
 
       Alert.alert(
-        'Success',
-        `${nextAction.charAt(0).toUpperCase() + nextAction.slice(1).replace('-', ' ')} recorded successfully!`,
-        [{ text: 'OK' }]
+        "Success",
+        `${nextAction.charAt(0).toUpperCase() + nextAction.slice(1).replace("-", " ")} recorded successfully!`,
+        [{ text: "OK" }],
       );
 
-      console.log('Attendance recorded:', newRecord);
+      console.log("Attendance recorded:", newRecord);
     } catch (error) {
-      console.error('Failed to record attendance:', error);
-      Alert.alert(
-        'Error',
-        'Failed to record attendance. Please try again.',
-        [{ text: 'OK' }]
-      );
+      console.error("Failed to record attendance:", error);
+      Alert.alert("Error", "Failed to record attendance. Please try again.", [
+        { text: "OK" },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -293,7 +280,12 @@ export default function HomeScreen() {
                 {user.role === "admin" ? "Administrator" : "Employee"}
               </Text>
               <Text style={styles.attendanceModeText}>
-                Attendance Mode: {attendanceMode === "qr" ? "QR Code" : attendanceMode === "manual" ? "Manual" : "Face ID"}
+                Attendance Mode:{" "}
+                {attendanceMode === "qr"
+                  ? "QR Code"
+                  : attendanceMode === "manual"
+                    ? "Manual"
+                    : "Face ID"}
               </Text>
             </View>
           </View>
@@ -810,7 +802,7 @@ const styles = StyleSheet.create({
   storedFacesButton: {
     marginTop: 20,
   },
-   attendanceModeText: {
+  attendanceModeText: {
     fontSize: 14,
     color: Colors.text,
     marginTop: 5,
