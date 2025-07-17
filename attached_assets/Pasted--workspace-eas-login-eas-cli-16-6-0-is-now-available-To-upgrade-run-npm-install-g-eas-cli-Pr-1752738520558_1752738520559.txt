@@ -1,0 +1,60 @@
+~/workspace$ eas login
+★ eas-cli@16.6.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+You are already logged in as ashikr142.
+✔ Do you want to continue? … yes
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+✔ Email or username … 
+✔ Password … 
+"username": String must contain at least 1 character(s), "password": String must contain at least 1 character(s).
+    Error: account:login command failed.
+~/workspace$ eas login
+★ eas-cli@16.16.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+You are already logged in as ashikr142.
+✔ Do you want to continue? … yes
+Log in to EAS with email or username (exit and run eas login --help to see other login options)
+✔ Email or username … ashikr142
+✔ Password … ***********
+Logged in
+~/workspace$ eas build -p android --profile preview
+★ eas-cli@16.16.0 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+The field "cli.appVersionSource" is not set, but it will be required in the future. Learn more: https://docs.expo.dev/build-reference/app-versions/
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+Specified value for "android.package" in app.json is ignored because an android directory was detected in the project.
+EAS Build will use the value found in the native code.
+The field "cli.appVersionSource" is not set, but it will be required in the future. Learn more: https://docs.expo.dev/build-reference/app-versions/
+✔ Using remote Android credentials (Expo server)
+✔ Using Keystore from configuration: Build Credentials H7QfCDe65m (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+✔ Compressed project files 1m 37s (273 MB)
+Your project archive is 273 MB. You can reduce its size and the time it takes to upload by excluding files that are unnecessary for the build process in .easignore file. Learn more: https://expo.fyi/eas-build-archive
+Failed to upload metadata to EAS Build
+
+Reason: Request failed: 400 (Bad Request)
+✔ Uploaded to EAS 51s
+⌛️ Computing the project fingerprint is taking longer than expected...
+⏩ To skip this step, set the environment variable: EAS_SKIP_AUTO_FINGERPRINT=1
+✔ Computed project fingerprint
+
+Build details: https://expo.dev/accounts/ashikr142/projects/employee-face-attendance-app/builds/1540e553-d402-422f-9ae9-b62d04f97dc0
+
+Waiting for build to complete. You can press Ctrl+C to exit.
+✖ Build failed
+
+🤖 Android build failed:
+Unknown error. See logs of the Install dependencies build phase for more information.
+~/workspace$ 
