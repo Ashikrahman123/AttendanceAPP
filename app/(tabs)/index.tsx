@@ -274,9 +274,9 @@ export default function HomeScreen() {
             />
             <View style={styles.userDetails}>
               <Text style={styles.greeting}>
-                Hello, {user?.name ? user.name.split(" ")[0] : "User"}
+                {user?.name ? user.name.split(" ")[0] : "User"}
               </Text>
-              <Text style={styles.role}>
+              {/* <Text style={styles.role}>
                 {user.role === "admin" ? "Administrator" : "Employee"}
               </Text>
               <Text style={styles.attendanceModeText}>
@@ -286,7 +286,7 @@ export default function HomeScreen() {
                   : attendanceMode === "manual"
                     ? "Manual"
                     : "Face ID"}
-              </Text>
+              </Text> */}
             </View>
           </View>
         </Animated.View>

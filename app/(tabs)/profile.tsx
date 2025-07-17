@@ -15,14 +15,14 @@ import {
 import { StatusBar } from "expo-status-bar";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Settings, 
-  ChevronRight, 
-  LogOut, 
-  X, 
+import {
+  User,
+  Mail,
+  Shield,
+  Settings,
+  ChevronRight,
+  LogOut,
+  X,
   Save,
   Moon,
   Bell,
@@ -39,7 +39,7 @@ import { formatHours } from "@/utils/date-formatter";
 import { AppSettings, WorkingHoursSettings, LeaveRequest } from "@/types/user";
 import { useThemeStore } from "@/store/theme-store";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const colors = useColors();
@@ -122,8 +122,6 @@ export default function ProfileScreen() {
       setIsLoading(false);
     }
   };
-
-  
 
   if (!user) return null;
 
@@ -255,8 +253,6 @@ export default function ProfileScreen() {
     }
   };
 
-  
-
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -276,7 +272,7 @@ export default function ProfileScreen() {
           <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
         </View> */}
 
-        <View
+        {/* <View
           style={[
             styles.profileCard,
             {
@@ -300,7 +296,7 @@ export default function ProfileScreen() {
             {user.role === "admin" ? "Administrator" : "Employee"}
           </Text>
 
-          {/* <View style={styles.statsContainer}>
+          <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.primary }]}>
                 {formatHours(totalHoursWorked)}
@@ -335,8 +331,8 @@ export default function ProfileScreen() {
                 Days Worked
               </Text>
             </View>
-          </View> */}
-        </View>
+          </View>
+        </View> */}
 
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -612,8 +608,6 @@ export default function ProfileScreen() {
             icon={<LogOut size={20} color={colors.primary} />}
           />
         </View>
-
-        
       </ScrollView>
 
       {/* Working Hours Modal */}
@@ -1517,7 +1511,9 @@ export default function ProfileScreen() {
                       false: colors.border,
                       true: colors.primary + "40",
                     }}
-                    thumbColor={isDarkMode ? colors.primary : colors.textSecondary}
+                    thumbColor={
+                      isDarkMode ? colors.primary : colors.textSecondary
+                    }
                   />
                 </View>
 
@@ -1542,7 +1538,9 @@ export default function ProfileScreen() {
                       true: colors.primary + "40",
                     }}
                     thumbColor={
-                      appSettings.notifications ? colors.primary : colors.textSecondary
+                      appSettings.notifications
+                        ? colors.primary
+                        : colors.textSecondary
                     }
                   />
                 </View>
@@ -1592,14 +1590,19 @@ export default function ProfileScreen() {
                   <Switch
                     value={appSettings.locationTracking}
                     onValueChange={(value) =>
-                      setAppSettings({ ...appSettings, locationTracking: value })
+                      setAppSettings({
+                        ...appSettings,
+                        locationTracking: value,
+                      })
                     }
                     trackColor={{
                       false: colors.border,
                       true: colors.primary + "40",
                     }}
                     thumbColor={
-                      appSettings.locationTracking ? colors.primary : colors.textSecondary
+                      appSettings.locationTracking
+                        ? colors.primary
+                        : colors.textSecondary
                     }
                   />
                 </View>
@@ -1624,23 +1627,28 @@ export default function ProfileScreen() {
                           style: "destructive",
                           onPress: async () => {
                             try {
-                              await AsyncStorage.removeItem('baseUrl');
+                              await AsyncStorage.removeItem("baseUrl");
                               await logout();
-                              router.replace('/baseurl');
+                              router.replace("/baseurl");
                               setShowSettingsModal(false);
                             } catch (error) {
-                              console.error('Error clearing base URL:', error);
-                              Alert.alert('Error', 'Failed to clear base URL. Please try again.');
+                              console.error("Error clearing base URL:", error);
+                              Alert.alert(
+                                "Error",
+                                "Failed to clear base URL. Please try again.",
+                              );
                             }
                           },
                         },
-                      ]
+                      ],
                     );
                   }}
                 >
                   <View style={styles.settingLeft}>
                     <Settings size={20} color={colors.error} />
-                    <Text style={[styles.settingLabel, { color: colors.error }]}>
+                    <Text
+                      style={[styles.settingLabel, { color: colors.error }]}
+                    >
                       Clear Base URL
                     </Text>
                   </View>
@@ -1683,7 +1691,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
+
   header: {
     padding: 20,
     paddingBottom: 10,
